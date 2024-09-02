@@ -2,7 +2,7 @@ import { Button } from "../ui/button"
 
 const Cta = () => {
   return (
-    <div className="max-w-[1150px] mx-auto mt-20  bg-roshitaBlue mb-20 rounded-2xl h-60 flex ">
+    <div className="max-w-4xl mx-auto mt-20  bg-roshitaBlue mb-20 rounded-2xl h-60 flex ">
 <div className="lg:!w-[40%] w-[100%] h-full">
     <img 
         src="/images/call-to-ation.png" 
