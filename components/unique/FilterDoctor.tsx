@@ -1,4 +1,4 @@
-import { Banknote, ChevronDown, Filter, Globe } from "lucide-react";
+import { Banknote, ChevronDown, Filter, Globe, HeartPulse, Star } from "lucide-react";
 import React, { useState } from "react";
 
 // Define the types for Doctor and Props
@@ -18,6 +18,8 @@ interface FilterDoctorProps {
   setSelectedPrices: React.Dispatch<React.SetStateAction<string[]>>;
   selectedCountries: string[];
   setSelectedCountries: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedSpecialties: string[];
+  setSelectedSpecialties: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const FilterDoctor: React.FC<FilterDoctorProps> = ({
@@ -26,21 +28,20 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   setSelectedPrices,
   selectedCountries,
   setSelectedCountries,
+  selectedSpecialties,
+  setSelectedSpecialties,
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const [isSpecialtyOpen, setIsSpecialtyOpen] = useState(false);
 
-  // Ensure no undefined values
-  const prices = Array.from(
-    new Set(doctors.map((doctor) => doctor.price || ""))
-  );
-  const countries = Array.from(
-    new Set(doctors.map((doctor) => doctor.location || ""))
-  );
+  const prices = Array.from(new Set(doctors.map((doctor) => doctor.price || "")));
+  const countries = Array.from(new Set(doctors.map((doctor) => doctor.location || "")));
+  const specialties = Array.from(new Set(doctors.map((doctor) => doctor.specialty || "")));
 
   const handlePriceChange = (price: string) => {
-    if (price === undefined) return; // Check if price is undefined
+    if (price === undefined) return;
     if (selectedPrices.includes(price)) {
       setSelectedPrices(selectedPrices.filter((p) => p !== price));
     } else {
@@ -49,11 +50,20 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   };
 
   const handleCountryChange = (country: string) => {
-    if (country === undefined) return; // Check if country is undefined
+    if (country === undefined) return;
     if (selectedCountries.includes(country)) {
       setSelectedCountries(selectedCountries.filter((c) => c !== country));
     } else {
       setSelectedCountries([...selectedCountries, country]);
+    }
+  };
+
+  const handleSpecialtyChange = (specialty: string) => {
+    if (specialty === undefined) return;
+    if (selectedSpecialties.includes(specialty)) {
+      setSelectedSpecialties(selectedSpecialties.filter((s) => s !== specialty));
+    } else {
+      setSelectedSpecialties([...selectedSpecialties, specialty]);
     }
   };
 
@@ -127,7 +137,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                 }`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">الدولة</h3>
+                <h3 className="font-bold mb-2">البلد</h3>
                 <Globe className="text-roshitaDarkBlue" />
               </div>
             </div>
@@ -136,14 +146,47 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               <div className="flex flex-col-reverse gap-2">
                 {countries.map((country) => (
                   <div key={country} className="flex gap-1 items-center justify-end">
-                                        <label className="text-gray-400">{country}</label>
+                    <label className="text-gray-400">{country}</label>
                     <input
                       type="checkbox"
                       checked={selectedCountries.includes(country)}
                       onChange={() => handleCountryChange(country)}
                       className="rounded-full"
                     />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
+          {/* Specialty Filter Accordion */}
+          <div className="mt-4">
+            <div
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setIsSpecialtyOpen(!isSpecialtyOpen)}
+            >
+              <ChevronDown
+                className={`text-roshitaDarkBlue ${
+                  isSpecialtyOpen ? "rotate-180" : ""
+                }`}
+              />
+              <div className="flex justify-end items-center gap-1">
+                <h3 className="font-bold mb-2">التخصص</h3>
+                <HeartPulse className="text-roshitaDarkBlue" />
+              </div>
+            </div>
+
+            {isSpecialtyOpen && (
+              <div className="flex flex-col-reverse gap-2">
+                {specialties.map((specialty) => (
+                  <div key={specialty} className="flex gap-1 items-center justify-end">
+                    <label className="text-gray-400">{specialty}</label>
+                    <input
+                      type="checkbox"
+                      checked={selectedSpecialties.includes(specialty)}
+                      onChange={() => handleSpecialtyChange(specialty)}
+                      className="rounded-full"
+                    />
                   </div>
                 ))}
               </div>
