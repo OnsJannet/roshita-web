@@ -61,7 +61,7 @@ const Page = () => {
       <GuideTitleSection onSearchChange={handleSearchUpdate} />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
         <div className="lg:w-[20%]">
-          {/* Filter Component */}
+          {/* Filter Component 
           <FilterDoctor
             doctors={doctors}
             selectedPrices={selectedPrices}
@@ -70,7 +70,7 @@ const Page = () => {
             setSelectedCountries={setSelectedCountries}
             selectedSpecialties={selectedSpecialties}
             setSelectedSpecialties={setSelectedSpecialties}
-          />
+          />*/}
 
           {/* Reset Filters Button */}
           <button 
