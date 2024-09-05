@@ -1,14 +1,45 @@
+'use client'
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loginUser } from "@/lib/api";
 
 export const description =
-  "A login page with two columns. The first column has the login form with email and password. There's a Forgot your passwork link and a link to sign up if you do not have an account. The second column has a cover image.";
+  "A login Page with two columns. The first column has the login form with phone and password. There's a Forgot your password link and a link to sign up if you do not have an account. The second column has a cover image.";
 
-const page = () => {
+const Page = () => {
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null); // Reset any previous errors
+
+    try {
+      // Call the loginUser function here
+      const data = await loginUser({ phone, password });
+
+      if (data.error) {
+        throw new Error(data.error); // Handle server-side errors
+      }
+
+      // Handle successful login, e.g., redirect to a dashboard
+      console.log("Login successful:", data);
+      // You can redirect here or save the token if needed
+
+    } catch (error: any) {
+      setError(error.message || "Failed to login.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
       <div className="flex items-center justify-center py-12">
@@ -19,16 +50,26 @@ const page = () => {
               عبئ المتطلبات الأتيه لتسجيل الدخول
             </p>
           </div>
-          <div className="grid gap-4">
+
+          {/* Error message */}
+          {error && (
+            <div className="text-red-500 text-center">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email " className="text-end">
-                الإيميل
+              <Label htmlFor="phone" className="text-end">
+                رقم الهاتف
               </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
+                id="phone"
+                type="tel"
+                placeholder="1234567890"
                 required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -42,15 +83,19 @@ const page = () => {
                 <Label htmlFor="password">كلمة المرور</Label>
               </div>
 
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
-            <Button type="submit" className="w-full bg-roshitaBlue" >
-              تسجيل
+            <Button type="submit" className="w-full bg-roshitaBlue" disabled={loading}>
+              {loading ? "جاري التسجيل..." : "تسجيل"}
             </Button>
-            {/*<Button variant="outline" className="w-full">
-              Login with Google
-            </Button>*/}
-          </div>
+          </form>
+
           <div className="mt-4 text-center text-sm">
             لا تمتلك حسابًا؟{" "}
             <Link href="/register" className="underline">
@@ -71,4 +116,5 @@ const page = () => {
     </div>
   );
 };
-export default page;
+
+export default Page;

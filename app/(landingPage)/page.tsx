@@ -1,5 +1,6 @@
 import BestDoctors from "@/components/unique/BestDoctors";
 import Cta from "@/components/unique/Cta";
+import DoctorCard from "@/components/unique/DoctorCard";
 import DownloadApp from "@/components/unique/DownloadApp";
 import HeroPage from "@/components/unique/HeroPage";
 import Services from "@/components/unique/Services";
@@ -69,6 +70,8 @@ const page = () => {
           ></path>
         </svg>
       </div>
+
+      {/*<DoctorCard/>*/}
     </div>
   );
 };

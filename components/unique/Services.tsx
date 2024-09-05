@@ -34,7 +34,7 @@ const Services = () => {
       <div className="flex justify-center lg:gap-10 gap-4 mt-8 lg:flex-row-reverse mb-8 flex-col-reverse">
         {service.map((service, index) => (
           <Fragment key={index}>
-            {index === 1 && <Separator orientation="vertical" className="h-[150px] my-auto lg:flex hidden"/>}
+            {/*{index === 1 && <Separator orientation="vertical" className="h-[150px] my-auto lg:flex hidden"/>}*/}
             <div
               key={index}
               className="bg-white shadow-md rounded-lg p-4 lg:w-[200px] w-[60%] lg:mx-0 mx-auto h-[200px] flex flex-col items-center text-center my-center gap-10"
@@ -53,7 +53,7 @@ const Services = () => {
               </div>
               <p className="text-gray-600 text-[15px]">{service.paragraph}</p>
             </div>
-            {index === 1 && <Separator orientation="vertical" className="h-[150px] my-auto w-[0.5px] lg:flex hidden"/>}
+           {/* {index === 1 && <Separator orientation="vertical" className="h-[150px] my-auto w-[0.5px] lg:flex hidden"/>}*/}
           </Fragment>
         ))}
       </div>
