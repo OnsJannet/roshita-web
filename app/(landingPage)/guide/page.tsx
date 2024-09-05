@@ -60,8 +60,8 @@ const Page = () => {
     <div className="bg-[#F9F9F9] pb-20">
       <GuideTitleSection onSearchChange={handleSearchUpdate} />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
-        <div className="lg:w-[20%]">
-          {/* Filter Component 
+        {/*<div className="lg:w-[20%]">
+           Filter Component 
           <FilterDoctor
             doctors={doctors}
             selectedPrices={selectedPrices}
@@ -72,16 +72,16 @@ const Page = () => {
             setSelectedSpecialties={setSelectedSpecialties}
           />*/}
 
-          {/* Reset Filters Button */}
+          {/* Reset Filters Button 
           <button 
             className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 w-full"
             onClick={resetFilters}
           >
             إعادة ضبط الفلاتر
           </button>
-        </div>
+        </div>*/}
 
-        {searchTerm === 'doctorsSearch' ? (<div className="space-y-4 lg:w-[80%]">
+        {searchTerm === 'doctorsSearch' ? (<div className="space-y-4 lg:w-full">
           {currentDoctors.map((doctor, index) => (
             <DoctorCard
               key={index}
