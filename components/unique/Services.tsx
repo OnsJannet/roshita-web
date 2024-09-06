@@ -1,9 +1,11 @@
 'use client';
 
+import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 
 const Services = () => {
+  const router = useRouter(); // Initialize useRouter
   const services = [
     {
       title: "صيدليات",
@@ -23,8 +25,8 @@ const Services = () => {
   ];
 
   const handleClick = () => {
-    console.log("click clicked");
-    window.location.href = "/guide";
+    console.log("Button clicked"); // Debugging line
+    router.push('/guide');
   };
 
   return (
@@ -59,10 +61,10 @@ const Services = () => {
         ))}
       </div>
       <div className="flex justify-center mb-4">
-        <Button
+      <Button
           variant="register"
-          className="h-[72px] w-[200px] rounded-2xl text-[18px] font-semibold cursor-pointer"
-          onClick={() => window.location.href = "/guide"}
+          className="h-[72px] w-[200px] rounded-2xl text-[18px] font-semibold cursor-pointer z-[999999]"
+          onClick={handleClick}
         >
           اكتشف الدليل
         </Button>

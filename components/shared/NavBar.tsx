@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { AlignLeft, UserRound } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "../ui/dropdown-menu"; // Adjust the import path according to your project structure
 import Image from 'next/image'; // Assuming you use Next.js for image optimization
+import { useRouter } from "next/navigation";
 
 const fetchProfileDetails = async (): Promise<any> => {
   try {
@@ -34,6 +35,7 @@ const fetchProfileDetails = async (): Promise<any> => {
 const NavBar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [profile, setProfile] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -62,6 +64,19 @@ const NavBar = () => {
     window.location.href = "/register";
   };
 
+  const handleClickHome = () => {
+    window.location.href = "/";
+  }
+
+  const handleClickSettings = () => {
+
+    router.push('/profile');
+  };
+
+  const handleClickAppointments = () => {
+    router.push('/appointments');
+  };
+
   return (
     <header
       className="h-[80px] lg:px-0 px-4 pb-4 pt-2 rounded-b-lg"
@@ -82,6 +97,7 @@ const NavBar = () => {
             src="/logos/Logo_normal.png"
             alt="roshita logo"
             className="lg:w-[50px] w-[45px] h-auto"
+            onClick={handleClickHome}
           />
         </div>
         <div className="gap-4 lg:flex pt-2 hidden">
@@ -120,8 +136,8 @@ const NavBar = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>حسابي</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>الإعدادات</DropdownMenuItem>
-                <DropdownMenuItem>مواعيدي</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClickSettings}>الإعدادات</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClickAppointments}>مواعيدي</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => {
                   localStorage.removeItem('access');

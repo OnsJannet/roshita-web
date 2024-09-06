@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import withAuth from "@/hoc/withAuth";
 import { Camera, LogOut, Mail, MapPin, MonitorCheck, Phone, Settings, UserRound } from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 /**
  * Edits the user profile by making a POST request to the profile edit API.
@@ -85,6 +86,7 @@ const UploadImage: React.FC<UploadImageProps> = ({ image, onImageChange }) => {
 };
 
 const Profile = () => {
+  const router = useRouter(); // Initialize useRouter
   const [image, setImage] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
@@ -165,6 +167,18 @@ const Profile = () => {
     window.location.href = '/login';
   };
 
+  const handleSettingsClick = () => {
+    router.push('/profile');
+  };
+
+  const handleAppointmentsClick = () => {
+    router.push('/appointments');
+  };
+
+  const handleSettingsPasswordClick = () => {
+    router.push('/password-change');
+  };
+
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
@@ -174,13 +188,28 @@ const Profile = () => {
               <UploadImage image={image} onImageChange={handleImageChange} />
             </div>
             <div>
-              <div className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer">
+               <div
+                onClick={handleSettingsClick}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>الإعدادت</p>
               </div>
-              <div className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer">
+              <div
+                onClick={handleSettingsPasswordClick}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
+                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                  <Settings className="h-4 w-4 text-roshitaDarkBlue" />
+                </div>
+                <p>تغير كلمة المرور</p>
+              </div>
+              <div
+                onClick={handleAppointmentsClick}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>

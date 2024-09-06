@@ -81,6 +81,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     // Create appointment object
     const newAppointment = {
       appointmentDate: new Date().toLocaleDateString(),
+      imageUrl: imageUrl,
       doctorName: name,
       specialty: specialty,
       price: price,
