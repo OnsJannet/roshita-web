@@ -8,8 +8,7 @@ import { Label } from '@/components/ui/label';
 import { loginUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
-export const description =
-  'A login Page with two columns. The first column has the login form with phone and password. There\'s a Forgot your password link and a link to sign up if you do not have an account. The second column has a cover image.';
+
 
 const Page = () => {
   const [phone, setPhone] = useState('');
