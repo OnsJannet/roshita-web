@@ -1,40 +1,45 @@
-'use client'
-import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { loginUser } from "@/lib/api";
+'use client';
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { loginUser } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 export const description =
-  "A login Page with two columns. The first column has the login form with phone and password. There's a Forgot your password link and a link to sign up if you do not have an account. The second column has a cover image.";
+  'A login Page with two columns. The first column has the login form with phone and password. There\'s a Forgot your password link and a link to sign up if you do not have an account. The second column has a cover image.';
 
 const Page = () => {
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const query = new URLSearchParams(window.location.search);
+  const redirectUrl = query.get('redirect') || '/'; // Default to home page
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null); // Reset any previous errors
+    setError(null);
 
     try {
-      // Call the loginUser function here
       const data = await loginUser({ phone, password });
 
       if (data.error) {
-        throw new Error(data.error); // Handle server-side errors
+        throw new Error(data.error);
       }
 
-      // Handle successful login, e.g., redirect to a dashboard
-      console.log("Login successful:", data);
-      // You can redirect here or save the token if needed
+      localStorage.setItem('refresh', data.refresh);
+      localStorage.setItem('access', data.access);
+      localStorage.setItem('isLoggedIn', 'true');
+
+      router.push(redirectUrl); // Redirect to the intended destination
 
     } catch (error: any) {
-      setError(error.message || "Failed to login.");
+      setError(error.message || 'Failed to login.');
     } finally {
       setLoading(false);
     }
@@ -51,7 +56,6 @@ const Page = () => {
             </p>
           </div>
 
-          {/* Error message */}
           {error && (
             <div className="text-red-500 text-center">
               {error}
@@ -92,12 +96,12 @@ const Page = () => {
               />
             </div>
             <Button type="submit" className="w-full bg-roshitaBlue" disabled={loading}>
-              {loading ? "جاري التسجيل..." : "تسجيل"}
+              {loading ? 'جاري التسجيل...' : 'تسجيل'}
             </Button>
           </form>
 
           <div className="mt-4 text-center text-sm">
-            لا تمتلك حسابًا؟{" "}
+            لا تمتلك حسابًا؟{' '}
             <Link href="/register" className="underline">
               اشترك
             </Link>

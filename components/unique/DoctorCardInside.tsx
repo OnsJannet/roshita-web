@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../ui/button"; // Assuming you have a button component
 import { Banknote, LocateIcon, MapPin, Star, StarHalf } from "lucide-react";
 
-type DoctorCardProps = {
+type DoctorCardInsideProps = {
   name: string;
   specialty: string;
   rating: number;
@@ -13,7 +13,7 @@ type DoctorCardProps = {
   id: number;
 };
 
-const DoctorCard: React.FC<DoctorCardProps> = ({
+const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
   name,
   specialty,
   rating,
@@ -23,14 +23,8 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   imageUrl,
   id,
 }) => {
-  console.log("ididid", id);
-  const handleButtonClick = () => {
-    console.log("click button");
-    window.location.href = `/doctor-details/${id}`;
-  };
-
   return (
-    <div className="flex flex-col md:flex-row p-4 bg-white shadow-lg rounded-xl max-w-4xl mx-auto">
+    <div className="flex flex-col md:flex-row p-4 bg-white  rounded-xl  mx-auto lg:p-10">
       {/* Left Section: Rating and Button */}
       <div className="flex lg:flex-col  flex-row justify-between p-4 ">
         <div className="flex items-center mb-2 ">
@@ -49,12 +43,6 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
             })}
           </div>
         </div>
-        <Button
-          className="mt-2 h-10 w-32 bg-roshitaDarkBlue text-white rounded-lg"
-          onClick={handleButtonClick}
-        >
-          احجز الآن
-        </Button>
       </div>
 
       {/* Right Section: Doctor Info */}
@@ -86,4 +74,4 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   );
 };
 
-export default DoctorCard;
+export default DoctorCardInside;

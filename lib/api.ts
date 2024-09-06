@@ -38,6 +38,22 @@ interface UserData {
     };
     next: string | null;
   }
+
+
+  interface EditProfileData {
+    user: {
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    gender: string;  // "male", "female", etc.
+    service_country: number;  // assuming this is an ID for a country
+    birthday: string;  // ISO date string
+    city: number;  // assuming this is an ID for the city
+    user_type: number;  // assuming this is an ID for user type
+    address: string;
+  }
+
   
   /**
    * Registers a new user by making a POST request.
@@ -279,4 +295,66 @@ interface UserData {
     }
   };
   
-  
+/**
+ * Fetches profile details using the access token from localStorage.
+ */
+export const fetchProfileDetails = async (): Promise<any> => {
+  console.log("entered fetchProfileDetails")
+  try {
+    // Retrieve the access token from localStorage
+    const token = localStorage.getItem('access');
+
+    if (!token) {
+      throw new Error('No token found. Please log in.');
+    }
+
+    // Make the API request with Bearer token in the Authorization header
+    const response = await fetch("https://test-roshita.net/api/account/profile/detail", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, 
+      },
+    });
+
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`Error fetching profile details: ${response.statusText}`);
+    }
+
+    // Parse and return the JSON response
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching profile details:", error);
+    throw error;
+  }
+};
+
+
+
+/**
+ * Edits the user profile by making a POST request to the profile edit API.
+ */
+export const editUserProfile = async (profileData: EditProfileData, accessToken: string): Promise<any> => {
+  try {
+    const response = await fetch("https://test-roshita.net/api/account/profile/edit/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error updating profile: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw error;
+  }
+};
+
+

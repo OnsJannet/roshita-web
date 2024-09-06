@@ -145,7 +145,8 @@ const filteredDoctors = doctors.filter((doctor) => {
           <div className="space-y-4 lg:w-full">
             {currentDoctors.map((doctor, index) => (
               <DoctorCard
-                key={index}
+              key={doctor.doctor_id}
+              id={doctor.doctor_id}
                 name={doctor.name}
                 specialty={doctor.specialty}
                 rating={doctor.rating}

@@ -102,8 +102,10 @@ const specialty = params?.specialty
 
         <div className="space-y-4 lg:w-[80%]">
           {currentDoctors.map((doctor, index) => (
+
             <DoctorCard
-              key={index}
+              key={doctor.doctor_id}
+              id={doctor.doctor_id}
               name={doctor.name}
               specialty={doctor.specialty}
               rating={doctor.rating}
