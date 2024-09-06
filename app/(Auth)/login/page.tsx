@@ -114,7 +114,7 @@ const Page = () => {
       </div>
       <div className="hidden bg-white lg:block">
         <Image
-          src="/Images/login.png"
+          src="/Images/Login.png"
           alt="Image"
           width={1920}
           height={1080}
