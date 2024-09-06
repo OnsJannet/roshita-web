@@ -12,9 +12,11 @@ import { countries, specialities } from "@/constant";
 
 interface GuideFiltrationProps {
   onSearchChange: (searchTerm: string) => void;
+  onCountryChange: (countryTerm: string) => void;
+  onSpecialtyChange: (SpecialityTerm: string) => void;
 }
 
-const GuideFiltration: React.FC<GuideFiltrationProps> = ({ onSearchChange }) => {
+const GuideFiltration: React.FC<GuideFiltrationProps> = ({ onSearchChange, onCountryChange, onSpecialtyChange }) => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -25,11 +27,15 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({ onSearchChange }) => 
   };
 
   const handleCountryChange = (value: string | undefined) => {
-    setSelectedCountry(value ?? null);
+    const newValue = value ?? '';
+    setSelectedCountry(newValue);
+    onCountryChange(newValue);
   };
 
   const handleSpecialtyChange = (value: string | undefined) => {
-    setSelectedSpecialty(value ?? null);
+    const newValue = value ?? ''; 
+    setSelectedSpecialty(newValue);
+    onSpecialtyChange(newValue); 
   };
 
   return (
@@ -39,11 +45,11 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({ onSearchChange }) => 
           <img src="/images/FilterDoc.png" alt="doc" className="h-8 w-8" />
           <p className="text-[24px] font-semibold">الأطباء</p>
         </div>
-        <div onClick={() => handleClick('hospitals')} className="lg:border-l-gray-200 border-b-gray-200 lg:border-l lg:border-b-transparent border-b p-4 flex justify-center items-center flex-row-reverse lg:w-[25%] w-full cursor-pointer">
+        <div onClick={() => handleClick('hospitalsSearch')} className="lg:border-l-gray-200 border-b-gray-200 lg:border-l lg:border-b-transparent border-b p-4 flex justify-center items-center flex-row-reverse lg:w-[25%] w-full cursor-pointer">
           <img src="/images/FilterHos.png" alt="doc" className="h-8 w-8" />
           <p className="text-[24px] font-semibold">مستشفيات</p>
         </div>
-        <div onClick={() => handleClick('pharmacies')} className="lg:border-l-gray-200 border-b-gray-200 lg:border-l lg:border-b-transparent border-b p-4 flex justify-center items-center flex-row-reverse lg:w-[25%] w-full cursor-pointer">
+        <div onClick={() => handleClick('pharmaciesSearch')} className="lg:border-l-gray-200 border-b-gray-200 lg:border-l lg:border-b-transparent border-b p-4 flex justify-center items-center flex-row-reverse lg:w-[25%] w-full cursor-pointer">
           <img src="/images/FilterPha.png" alt="doc" className="h-8 w-8" />
           <p className="text-[24px] font-semibold">صيدلية</p>
         </div>

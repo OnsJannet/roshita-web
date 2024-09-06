@@ -7,7 +7,7 @@ export const doctors = [
     "rating": 4,
     "reviewsCount": 10,
     "price": "300.000",
-    "location": "تونس العاصمة",
+    "location": " تونس , تونس العاصمة",
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/f065d5ae-01dd-4469-baa2-ca6fc2dfb1bc.png",
     "appointment_dates": [
       "2024-09-05 16:56:00",
@@ -25,7 +25,7 @@ export const doctors = [
     "reviewsCount": 25,
     "hospital": "معمل تحليل B",
     "price": "200.000",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/04e9052d-fadc-4685-985c-66f6eaa56668.png",
    "appointment_dates": [
       "2024-09-08 12:02:00",
@@ -43,7 +43,7 @@ export const doctors = [
     "reviewsCount": 15,
     "hospital": "مستشفى المختار",
     "price": "800.000",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/5c5005fc-72c5-4737-bbfd-3b921c73479b.png",
    "appointment_dates": [
             "2024-09-07 10:46:00",
@@ -61,7 +61,7 @@ export const doctors = [
     "rating": 4.2,
     "reviewsCount": 18,
     "price": "500.000",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/ce090d43-bfc0-4283-8dc4-da9d32958e2f.png",
    "appointment_dates": [
             "2024-09-05 17:53:00",
@@ -97,7 +97,7 @@ export const doctors = [
     "rating": 4.7,
     "reviewsCount": 22,
     "price": "450.000",
-    "location": "تونس العاصمة",
+    "location": " تونس , تونس العاصمة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/a34acb6f-042b-4e9d-9a2f-76cd1ca0fd68.png",
    "appointment_dates": [
       "2024-09-08 12:30:00",
@@ -133,7 +133,7 @@ export const doctors = [
     "rating": 4.4,
     "reviewsCount": 18,
     "price": "450.000",
-    "location": "سوسة",
+    "location": "تونس , سوسة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/abc552eb-7d91-418c-826e-a723a221f9bb.png",
    "appointment_dates": [
             "2024-09-05 10:54:00",
@@ -151,7 +151,7 @@ export const doctors = [
     "rating": 4.1,
     "reviewsCount": 17,
     "price": "500.000",
-    "location": "سوسة",
+    "location": "تونس , سوسة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/0f28b746-eaec-4e98-a8dc-949981657e4f.png",
    "appointment_dates": [
             "2024-09-07 15:27:00",
@@ -169,7 +169,7 @@ export const doctors = [
     "rating": 4.6,
     "reviewsCount": 25,
     "price": "500.000",
-    "location": "سوسة",
+    "location": "تونس , سوسة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/c161f0a4-f144-464f-be39-c3bca1ffdc0c.png",
    "appointment_dates": [
             "2024-09-06 12:39:00",
@@ -241,7 +241,7 @@ export const doctors = [
     "rating": 4.7,
     "reviewsCount": 26,
     "price": "450.000",
-    "location": "سوسة",
+    "location": "تونس , سوسة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/c19a9fec-4ce8-463e-996a-aa6d372beda5.png",
    "appointment_dates": [
             "2024-09-03 14:22:00",
@@ -259,7 +259,7 @@ export const doctors = [
     "rating": 4.0,
     "reviewsCount": 14,
     "price": "500.000",
-    "location": "سوسة",
+    "location": "تونس , سوسة",
    "imageUrl": "https://test-roshita.net/media/media/avatar/staff/ad01c202-7103-4551-9627-d89b29e3dd05.png",
    "appointment_dates": [
             "2024-09-05 14:13:00",
@@ -330,7 +330,7 @@ export const doctors = [
     "name": "سعد الحق",
     "specialty": "جراحة اوعية دموية",
     "hospital": "مستشفى الشفاء",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/9734b75e-9b08-4c9b-927e-da180368b8ed.png",
     "price": "300.000",
@@ -349,7 +349,7 @@ export const doctors = [
     "name": "محمد الحسيني",
     "specialty": "سكر وغدد صماء",
     "hospital": "مستشفى الشفاء",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/fb99a5e1-7602-4ba6-a1ff-70ba0568b532.png",
     "price": "700.000",
@@ -368,7 +368,7 @@ export const doctors = [
     "name": "مهند محمود",
     "specialty": "سكر وغدد صماء",
     "hospital": "مستشفى الشفاء",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/84bcfc4a-9580-4096-a94b-c6554645ba22.png",
     "price": "400.000",
@@ -387,7 +387,7 @@ export const doctors = [
     "name": "دعاء صلاح الدين محمود",
     "specialty": "نساء وتوليد",
     "hospital": "مستشفى الشفاء",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/d7d42fc3-dfe8-4c8f-8bba-7147de678cde.png",
     "price": "500.000",
@@ -406,7 +406,7 @@ export const doctors = [
     "name": "امانى السيد",
     "specialty": "نساء وتوليد",
     "hospital": "مستشفى الشفاء",
-    "location": "تونس العاصمة",
+    "location": "تونس , تونس العاصمة",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/2b15d753-a898-4fbe-9a1e-c94c872ca1c7.png",
     "price": "300.000",
@@ -425,7 +425,7 @@ export const doctors = [
     "name": "محمد محمود سامى",
     "specialty": "نساء وتوليد",
     "hospital": "مستشفي النور",
-    "location": "طرابلس",
+    "location": "تونس , طرابلس",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/f8f1550d-ef87-48b1-888a-b0a6f2fa5b8e.png",
     "price": "500.000",
@@ -444,7 +444,7 @@ export const doctors = [
     "name": "عماد فريخة",
     "specialty": "جراحة اوعية دموية",
     "hospital": "مستشفى الحبيب بورقيبة",
-    "location": "صفاقس",
+    "location": "تونس , صفاقس",
     "address": null,
     "imageUrl": "",
     "price": "620.000",
@@ -463,7 +463,7 @@ export const doctors = [
     "name": "عمر حكموني",
     "specialty": "اسنان",
     "hospital": "مستشفى الحبيب بورقيبة",
-    "location": "صفاقس",
+    "location": " تونس , صفاقس",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/c214e0d1-a81f-4ea9-b5f9-33d4e85c7062.png",
     "price": "500.000",
@@ -482,7 +482,7 @@ export const doctors = [
     "name": "نسرين شيخ روحه",
     "specialty": "سكر وغدد صماء",
     "hospital": "المركب الطبي ميديكال سيتي",
-    "location": "صفاقس",
+    "location": "تونس , صفاقس",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/71a9f9c4-c1f4-4ade-aaa7-2bac85f27bf5.png",
     "price": "220.000",
@@ -501,7 +501,7 @@ export const doctors = [
     "name": "شهيدة بن نصر",
     "specialty": "نساء وتوليد",
     "hospital": "المركب الطبي ميديكال سيتي",
-    "location": "صفاقس",
+    "location": "تونس , صفاقس",
     "address": null,
     "imageUrl": "https://test-roshita.net/media/media/avatar/staff/73757796-1a2d-49c3-8813-1fa85e5c8753.png",
     "price": "150.000",
@@ -527,7 +527,7 @@ export const hospitals = [
           "name": "نسرين شيخ روحه",
           "specialization": "سكر وغدد صماء",
           "hospital": "المركب الطبي ميديكال سيتي",
-          "city": "صفاقس",
+          "city": "تونس , صفاقس",
           "address": null,
           "image": "/media/media/avatar/staff/71a9f9c4-c1f4-4ade-aaa7-2bac85f27bf5.png",
           "price": "220.000",
@@ -544,7 +544,7 @@ export const hospitals = [
           "name": "شهيدة بن نصر",
           "specialization": "نساء وتوليد",
           "hospital": "المركب الطبي ميديكال سيتي",
-          "city": "صفاقس",
+          "city": "تونس , صفاقس",
           "address": null,
           "image": "/media/media/avatar/staff/73757796-1a2d-49c3-8813-1fa85e5c8753.png",
           "price": "150.000",
@@ -577,7 +577,7 @@ export const hospitals = [
           "name": "عماد فريخة",
           "specialization": "جراحة اوعية دموية",
           "hospital": "مستشفى الحبيب بورقيبة",
-          "city": "صفاقس",
+          "city": "تونس , صفاقس",
           "address": null,
           "image": "",
           "price": "620.000",
@@ -594,7 +594,7 @@ export const hospitals = [
           "name": "عمر حكموني",
           "specialization": "اسنان",
           "hospital": "مستشفى الحبيب بورقيبة",
-          "city": "صفاقس",
+          "city": "تونس , صفاقس",
           "address": null,
           "image": "/media/media/avatar/staff/c214e0d1-a81f-4ea9-b5f9-33d4e85c7062.png",
           "price": "500.000",
@@ -627,7 +627,7 @@ export const hospitals = [
           "name": "اميرة السعيد",
           "specialization": "نساء وتوليد",
           "hospital": "مستشفى الشفاء",
-          "city": "سوسة",
+          "city": "تونس , سوسة",
           "address": null,
           "image": "/media/media/avatar/staff/41e8c1de-30bc-4cf5-b01b-ff058206581e.png",
           "price": "450.000",
@@ -644,7 +644,7 @@ export const hospitals = [
           "name": "ياسمين فكرى",
           "specialization": "نساء وتوليد",
           "hospital": "مستشفى الشفاء",
-          "city": "سوسة",
+          "city": "تونس , سوسة",
           "address": null,
           "image": "/media/media/avatar/staff/abc552eb-7d91-418c-826e-a723a221f9bb.png",
           "price": "450.000",
@@ -661,7 +661,7 @@ export const hospitals = [
           "name": "الهام يوسف",
           "specialization": "سكر وغدد صماء",
           "hospital": "مستشفى الشفاء",
-          "city": "سوسة",
+          "city": "تونس , سوسة",
           "address": null,
           "image": "/media/media/avatar/staff/0f28b746-eaec-4e98-a8dc-949981657e4f.png",
           "price": "500.000",
@@ -678,7 +678,7 @@ export const hospitals = [
           "name": "احمد ابراهيم دويك",
           "specialization": "سكر وغدد صماء",
           "hospital": "مستشفى الشفاء",
-          "city": "سوسة",
+          "city": "تونس , سوسة",
           "address": null,
           "image": "/media/media/avatar/staff/c161f0a4-f144-464f-be39-c3bca1ffdc0c.png",
           "price": "500.000",
@@ -695,7 +695,7 @@ export const hospitals = [
           "name": "سعد الحق",
           "specialization": "جراحة اوعية دموية",
           "hospital": "مستشفى الشفاء",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/9734b75e-9b08-4c9b-927e-da180368b8ed.png",
           "price": "300.000",
@@ -712,7 +712,7 @@ export const hospitals = [
           "name": "محمد الحسيني",
           "specialization": "سكر وغدد صماء",
           "hospital": "مستشفى الشفاء",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/fb99a5e1-7602-4ba6-a1ff-70ba0568b532.png",
           "price": "700.000",
@@ -729,7 +729,7 @@ export const hospitals = [
           "name": "مهند محمود",
           "specialization": "سكر وغدد صماء",
           "hospital": "مستشفى الشفاء",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/84bcfc4a-9580-4096-a94b-c6554645ba22.png",
           "price": "400.000",
@@ -746,7 +746,7 @@ export const hospitals = [
           "name": "دعاء صلاح الدين محمود",
           "specialization": "نساء وتوليد",
           "hospital": "مستشفى الشفاء",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/d7d42fc3-dfe8-4c8f-8bba-7147de678cde.png",
           "price": "500.000",
@@ -763,7 +763,7 @@ export const hospitals = [
           "name": "امانى السيد",
           "specialization": "نساء وتوليد",
           "hospital": "مستشفى الشفاء",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/2b15d753-a898-4fbe-9a1e-c94c872ca1c7.png",
           "price": "300.000",
@@ -800,7 +800,7 @@ export const hospitals = [
           "name": "احمد عز الرجال",
           "specialization": "جراحة أورام",
           "hospital": "مستشفى المختار",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/5c5005fc-72c5-4737-bbfd-3b921c73479b.png",
           "price": "800.000",
@@ -817,7 +817,7 @@ export const hospitals = [
           "name": "سلمى ممدوح",
           "specialization": "جراحة أورام",
           "hospital": "مستشفى المختار",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/ce090d43-bfc0-4283-8dc4-da9d32958e2f.png",
           "price": "500.000",
@@ -834,7 +834,7 @@ export const hospitals = [
           "name": "مصطفي ابوالليل",
           "specialization": "جراحة اوعية دموية",
           "hospital": "مستشفى المختار",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/1aa016d1-5de4-4a26-9ef6-c98e9c4fb9a6.png",
           "price": "500.000",
@@ -851,7 +851,7 @@ export const hospitals = [
           "name": "احمد زكى",
           "specialization": "جراحة اوعية دموية",
           "hospital": "مستشفى المختار",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/a34acb6f-042b-4e9d-9a2f-76cd1ca0fd68.png",
           "price": "450.000",
@@ -868,7 +868,7 @@ export const hospitals = [
           "name": "أحمد سامي فياض",
           "specialization": "سكر وغدد صماء",
           "hospital": "مستشفى المختار",
-          "city": "سوسة",
+          "city": "تونس , سوسة",
           "address": null,
           "image": "/media/media/avatar/staff/f5d4b298-5cbf-46bc-a12d-07e58906b269.png",
           "price": "400.000",
@@ -905,7 +905,7 @@ export const hospitals = [
           "name": "إيمان طنطاوي",
           "specialization": "اسنان",
           "hospital": "مستشفي النور",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/f065d5ae-01dd-4469-baa2-ca6fc2dfb1bc.png",
           "price": "300.000",
@@ -922,7 +922,7 @@ export const hospitals = [
           "name": "نهي صدقي",
           "specialization": "اسنان",
           "hospital": "مستشفي النور",
-          "city": "تونس العاصمة",
+          "city": "تونس , تونس العاصمة",
           "address": null,
           "image": "/media/media/avatar/staff/04e9052d-fadc-4685-985c-66f6eaa56668.png",
           "price": "200.000",
@@ -968,49 +968,50 @@ export const hospitals = [
 ]
 
 export const labs = [
-  [
-    {
-      "name": "Aمعمل تصوير طبية",
-      "services": [
-        {
-          "medical_services_category": {
-            "full_path": "تصوير مقطعي CT"
-          },
-          "price": "30.000"
+  {
+    "name": "Aمعمل تصوير طبية",
+    "city": "تونس , تونس العاصمة",
+    "services": [
+      {
+        "medical_services_category": {
+          "full_path": "تصوير مقطعي CT"
         },
-        {
-          "medical_services_category": {
-            "full_path": "تصوير X - RAY"
-          },
-          "price": "10.000"
-        }
-      ]
-    },
-    {
-      "name": "معمل تحليل B",
-      "services": [
-        {
-          "medical_services_category": {
-            "full_path": "تحليل الفيتامينات / VIT.B12"
-          },
-          "price": "50.000"
+        "price": "30.000"
+      },
+      {
+        "medical_services_category": {
+          "full_path": "تصوير X - RAY"
         },
-        {
-          "medical_services_category": {
-            "full_path": "تحليل الفيتامينات / VIT.D"
-          },
-          "price": "95.000"
+        "price": "10.000"
+      }
+    ]
+  },
+  {
+    "name": "معمل تحليل B",
+    "city": "تونس , تونس العاصمة",
+    "services": [
+      {
+        "medical_services_category": {
+          "full_path": "تحليل الفيتامينات / VIT.B12"
         },
-        {
-          "medical_services_category": {
-            "full_path": "تحليل الكبد / ALK.Ph"
-          },
-          "price": "50.000"
-        }
-      ]
-    }
-  ]
+        "price": "50.000"
+      },
+      {
+        "medical_services_category": {
+          "full_path": "تحليل الفيتامينات / VIT.D"
+        },
+        "price": "95.000"
+      },
+      {
+        "medical_services_category": {
+          "full_path": "تحليل الكبد / ALK.Ph"
+        },
+        "price": "50.000"
+      }
+    ]
+  }
 ]
+
 
 export const specialities = [
   [
