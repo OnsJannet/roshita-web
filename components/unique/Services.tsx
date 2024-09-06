@@ -10,7 +10,7 @@ const Services = () => {
     {
       title: "صيدليات",
       paragraph: "تقديم كافة المعلومات حول الصيدليات",
-      image: "/Images/pharmacies.png",
+      image: "/Images/Pharmacies.png",
     },
     {
       title: "مستشفيات",
