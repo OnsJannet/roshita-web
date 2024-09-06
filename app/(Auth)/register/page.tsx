@@ -65,7 +65,7 @@ const page = () => {
       </div>
       <div className="hidden bg-transparent lg:block h-full w-full">
         <Image
-          src="/images/register.png"
+          src="/Images/register.png"
           alt="Image"
           width={1920}
           height={1080}

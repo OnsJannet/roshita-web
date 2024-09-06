@@ -6,7 +6,7 @@ const DownloadApp: React.FC = () => {
       {/* Phone Image Section */}
       <div className=" flex justify-center lg:justify-start mb-6 lg:mb-0 w-[40%]  mt-[14px] ">
         <img
-          src="/images/phone.png"
+          src="/Images/phone.png"
           alt="phone application"
           className="lg:w-3/4 w-40 max-w-[600px] lg:max-w-[300px] mt-[14px]"
         />

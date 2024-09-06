@@ -5,7 +5,7 @@ const Cta = () => {
     <div className="max-w-4xl mx-auto mt-20  bg-roshitaBlue mb-20 rounded-2xl h-60 flex ">
 <div className="lg:!w-[40%] w-[100%] h-full">
     <img 
-        src="/images/call-to-ation.png" 
+        src="/Images/call-to-ation.png" 
         alt="" 
         className="lg:h-[105%] h-full w-[600px] object-cover rounded-2xl lg:-mt-[7px]" 
     />
@@ -14,7 +14,7 @@ const Cta = () => {
       style={{
         width: '100%',
         height: 'auto',
-        backgroundImage: "url('/images/BackgroundShape.png')",
+        backgroundImage: "url('/Images/BackgroundShape.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'

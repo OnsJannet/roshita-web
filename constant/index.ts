@@ -1062,22 +1062,22 @@ export const paiement = [
   {
     "id": 1,
     "name": "سداد",
-    "image": "/images/sadad.png"
+    "image": "/Images/sadad.png"
   },
   {
     "id": 2,
     "name": "التدوال",
-    "image": "/images/tadawal.png"
+    "image": "/Images/tadawal.png"
   },
   {
     "id": 3,
     "name": "موبي كاش",
-    "image": "/images/mobicash.png"
+    "image": "/Images/mobicash.png"
   },
   {
     "id": 4,
     "name": "بطاقة إئتمان",
-    "image": "/images/mobicash.png"
+    "image": "/Images/mobicash.png"
   },
 ]
 
