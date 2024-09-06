@@ -182,8 +182,8 @@ const Profile = () => {
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
-        <div className="flex justify-start gap-10 flex-row-reverse mx-auto">
-          <div className="flex lg:w-[20%] w-[40%] justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
+        <div className="flex justify-start gap-10 lg:flex-row-reverse flex-col mx-auto">
+          <div className="flex lg:w-[20%] w-full justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
             <div className="mx-auto flex justify-center">
               <UploadImage image={image} onImageChange={handleImageChange} />
             </div>
