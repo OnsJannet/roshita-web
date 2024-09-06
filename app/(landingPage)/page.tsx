@@ -71,7 +71,7 @@ const page = () => {
         </svg>
       </div>
 
-      <DoctorCard/>
+
     </div>
   );
 };
