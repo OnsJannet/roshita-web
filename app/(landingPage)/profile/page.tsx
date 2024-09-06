@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 /**
  * Edits the user profile by making a POST request to the profile edit API.
  */
-export const editUserProfile = async (profileData: EditProfileData, accessToken: string): Promise<any> => {
+const editUserProfile = async (profileData: EditProfileData, accessToken: string): Promise<any> => {
     console.log("entered editUserProfile")
   try {
     const response = await fetch("https://test-roshita.net/api/account/profile/edit/", {

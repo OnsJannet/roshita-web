@@ -21,52 +21,10 @@ import {
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-/**
- * Edits the user profile by making a POST request to the profile edit API.
- */
-export const editUserProfile = async (
-  profileData: EditProfileData,
-  accessToken: string
-): Promise<any> => {
-  console.log("entered editUserProfile");
-  try {
-    const response = await fetch(
-      "https://test-roshita.net/api/account/profile/edit/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(profileData),
-      }
-    );
 
-    if (!response.ok) {
-      throw new Error(`Error updating profile: ${response.statusText}`);
-    }
 
-    return response.json();
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    throw error;
-  }
-};
 
 // Define the interface for profile data
-interface EditProfileData {
-    user: {
-      first_name: string;
-      last_name: string;
-      email: string;
-    };
-    gender: string;
-    service_country: number;
-    birthday: string;
-    city: number;
-    user_type: number;
-    address: string;
-  }
 
 interface UploadImageProps {
   image: string | null;

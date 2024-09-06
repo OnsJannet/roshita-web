@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,16 +8,19 @@ import { Label } from '@/components/ui/label';
 import { loginUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
-
-
 const Page = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const router = useRouter();
-  const query = new URLSearchParams(window.location.search);
-  const redirectUrl = query.get('redirect') || '/'; // Default to home page
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const url = query.get('redirect') || '/'; // Default to home page
+    setRedirectUrl(url);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +38,9 @@ const Page = () => {
       localStorage.setItem('access', data.access);
       localStorage.setItem('isLoggedIn', 'true');
 
-      router.push(redirectUrl); // Redirect to the intended destination
+      if (redirectUrl) {
+        router.push(redirectUrl); // Redirect to the intended destination
+      }
 
     } catch (error: any) {
       setError(error.message || 'Failed to login.');
