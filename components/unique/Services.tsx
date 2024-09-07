@@ -66,7 +66,7 @@ const Services = () => {
           className="h-[72px] w-[200px] rounded-2xl text-[18px] font-semibold cursor-pointer z-[999999]"
           onClick={handleClick}
         >
-          اكتشف الدليل
+          اكتشف الدليل 
         </Button>
       </div>
     </div>
