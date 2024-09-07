@@ -43,7 +43,7 @@ const Page = () => {
       }
 
     } catch (error: any) {
-      setError(error.message || 'Failed to login.');
+      setError(error.message || 'حدث خطأ أثناء تسجيل الدخول.');
     } finally {
       setLoading(false);
     }
