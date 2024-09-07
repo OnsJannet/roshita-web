@@ -38,6 +38,8 @@ const PasswordChange = () => {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [passwordCheckVisible, setPasswordCheckVisible] =
     useState<boolean>(false);
+    const [error, setError] = useState("")
+    const [msg, setMsg] = useState("");
 
   const changePassword = async (newPassword: string, oldPassword: string) => {
     try {
@@ -49,7 +51,7 @@ const PasswordChange = () => {
       }
 
       const response = await fetch(
-        "https://test-roshita.net/api/account/change-password",
+        "https://test-roshita.net/api/account/change-password/",
         {
           method: "POST",
           headers: {
@@ -64,11 +66,15 @@ const PasswordChange = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Error changing password: ${response.statusText}`);
-      }
+        const errorMessage = `خطأ في تغيير كلمة المرور: ${response.statusText}`;
+        setError(errorMessage);
+        throw new Error(errorMessage);
+    }
+    
 
       const data = await response.json();
-      console.log("Password changed successfully:", data);
+      setMsg(`تم تغيير كلمة المرور بنجاح: ${data.message}`);
+      
     } catch (error) {
       console.error("Error changing password:", error);
     }
@@ -150,6 +156,8 @@ const PasswordChange = () => {
             </div>
           </div>
           <div className="flex gap-10 text-end flex-col w-[80%] mx-auto">
+            {error && <p className="text-red-500">{error}</p>}
+            {msg && <p className="text-green-500">{msg}</p>}
             <div>
               <Label className="text-start">كلمة المرور القديمة</Label>
               <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none text-start">

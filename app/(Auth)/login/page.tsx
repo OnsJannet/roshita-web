@@ -25,13 +25,20 @@ const Page = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setError(null); // Reset error
 
     try {
-      const data = await loginUser({ phone, password });
+      const response = await loginUser({ phone, password });
+
+      if (response.status !== 200) {
+        // Check for a non-200 response
+        throw new Error(response?.message ||   response?.detail + '\n:حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة مرة أخرى.');
+      }
+
+      const data = await response.json();
 
       if (data.error) {
-        throw new Error(data.error);
+        throw new Error(data.error); // Handle API errors
       }
 
       localStorage.setItem('refresh', data.refresh);

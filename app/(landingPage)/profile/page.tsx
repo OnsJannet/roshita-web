@@ -55,7 +55,7 @@ interface UploadImageProps {
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const UploadImage: React.FC<UploadImageProps> = ({ image, onImageChange }) => {
+/*const UploadImage: React.FC<UploadImageProps> = ({ image, onImageChange }) => {
   return (
     <div className="relative lg:w-60 lg:h-60 xl:w-20 xl:h-20">
       <input
@@ -83,11 +83,23 @@ const UploadImage: React.FC<UploadImageProps> = ({ image, onImageChange }) => {
       </div>
     </div>
   );
-};
+};*/
 
 const Profile = () => {
   const router = useRouter(); // Initialize useRouter
   const [image, setImage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const cities = [
+    { id: 1, country: 2, name: "تونس العاصمة", foreign_name: "Tunis" },
+    { id: 2, country: 2, name: "سوسة", foreign_name: "Soussa" },
+    { id: 4, country: 2, name: "صفاقس", foreign_name: "Sfax" },
+    { id: 3, country: 1, name: "طرابلس", foreign_name: "Tripoli" }
+  ];
+
+
+
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
       first_name: "",
@@ -95,12 +107,14 @@ const Profile = () => {
       email: "",
     },
     gender: "",
-    service_country: 0,
+    service_country: 2,
     birthday: "",
-    city: 0,
+    city: 1,
     user_type: 0,
     address: "",
   });
+
+  const filteredCities = cities.filter(city => city.country === profileData.service_country);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -118,6 +132,7 @@ const Profile = () => {
         console.log("Fetched profile data:", data);
 
         // Update profileData with the fetched data
+
         setProfileData({
           user: {
             first_name: data.user?.first_name || "",
@@ -125,9 +140,9 @@ const Profile = () => {
             email: data.user?.email || "",
           },
           gender: data.gender || "",
-          service_country: data.service_country || 0,
+          service_country: data.service_country || 2,  // Ensure default values are not 0
           birthday: data.birthday || "",
-          city: data.city || 0,
+          city: data.city || 1,  // Ensure default values are not 0
           user_type: data.user_type || 0,
           address: data.address || "",
         });
@@ -145,17 +160,22 @@ const Profile = () => {
   }, []);
 
   const handleSave = async () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
     try {
       const token = localStorage.getItem('access');
       
       if (!token) {
         throw new Error('No token found. Please log in.');
       }
-
+  
       // Ensure profileData has the correct structure and all fields are populated
       await editUserProfile(profileData, token);
+      
+      setSuccessMessage('Profile updated successfully.');
       console.log("Profile updated successfully.");
-    } catch (error) {
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Error updating profile.');
       console.error("Error updating profile:", error);
     }
   };
@@ -184,8 +204,15 @@ const Profile = () => {
       <div>
         <div className="flex justify-start gap-10 lg:flex-row-reverse flex-col mx-auto">
           <div className="flex lg:w-[20%] w-full justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
-            <div className="mx-auto flex justify-center">
+            {/*<div className="mx-auto flex justify-center">
               <UploadImage image={image} onImageChange={handleImageChange} />
+            </div>*/}
+            <div className="mx-auto flex justify-center">
+              <div className="relative lg:w-60 lg:h-60 xl:w-20 xl:h-20 h-40 w-40">
+                <div className="w-full h-full rounded-full bg-[#f1f1f1] flex items-center justify-center overflow-hidden">
+                  <UserRound className="w-1/2 h-1/2 text-roshitaBlue" />
+                </div>
+              </div>
             </div>
             <div>
                <div
@@ -224,6 +251,8 @@ const Profile = () => {
             </div>
           </div>
           <div className="flex gap-10 text-end flex-col w-[80%] mx-auto">
+            {successMessage && <p className="text-green-400">{successMessage}</p>}
+            {errorMessage && <p className="text-red-400">{errorMessage}</p>}
             <div className="flex justify-between gap-4">
               <div className="w-1/2">
                 <Label className="text-start">الإسم الأول</Label>
@@ -277,6 +306,48 @@ const Profile = () => {
                 />
               </div>
             </div>
+
+            <div>
+  <Label className="text-start">البلد</Label>
+  <select
+    value={profileData.service_country || ''}
+    onChange={(e) =>
+      setProfileData((prevState) => ({
+        ...prevState,
+        service_country: Number(e.target.value), // Ensure it's a number
+      }))
+    }
+    className="border-transparent shadow-none h-[50px] w-full"
+  >
+    <option value="">اختر البلد</option>
+    <option value="2">تونس</option>
+    <option value="1">ليبيا</option>
+  </select>
+</div>
+
+<div className="mt-4">
+        <Label className="text-start">المدينة</Label>
+        <select
+          value={profileData.city || ''}
+          onChange={(e) =>
+            setProfileData((prevState) => ({
+              ...prevState,
+              service_city: Number(e.target.value), // Ensure it's a number
+            }))
+          }
+          className="border-transparent shadow-none h-[50px] w-full"
+          disabled={!profileData.service_country} // Disable if no country is selected
+        >
+          <option value="">اختر المدينة</option>
+          {filteredCities.map((city) => (
+            <option key={city.id} value={city.id}>
+              {city.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+
             
             <div>
               <Label className="text-start">الجنس</Label>
