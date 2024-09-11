@@ -2,9 +2,9 @@ import React from 'react';
 
 const DownloadApp: React.FC = () => {
   return (
-    <div className=" p-6 max-w-[982px] lg:h-[320px] h-auto mx-auto  flex lg:flex-row flex-col rounded-md justify-between items-center  lg:p-20">
+    <div className=" p-6 max-w-[1200px] lg:h-[320px] h-auto mx-auto  flex lg:flex-row flex-col rounded-md justify-between items-center  lg:p-20">
       {/* Phone Image Section */}
-      <div className=" flex justify-center lg:justify-start mb-6 lg:mb-0 w-[40%]  mt-[14px] ">
+      <div className=" flex justify-center lg:justify-start mb-6 lg:mb-0 w-[30%]   ">
         <img
           src="/Images/Phone.png"
           alt="phone application"
@@ -19,22 +19,22 @@ const DownloadApp: React.FC = () => {
           حجز وارسال استشارات طبية مع توفر أكبر  شبكة بين ذكارة ليبيا وتونس
         </p>
         <div
-          className="flex justify-center lg:justify-end space-x-4 my-8  rounded-md" style={{ backgroundSize: '40% 100%' }}
+          className="flex justify-center lg:justify-end space-x-2 my-4  rounded-md" style={{ backgroundSize: '40% 100%' }}
         >
           <img
             src="/logos/applestore.png"
             alt="App Store"
-            className="h-12 w-auto cursor-pointer"
+            className="h-10 w-auto cursor-pointer"
           />
           <img
             src="/logos/googleplay.png"
             alt="Google Play"
-            className="h-12 w-auto cursor-pointer"
+            className="h-10 w-auto cursor-pointer"
           />
         </div>
         {/* Download Button */}
         <div className='flex lg:justify-end justify-center mt-4'>
-        <button className="bg-roshitaBlue font-semibold py-[14px] px-6 rounded-lg mb-6 lg:mb-0 text-white ">
+        <button className="bg-roshitaBlue font-semibold py-[14px] px-14 rounded-lg mb-6 lg:mb-0 text-white mt-2 ">
         تحميـــــل        
         </button>
         </div>

@@ -73,7 +73,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
         className="bg-[#71C9F9] p-8 flex flex-col rounded-2xl cursor-pointer"
         onClick={() => setIsFilterOpen(!isFilterOpen)}
       >
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-row-reverse">
           <div className="flex gap-1">
             <Filter className="text-white" />
             <h2 className="text-white">الفلتـرة</h2>

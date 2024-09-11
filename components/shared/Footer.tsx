@@ -17,7 +17,7 @@ const Footer = () => {
                 <img src='/logos/googleplay.png' alt='short logo' className='w-[200px] h-14 mx-auto'/>
             </div>
             <div className='flex justify-center w-[20%] mx-auto mt-4 gap-4'>
-                <img src='/logos/facebooklogo.png' alt='short logo' className='w-6 h-6 cursor-pointer'/>
+                <img src='/logos/facebooklogo.png' alt='short logo' className='w-[15px] h-[25px] cursor-pointer'/>
                 <img src='/logos/iglogo.png' alt='short logo' className='w-6 h-6 cursor-pointer'/>
                 <img src='/logos/whatsapplogo.png' alt='short logo' className='w-6 h-6 cursor-pointer'/>
                 <img src='/logos/linkedinlogo.png' alt='short logo' className='w-6 h-6 cursor-pointer'/>

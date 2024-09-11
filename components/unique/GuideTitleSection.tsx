@@ -38,7 +38,9 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
   return (
     <div>
       <div className="relative w-full h-[80vh] lg:flex-row flex-col bg-cover bg-center bg-[url('/Images/medicalBanner.png')]">
-        <div className="absolute inset-0 bg-blue-500 opacity-60 z-10"></div>
+        <div className="absolute inset-0 opacity-60 z-10"       style={{
+        background: 'linear-gradient(107.52deg, #71C9F9 34.8%, rgba(0, 63, 155, 0.62) 129.62%, rgba(0, 63, 155, 0.15) 129.82%, rgba(0, 63, 155, 0) 138.69%)',
+      }}></div>
         <div className="max-w-[1280px] relative flex lg:flex-row flex-col-reverse lg:justify-end justify-center items-center lg:py-20 py-10 lg:gap-0 gap-2 lg:w-[50%] w-full mx-auto z-20">
           <div className="lg:w-1/2 w-full">
             <h1 className="text-[60px] text-white text-center lg:text-end">

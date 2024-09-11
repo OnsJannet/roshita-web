@@ -30,7 +30,7 @@ const Services = () => {
   };
 
   return (
-    <div className="max-w-[1280px] mx-auto pb-20">
+    <div className="max-w-[1200px] mx-auto pb-20">
       <h2 className="text-center text-roshitaDarkBlue text-4xl font-bold">
         الدليل الطبي
       </h2>
@@ -38,35 +38,35 @@ const Services = () => {
         توفر كافة المعلومات عن المستشفيات الليبية والتونسية لتسهيل عمليات الحجز
         والاستشارة
       </p>
-      <div className="flex justify-center lg:gap-10 gap-4 mt-8 lg:flex-row-reverse mb-8 flex-col-reverse">
+      <div className="flex justify-center lg:gap-12 gap-8 mt-8 lg:flex-row-reverse mb-8 flex-col-reverse">
         {services.map((service, index) => (
           <div
             key={index}
-            className="bg-white shadow-md rounded-lg p-4 lg:w-[200px] w-[60%] lg:mx-0 mx-auto h-[200px] flex flex-col items-center text-center my-center gap-10"
+            className="bg-white shadow-md rounded-lg p-6 lg:w-[30%] w-[80%] lg:h-[250px] h-[250px] flex flex-col items-center text-center gap-6 justify-center mx-auto"
             style={{
               boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)",
               zIndex: 9999,
             }}
           >
-            <div className="flex justify-start gap-1 flex-row-reverse items-center">
+            <div className="flex flex-col items-center justify-center flex-grow">
               <img
                 src={service.image}
                 alt={service.title}
-                className="h-[40px] w-[40px] object-contain mb-8"
+                className="h-[30px] w-[30px] object-contain mb-4"
               />
-              <h3 className="text-lg font-bold mb-2">{service.title}</h3>
+              <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+              <p className="text-gray-600 text-[16px]">{service.paragraph}</p>
             </div>
-            <p className="text-gray-600 text-[15px]">{service.paragraph}</p>
           </div>
         ))}
       </div>
       <div className="flex justify-center mb-4">
-      <Button
+        <Button
           variant="register"
           className="h-[72px] w-[200px] rounded-2xl text-[18px] font-semibold cursor-pointer z-[999999]"
           onClick={handleClick}
         >
-          اكتشف الدليل 
+          اسكتشف الدليل
         </Button>
       </div>
     </div>

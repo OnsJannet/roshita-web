@@ -83,8 +83,8 @@ const NavBar = () => {
       style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)" }}
     >
       <div className="flex justify-between max-w-[1280px] mx-auto flex-row-reverse">
-        <div className="flex gap-2">
-          <div className="mt-4">
+        <div className="flex gap-2 items-center mt-4 ">
+          <div className="">
             <h2 className="text-end font-bold lg:text-[16px] text-[12px]">
               روشــــــــيتــــــا
             </h2>
@@ -94,9 +94,9 @@ const NavBar = () => {
             </p>
           </div>
           <img
-            src="/logos/Logo_normal.png"
+            src="/logos/ShortLogo.png"
             alt="roshita logo"
-            className="lg:w-[50px] w-[45px] h-auto"
+            className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px]"
             onClick={handleClickHome}
           />
         </div>
