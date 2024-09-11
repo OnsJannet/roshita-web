@@ -25,7 +25,7 @@ const HeroPage = () => {
         </div>
         <div className="lg:w-1/2 w-full h-full bg-roshitaBlue flex items-center justify-center">
           <img
-            className="h-full w-full"
+            className="h-full w-auto"
             alt="hero page"
             src="/Images/HeroImage.png"
           />

@@ -104,7 +104,7 @@ const DoctorCarousel: React.FC = () => {
                     <h3 className="text-4xl font-bold mb-2">{doctor.name}</h3>
                     <p className="text-sm text-gray-500">{doctor.title}</p>
                   </div>
-                  <ul className="text-gray-600 mt-2 list-none">
+                  <ul className="text-gray-600 mt-10 list-none">
                     {doctor.specialties.map((specialty, idx) => (
                       <li
                         key={idx}
