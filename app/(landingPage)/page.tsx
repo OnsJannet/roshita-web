@@ -9,9 +9,15 @@ const page = () => {
   return (
     <div className="bg-[#f9f9f9]">
       <div className="bg-[#f9f9f9] pb-40">
-        <HeroPage />
-        <Cta />
-        <Services />
+        <div className="pb-[140px]">
+          <HeroPage />
+        </div>
+        <div className="pb-[140px]">
+          <Cta />
+        </div>
+        <div>
+          <Services />
+        </div>
       </div>
       <div className="bg-transparent">
         <div className="relative  flex flex-col items-center justify-center">
@@ -41,9 +47,7 @@ const page = () => {
         </svg>
       </div>
 
-      <div className="h-60 w-full bg-transparent">
-
-      </div>
+      <div className="h-60 w-full bg-transparent"></div>
 
       <div className="bg-transparent ">
         <div className="relative  flex flex-col items-center justify-center">
@@ -70,8 +74,6 @@ const page = () => {
           ></path>
         </svg>
       </div>
-
-
     </div>
   );
 };
