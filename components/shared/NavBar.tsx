@@ -104,14 +104,14 @@ const NavBar = () => {
           {!isLoggedIn ? (
             <>
               <Button
-                onClick={handleClickRegister}
+                onClick={handleClickLogin}
                 variant="login"
                 className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
               >
                 تسجيل الدخول
               </Button>
               <Button
-                onClick={handleClickLogin}
+                onClick={handleClickRegister}
                 variant="register"
                 className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
               >
