@@ -59,13 +59,23 @@ const config: Config = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
-			roshitaGreen: "#4CAF50",
-			roshitaBlue: "#71C9F9",
-			roshitaDarkBlue: "#1588C8"
+  			roshitaGreen: '#4CAF50',
+  			roshitaBlue: '#71C9F9',
+  			roshitaDarkBlue: '#1588C8',
+  			sidebar: {
+  				DEFAULT: 'hsl(var(--sidebar-background))',
+  				foreground: 'hsl(var(--sidebar-foreground))',
+  				primary: 'hsl(var(--sidebar-primary))',
+  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+  				accent: 'hsl(var(--sidebar-accent))',
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  				border: 'hsl(var(--sidebar-border))',
+  				ring: 'hsl(var(--sidebar-ring))'
+  			}
   		},
-		  dropShadow: {
-			'custom': '0 8px 26.6px rgba(0, 0, 0, 0.09)',
-		  },
+  		dropShadow: {
+  			custom: '0 8px 26.6px rgba(0, 0, 0, 0.09)'
+  		}
   	}
   },
   plugins: [require("tailwindcss-animate")],
