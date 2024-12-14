@@ -56,21 +56,31 @@ const Page = () => {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-          <h1 className="text-3xl font-bold text-end">👋 بيك أهلا</h1>
+            <h1 className="text-3xl font-bold text-end">👋 بيك أهلا</h1>
 
             <p className="text-balance text-muted-foreground text-end">
-            لوحة تحكم روشيتا
+              لوحة تحكم روشيتا
             </p>
           </div>
 
-          {error && <div className="text-red-500 text-center">{error}</div>}
+          <p className="text-balance text-muted-foreground text-center">
+            password: Roshita2025? <br/>
+            phone: 0925822328
+          </p>
+
+          {error && <div className="text-red-500 text-center">حدث خطأ ما، يرجى المحاولة مرة أخرى</div>}
 
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="phone" className="text-end">
                 رقم الهاتف
               </Label>
-              <InputAdmin icon={<Mail size={24} />} type="email"/>
+              <InputAdmin
+                icon={<Mail size={24} />}
+                type="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </div>
             <div className="grid gap-2">
               <div className="flex justify-between items-center">
@@ -83,7 +93,13 @@ const Page = () => {
                 <Label htmlFor="password">كلمة المرور</Label>
               </div>
 
-              <InputAdmin icon={<Lock size={24} />} type="password"/>
+              <InputAdmin
+                placeholder="كلمة السر"
+                icon={<Lock size={24} />}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <Button
               type="submit"
@@ -107,7 +123,7 @@ const Page = () => {
         <div className="flex flex-col justify-center">
           <div className="gap-1 flex flex-col justify-center px-10">
             <p className="text-end text-white text-[38px] font-semibold">
-            أهلا بيك  
+              أهلا بيك
             </p>
             <p className="text-end text-white text-[28.4px] font-normal">
               في لوحة التحكم روشيتا

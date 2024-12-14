@@ -21,6 +21,7 @@ import {
   PencilLine,
   Star,
   Trash2,
+  UserIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -57,78 +58,173 @@ import {
 } from "./alert-dialog";
 
 // Add your new data here
-const data: Payment[] = [
-  {
-    img: "/Images/doctors/pexels-carmel-nsenga-735492-19218034.jpg",
-    id: "001",
-    دكاترة: "دكتور أحمد سعيد",
-    "تاريخ الانضمام": new Date("2024-01-15"),
-    التقييم: 4.7,
-  },
-  {
-    img: "/Images/doctors/pexels-ivan-samkov-4989165.jpg",
-    id: "002",
-    دكاترة: "دكتور فاطمة حسن",
-    "تاريخ الانضمام": new Date("2023-08-10"),
-    التقييم: 5.0,
-  },
-  {
-    img: "/Images/doctors/pexels-karolina-grabowska-5207098.jpg",
-    id: "003",
-    دكاترة: "دكتور يوسف طارق",
-    "تاريخ الانضمام": new Date("2022-05-05"),
-    التقييم: 4.3,
-  },
-  {
-    img: "/Images/doctors/pexels-klaus-nielsen-6303555.jpg",
-    id: "004",
-    دكاترة: "دكتور ليلى محمد",
-    "تاريخ الانضمام": new Date("2024-03-22"),
-    التقييم: 4.8,
-  },
-  {
-    img: "/Images/doctors/pexels-klaus-nielsen-6303591.jpg",
-    id: "005",
-    دكاترة: "دكتور خالد يوسف",
-    "تاريخ الانضمام": new Date("2021-12-18"),
-    التقييم: 4.2,
-  },
-  {
-    img: "/Images/doctors/pexels-mikewiz-6605090.jpg",
-    id: "006",
-    دكاترة: "دكتور مريم علي",
-    "تاريخ الانضمام": new Date("2024-05-10"),
-    التقييم: 4.9,
-  },
-  {
-    img: "/Images/doctors/pexels-pexels-user-1920570806-28755708.jpg",
-    id: "007",
-    دكاترة: "دكتور عماد مصطفى",
-    "تاريخ الانضمام": new Date("2023-11-25"),
-    التقييم: 4.6,
-  },
-  {
-    img: "/Images/doctors/pexels-polina-tankilevitch-5234482.jpg",
-    id: "008",
-    دكاترة: "دكتور ريم محمود",
-    "تاريخ الانضمام": new Date("2022-07-19"),
-    التقييم: 4.4,
-  },
-  {
-    img: "/Images/doctors/pexels-tima-miroshnichenko-5407206.jpg",
-    id: "009",
-    دكاترة: "دكتور سامي حسين",
-    "تاريخ الانضمام": new Date("2021-09-03"),
-    التقييم: 4.1,
-  },
-  {
-    img: "/Images/doctors/pexels-tima-miroshnichenko-6235015.jpg",
-    id: "010",
-    دكاترة: "دكتور ليلى سامي",
-    "تاريخ الانضمام": new Date("2023-02-27"),
-    التقييم: 4.5,
-  },
-];
+const doctorData: APIResponse = {
+  count: 10,
+  next: null,
+  previous: null,
+  results: [
+    {
+      id: 1,
+      staff: {
+        first_name: "أحمد",
+        last_name: "سعيد",
+        staff_avatar:
+          "/Images/doctors/pexels-carmel-nsenga-735492-19218034.jpg",
+        medical_organization: "مستشفى النيل",
+        city: "القاهرة",
+        address: "شارع التحرير، الجيزة",
+      },
+      specialty: 101,
+      fixed_price: "500",
+      rating: 4.7,
+      is_consultant: true,
+    },
+    {
+      id: 2,
+      staff: {
+        first_name: "فاطمة",
+        last_name: "حسن",
+        staff_avatar: "/Images/doctors/pexels-ivan-samkov-4989165.jpg",
+        medical_organization: "مستشفى المدينة",
+        city: "الإسكندرية",
+        address: "شارع سيدي بشر، الإسكندرية",
+      },
+      specialty: 102,
+      fixed_price: "400",
+      rating: 5.0,
+      is_consultant: false,
+    },
+    {
+      id: 3,
+      staff: {
+        first_name: "يوسف",
+        last_name: "طارق",
+        staff_avatar: "/Images/doctors/pexels-karolina-grabowska-5207098.jpg",
+        medical_organization: "مستشفى الأمل",
+        city: "طنطا",
+        address: "شارع 23 يوليو، طنطا",
+      },
+      specialty: 103,
+      fixed_price: "300",
+      rating: 4.3,
+      is_consultant: true,
+    },
+    {
+      id: 4,
+      staff: {
+        first_name: "ليلى",
+        last_name: "محمد",
+        staff_avatar: "/Images/doctors/pexels-klaus-nielsen-6303555.jpg",
+        medical_organization: "مستشفى السعادة",
+        city: "دمياط",
+        address: "شارع بورسعيد، دمياط",
+      },
+      specialty: 104,
+      fixed_price: "450",
+      rating: 4.8,
+      is_consultant: false,
+    },
+    {
+      id: 5,
+      staff: {
+        first_name: "خالد",
+        last_name: "يوسف",
+        staff_avatar: "/Images/doctors/pexels-klaus-nielsen-6303591.jpg",
+        medical_organization: "مستشفى الإيمان",
+        city: "المنصورة",
+        address: "شارع عبد السلام عارف، المنصورة",
+      },
+      specialty: 105,
+      fixed_price: "550",
+      rating: 4.2,
+      is_consultant: true,
+    },
+    {
+      id: 6,
+      staff: {
+        first_name: "مريم",
+        last_name: "علي",
+        staff_avatar: "/Images/doctors/pexels-mikewiz-6605090.jpg",
+        medical_organization: "مستشفى الشفاء",
+        city: "الزقازيق",
+        address: "شارع سعد زغلول، الزقازيق",
+      },
+      specialty: 106,
+      fixed_price: "350",
+      rating: 4.9,
+      is_consultant: false,
+    },
+    {
+      id: 7,
+      staff: {
+        first_name: "عماد",
+        last_name: "مصطفى",
+        staff_avatar:
+          "/Images/doctors/pexels-pexels-user-1920570806-28755708.jpg",
+        medical_organization: "مستشفى الرياض",
+        city: "القاهرة",
+        address: "شارع الهرم، الجيزة",
+      },
+      specialty: 107,
+      fixed_price: "600",
+      rating: 4.6,
+      is_consultant: true,
+    },
+    {
+      id: 8,
+      staff: {
+        first_name: "ريم",
+        last_name: "محمود",
+        staff_avatar: "/Images/doctors/pexels-polina-tankilevitch-5234482.jpg",
+        medical_organization: "مستشفى المستقبل",
+        city: "أسيوط",
+        address: "شارع الجمهورية، أسيوط",
+      },
+      specialty: 108,
+      fixed_price: "470",
+      rating: 4.4,
+      is_consultant: false,
+    },
+    {
+      id: 9,
+      staff: {
+        first_name: "سامي",
+        last_name: "حسين",
+        staff_avatar: "/Images/doctors/pexels-tima-miroshnichenko-5407206.jpg",
+        medical_organization: "مستشفى النور",
+        city: "طنطا",
+        address: "شارع 23 يوليو، طنطا",
+      },
+      specialty: 109,
+      fixed_price: "400",
+      rating: 4.1,
+      is_consultant: true,
+    },
+    {
+      id: 10,
+      staff: {
+        first_name: "ليلى",
+        last_name: "سامي",
+        staff_avatar: "/Images/doctors/pexels-tima-miroshnichenko-6235015.jpg",
+        medical_organization: "مستشفى دار الشفاء",
+        city: "القاهرة",
+        address: "شارع الميرغني، القاهرة",
+      },
+      specialty: 110,
+      fixed_price: "510",
+      rating: 4.5,
+      is_consultant: false,
+    },
+  ],
+};
+
+const paymentData: Payment[] = doctorData.results.map((doctor) => ({
+  img: doctor.staff.staff_avatar,
+  id: doctor.id.toString(),
+  دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
+  "تاريخ الانضمام": new Date(doctor.staff.address), // Change it to date please
+  التقييم: doctor.rating || 0,
+}));
 
 export type Payment = {
   img: string;
@@ -137,6 +233,31 @@ export type Payment = {
   "تاريخ الانضمام": Date;
   التقييم: number;
 };
+
+interface DoctorStaff {
+  first_name: string;
+  last_name: string;
+  staff_avatar: string;
+  medical_organization: string;
+  city: string;
+  address: string;
+}
+
+interface Doctor {
+  id: number;
+  staff: DoctorStaff;
+  specialty?: number;
+  fixed_price?: string;
+  rating?: number;
+  is_consultant: boolean;
+}
+
+interface APIResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Doctor[];
+}
 
 export const columns: ColumnDef<Payment>[] = [
   {
@@ -172,11 +293,15 @@ export const columns: ColumnDef<Payment>[] = [
 
       return (
         <div className="flex items-center space-x-3 gap-6">
-          <img
-            src={img}
-            alt={name}
-            className="h-10 w-10 rounded-full object-cover"
-          />
+          {img ? (
+            <img
+              src={img}
+              alt={name}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <UserIcon className="h-10 w-10 rounded-full" /> // Default user icon if no image is available
+          )}
           <span className="capitalize">{name}</span>
         </div>
       );
@@ -330,7 +455,7 @@ export const columns: ColumnDef<Payment>[] = [
   },
 ];
 
-export function DataTable() {
+export function DataTable({ data }: { data: Payment[] }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

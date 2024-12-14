@@ -26,7 +26,17 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
         {/* Image Section */}
         <Avatar className="w-[120px] h-[120px] object-cover">
           <AvatarImage src={imageSrc} alt="doctor img" />
-          <AvatarFallback>CN</AvatarFallback>
+          <AvatarFallback>
+  {name
+    ? name
+        .split(' ') // Split the name by spaces
+        .map(word => word.charAt(0).toUpperCase()) // Get the first letter of each word
+        .join(' ') // Join the letters with a space
+    : "?"}
+</AvatarFallback>
+
+
+
         </Avatar>
 
         {/* Text Section */}

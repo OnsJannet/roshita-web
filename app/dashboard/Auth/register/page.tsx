@@ -8,21 +8,26 @@ import { Label } from "@/components/ui/label";
 import { loginUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-import { Lock, Mail, User } from "lucide-react";
+import { Lock, Mail, Phone, User } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
 
 const Page = () => {
   const [step, setStep] = useState(1); // Step state
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const router = useRouter();
-  const [selected, setSelected] = useState<"lab" | "hospital" | null>(null);
+  const [selected, setSelected] = useState<"lab" | "hospital" | "rays" | null>(
+    null
+  );
 
   // Handle option selection
-  const handleSelect = (option: "lab" | "hospital") => {
+  const handleSelect = (option: "lab" | "hospital" | "rays") => {
     setSelected(option);
   };
 
@@ -59,9 +64,86 @@ const Page = () => {
 
       setStep(2);
     } catch (error: any) {
-      setError(error.message || "حدث خطأ أثناء تسجيل الدخول.");
+      setError("حدث خطأ أثناء تسجيل الدخول.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Example API request
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      user: {
+        phone: phone?.trim() || " ",
+        password: password?.trim() || " ",
+        email: email?.trim() || " ",
+        first_name: name?.trim() || " ",
+        last_name: lastName?.trim() || " ",
+      },
+      city: 1,
+      address: " ",
+      medical_organization: [
+        {
+          name: " ",
+          foreign_name: " ",
+          phone: " ",
+          email: " ",
+          city: {
+            country: {
+              name: " ",
+              foreign_name: " ",
+            },
+            name: " ",
+            foreign_name: " ",
+          },
+          address: " ",
+          Latitude: 0,
+          Longitude: 0,
+          type: selected === "hospital" ? 1 : selected === "lab" ? 2 : 3,
+        },
+      ],
+    };
+
+    try {
+      const response = await fetch("/api/auth/register/registerStaff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert("تم التسجيل بنجاح!");
+      } else {
+        // Map and display error messages
+        const translatedErrors: Record<string, string> = {
+          "This field may not be blank.": "هذا الحقل مطلوب.",
+          "A user with that email already exists.":
+            "البريد الإلكتروني مستخدم مسبقاً.",
+          'Expected a list of items but got type "int".':
+            "القيمة المدخلة غير صحيحة، يجب أن تكون قائمة.",
+        };
+
+        const errors = result?.details || {};
+        const arabicErrors = Object.keys(errors)
+          .map((key) => {
+            const fieldErrors = errors[key];
+            if (Array.isArray(fieldErrors)) {
+              return fieldErrors
+                .map((error) => translatedErrors[error] || error)
+                .join(", ");
+            }
+            return null;
+          })
+          .filter(Boolean); // Remove null values
+
+        setError(arabicErrors.join(" | ") || "حدث خطأ أثناء التسجيل.");
+      }
+    } catch (error: any) {
+      setError(`حدث خطأ أثناء إرسال البيانات: ${error.message || error}`);
     }
   };
 
@@ -73,7 +155,7 @@ const Page = () => {
           {/* Step 1 */}
           {step === 1 && (
             <div className="flex items-center justify-center py-12">
-              <div className="mx-auto grid w-[350px] gap-6">
+              <div className="mx-auto grid w-full gap-6">
                 <div className="grid gap-2 text-center">
                   <h1 className="text-3xl font-bold text-end">
                     أختر اي نوع مؤسسات
@@ -82,7 +164,10 @@ const Page = () => {
                     في لوحة التحكم روشيتا
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                {error && (
+                  <div className="text-red-500 text-center">{error}</div>
+                )}
+                <div className="grid grid-cols-3 gap-4">
                   {/* Option 1 */}
                   <div
                     className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
@@ -103,6 +188,25 @@ const Page = () => {
                   </div>
 
                   {/* Option 2 */}
+                  <div
+                    className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
+                      selected === "rays"
+                        ? "border-2 border-blue-500"
+                        : "border border-gray-200"
+                    }`}
+                    onClick={() => handleSelect("rays")}
+                  >
+                    <Image
+                      src="/Images/FilterDoc.png"
+                      alt="Admin"
+                      width={60}
+                      height={60}
+                      className="mx-auto"
+                    />
+                    <p className="mt-2 text-center mx-auto">معامل تصوير</p>
+                  </div>
+
+                  {/* Option 3 */}
                   <div
                     className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
                       selected === "hospital"
@@ -142,37 +246,67 @@ const Page = () => {
                   </h1>
                 </div>
                 {error && (
-                  <div className="text-red-500 text-center">{error}</div>
+                  <div className="text-red-500 text-center">
+                    {" "}
+                    حدث خطأ أثناء تسجيل الدخول
+                  </div>
                 )}
                 <form onSubmit={handleLogin} className="grid gap-4">
                   {/* Admin Name */}
                   <div className="grid gap-2">
+                    <Label htmlFor="phone" className="text-end">
+                      اسم الأدمن
+                    </Label>
                     <InputAdmin
                       placeholder="اسم الأدمن"
                       icon={<User size={24} />}
                       type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone" className="text-end">
+                      لقب الأدمن
+                    </Label>
+                    <InputAdmin
+                      placeholder="لقب الأدمن"
+                      icon={<User size={24} />}
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                     />
                   </div>
                   {/* Email */}
                   <div className="grid gap-2">
+                    <Label htmlFor="phone" className="text-end">
+                      رقم الهاتف
+                    </Label>
                     <InputAdmin
-                      placeholder="الإيميل"
-                      icon={<Mail size={24} />}
-                      type="email"
+                      icon={<Phone size={24} />}
+                      type="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                     />
                   </div>
                   {/* Password */}
                   <div className="grid gap-2">
+                    <Label htmlFor="phone" className="text-end">
+                      كلمة السر
+                    </Label>
                     <InputAdmin
                       placeholder="كلمة السر"
                       icon={<Lock size={24} />}
                       type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                   <Button
                     type="submit"
                     className="w-full bg-[#0575E6] h-[70px] rounded-[30px] text-white text-xl"
                     disabled={loading}
+                    onClick={handleSubmit}
                   >
                     {loading ? "جاري التسجيل..." : "التالي"}
                   </Button>

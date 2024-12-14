@@ -4,6 +4,9 @@ import { AlignLeft, UserRound } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "../ui/dropdown-menu"; // Adjust the import path according to your project structure
 import Image from 'next/image'; // Assuming you use Next.js for image optimization
 import { useRouter } from "next/navigation";
+import LanguageSwitcher from "../layout/LanguageSwitcher";
+
+
 
 const fetchProfileDetails = async (): Promise<any> => {
   try {
@@ -100,7 +103,11 @@ const NavBar = () => {
             onClick={handleClickHome}
           />
         </div>
+
         <div className="gap-4 lg:flex pt-2 hidden">
+          <div className="mt-2">
+        {/*<LanguageSwitcher/>*/}
+        </div>
           {!isLoggedIn ? (
             <>
               <Button
