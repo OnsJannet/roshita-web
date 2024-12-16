@@ -16,7 +16,7 @@ const BreadcrumbDashboard: React.FC<BreadcrumbProps> = ({
 }) => {
   return (
     <nav className="ml-auto">
-      <ol className="flex gap-1">
+      <ol className="flex gap-1 items-center">
         {/* Reverse the items before rendering */}
         {items
           .slice() // Create a shallow copy to avoid mutating the original array

@@ -30,6 +30,7 @@ const iconMapping: Record<string, React.ComponentType<any>> = {
 
 type NavItem = {
   title: string;
+  foreginTitle: string;
   url: string;
   items: NavItem[];
   isActive: boolean;
@@ -39,6 +40,8 @@ type NavItem = {
 type Data = {
   navMain: NavItem[];
 };
+
+type Language = "ar" | "en";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -75,6 +78,7 @@ const data: Data = {
   navMain: [
     {
       title: "الرئسية",
+      foreginTitle: "Dashboard",
       url: "/dashboard/",
       items: [],
       isActive: false,
@@ -82,6 +86,7 @@ const data: Data = {
     },
     {
       title: "دكاترة",
+      foreginTitle: "Doctors",
       url: "/dashboard/doctors",
       items: [],
       isActive: false,
@@ -96,6 +101,7 @@ const data: Data = {
     },*/
     {
       title: "تحاليل",
+      foreginTitle: "Tests",
       url: "/dashboard/labs",
       items: [],
       isActive: false,
@@ -103,6 +109,7 @@ const data: Data = {
     },
     {
       title: "الأشعة",
+      foreginTitle: "x-rays",
       url: "/dashboard/x-rays",
       items: [],
       isActive: false,
@@ -110,6 +117,7 @@ const data: Data = {
     },
     {
       title: "الإعدادت",
+      foreginTitle: "Settings",
       url: "/dashboard/settings",
       items: [],
       isActive: false,
@@ -140,6 +148,28 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
+    const [language, setLanguage] = React.useState<Language>("ar");
+
+    React.useEffect(() => {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
+      }
+
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }, []);
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
@@ -213,6 +243,7 @@ const SidebarProvider = React.forwardRef<
             }
             className={cn(
               "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              language === "ar" ? "flex-row" : "flex-row-reverse",
               className
             )}
             ref={ref}
@@ -247,6 +278,28 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+    const [language, setLanguage] = React.useState<Language>("ar");
+
+    React.useEffect(() => {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
+      }
+
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }, []);
 
     if (collapsible === "none") {
       return (
@@ -278,77 +331,77 @@ const Sidebar = React.forwardRef<
             side={side}
           >
             <div className="flex h-full w-full flex-col">
-            <div className="flex flex-col h-full px-2">
-              <div className="h-[30%] pt-4 mx-auto">
-                <div className="flex flex-row-reverse gap-2 items-center mt-4 ">
-                  <div className="">
-                    <h2 className=" font-bold lg:text-[14px] text-[12px] text-start">
-                      روشــــــــيتــــــا
-                    </h2>
-                    <p className="font-[500] lg:text-[14px] text-[12px]">
-                      صحــة أفضل{" "}
-                      <span className="text-roshitaGreen">
-                        تواصـــــل أســـرع
-                      </span>{" "}
-                    </p>
+              <div className="flex flex-col h-full px-2">
+                <div className="h-[30%] pt-4 mx-auto">
+                  <div className="flex flex-row-reverse gap-2 items-center mt-4 ">
+                    <div className="">
+                      <h2 className="font-bold lg:text-[14px] text-[12px] text-start">
+                        Roshita
+                      </h2>
+                      <p className="font-[500] lg:text-[13px] text-[12px]">
+                        Better Health{" "}
+                        <span className="text-roshitaGreen">
+                          Faster Connections
+                        </span>{" "}
+                      </p>
+                    </div>
+                    <img
+                      src="/logos/ShortLogo.png"
+                      alt="roshita logo"
+                      className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px]"
+                    />
                   </div>
-                  <img
-                    src="/logos/ShortLogo.png"
-                    alt="roshita logo"
-                    className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px]"
-                  />
+                </div>
+                <div className="h-[70%]">
+                  {data.navMain.map((item) => {
+                    const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
+                    return (
+                      <SidebarMenuItem
+                        key={item.title}
+                        style={{ listStyleType: "none" }}
+                      >
+                        <SidebarMenuButton asChild>
+                          <a href={item.url} className="font-medium">
+                            {/* Dynamically render the icon */}
+                            {IconComponent && (
+                              <IconComponent className="mr-2" />
+                            )}{" "}
+                            {/* Apply margin-right for spacing */}
+                            {language === "ar" ? item.title : item.foreginTitle}
+                          </a>
+                        </SidebarMenuButton>
+                        {item.items?.length ? (
+                          <SidebarMenuSub>
+                            {item.items.map((subItem) => (
+                              <SidebarMenuSubItem
+                                key={subItem.title}
+                                style={{ listStyleType: "none" }}
+                              >
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={subItem.isActive}
+                                >
+                                  <a href={subItem.url}>{subItem.title}</a>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        ) : null}
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </div>
+                <div className="h-[10%] flex justify-between items-center px-2">
+                  <LogOut className="h-4 w-4 cursor-pointer" />
+                  <Avatar>
+                    <AvatarImage
+                      src="https://github.com/shadcn.png"
+                      alt="@shadcn"
+                    />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
                 </div>
               </div>
-              <div className="h-[70%]">
-                {data.navMain.map((item) => {
-                  const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
-                  return (
-                    <SidebarMenuItem
-                      key={item.title}
-                      style={{ listStyleType: "none" }}
-                    >
-                      <SidebarMenuButton asChild>
-                        <a href={item.url} className="font-medium">
-                          {/* Dynamically render the icon */}
-                          {IconComponent && (
-                            <IconComponent className="mr-2" />
-                          )}{" "}
-                          {/* Apply margin-right for spacing */}
-                          {item.title}
-                        </a>
-                      </SidebarMenuButton>
-                      {item.items?.length ? (
-                        <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem
-                              key={subItem.title}
-                              style={{ listStyleType: "none" }}
-                            >
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={subItem.isActive}
-                              >
-                                <a href={subItem.url}>{subItem.title}</a>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      ) : null}
-                    </SidebarMenuItem>
-                  );
-                })}
-              </div>
-              <div className="h-[10%] flex justify-between items-center px-2">
-                <LogOut className="h-4 w-4 cursor-pointer" />
-                <Avatar>
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="@shadcn"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-              </div>
-            </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -378,7 +431,7 @@ const Sidebar = React.forwardRef<
         <div
           className={cn(
             "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
-            side === "left"
+            side === (language === "ar" ? "left" : "right")
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
             // Adjust the padding for floating and inset variants.
@@ -392,19 +445,19 @@ const Sidebar = React.forwardRef<
           <div
             data-sidebar="sidebar"
             className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
-            style={{ direction: "rtl" }} // Apply right-to-left for Arabic
+            style={{ direction: language === "ar" ? "rtl" : "ltr" }}
           >
             <div className="flex flex-col h-full px-2">
               <div className="h-[30%] pt-4 mx-auto">
                 <div className="flex flex-row-reverse gap-2 items-center mt-4 ">
                   <div className="">
-                    <h2 className=" font-bold lg:text-[14px] text-[12px] text-start">
-                      روشــــــــيتــــــا
+                    <h2 className="font-bold lg:text-[14px] text-[12px] text-start">
+                      Roshita
                     </h2>
-                    <p className="font-[500] lg:text-[14px] text-[12px]">
-                      صحــة أفضل{" "}
+                    <p className="font-[500] lg:text-[13px] text-[12px]">
+                      Better Health{" "}
                       <span className="text-roshitaGreen">
-                        تواصـــــل أســـرع
+                        Faster Connections
                       </span>{" "}
                     </p>
                   </div>
@@ -430,7 +483,7 @@ const Sidebar = React.forwardRef<
                             <IconComponent className="mr-2" />
                           )}{" "}
                           {/* Apply margin-right for spacing */}
-                          {item.title}
+                          {language === "ar" ? item.title : item.foreginTitle}
                         </a>
                       </SidebarMenuButton>
                       {item.items?.length ? (

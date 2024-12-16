@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button"; // Assuming you have a button component
-import { Banknote, LocateIcon, MapPin, Star, StarHalf } from "lucide-react";
+import { Banknote, MapPin, Star, StarHalf } from "lucide-react";
 
 type DoctorCardProps = {
   name: string;
@@ -13,6 +13,8 @@ type DoctorCardProps = {
   id: number;
 };
 
+type Language = "ar" | "en";
+
 const DoctorCard: React.FC<DoctorCardProps> = ({
   name,
   specialty,
@@ -23,17 +25,63 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   imageUrl,
   id,
 }) => {
-  console.log("ididid", id);
   const handleButtonClick = () => {
     console.log("click button");
     window.location.href = `/doctor-details/${id}`;
   };
 
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    // Sync the language state with the localStorage value
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+    } else {
+      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+    }
+
+    // Listen for changes in localStorage
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const translations = {
+    en: {
+      bookNow: "Book Now",
+      price: "Price: ",
+      location: "Location: ",
+    },
+    ar: {
+      bookNow: "احجز الآن",
+      price: "سعر الكشف: ",
+      location: "الموقع: ",
+    },
+  };
+
   return (
-    <div className="flex flex-col md:flex-row p-4 bg-white shadow-lg rounded-xl max-w-4xl mx-auto">
+    <div
+      className={`flex flex-col  p-4 bg-white shadow-lg rounded-xl max-w-4xl mx-auto ${
+        language === "en" ? "md:flex-row-reverse" : "md:flex-row"
+      }`}
+    >
       {/* Left Section: Rating and Button */}
-      <div className="flex lg:flex-col  flex-row justify-between p-4 ">
-        <div className="flex items-center mb-2 ">
+      <div
+        className={`${
+          language === "en" ? "flex-row-reverse" : ""
+        } flex lg:flex-col flex-row justify-between p-4`}
+      >
+        <div className="flex items-center mb-2">
           <span className="text-gray-500 text-sm ml-2">({reviewsCount})</span>
           {/* Star Rating */}
           <div className="flex text-yellow-500">
@@ -53,22 +101,43 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
           className="mt-2 h-10 w-32 bg-roshitaDarkBlue text-white rounded-lg"
           onClick={handleButtonClick}
         >
-          احجز الآن
+          {translations[language].bookNow}
         </Button>
       </div>
 
       {/* Right Section: Doctor Info */}
-      <div className="flex flex-1 justify-end gap-4 items-center p-4">
+      <div
+        className={`${
+          language === "en" ? "flex-row-reverse" : ""
+        } flex flex-1 justify-end gap-4 items-center p-4`}
+      >
         {/* Doctor's Details */}
         <div className="flex flex-col items-end">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">{name}</h1>
-          <p className="text-sm text-gray-500 mb-2 text-end">{specialty}</p>
-          <div className="flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2">
-            <span>سعر الكشف: {price}</span>
+        <h1 className={`text-2xl font-bold text-gray-800 mb-1 w-full ${language === "en" ? "text-start" : "text-end"}`}>{name}</h1>
+
+        <p className={`text-sm text-gray-500 mb-2 w-full ${language === "en" ? "text-start" : "text-end"}`}>{specialty}</p>
+
+          <div
+            className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
+              language === "en" ? "flex-row-reverse justify-end w-full" : "justify-start flex-row"
+            }`}
+          >
+            <span>
+              {translations[language].price}
+              {price}
+            </span>
             <Banknote className="text-roshitaDarkBlue" />
           </div>
-          <div className="flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2">
-            <p className="text-sm text-gray-500">{location}</p>
+
+          <div
+            className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 w-full ${
+              language === "en" ? "flex-row-reverse justify-end" : "justify-start flex-row"
+            }`}
+          >
+            <p className="text-sm text-gray-500">
+              {translations[language].location}
+              {location}
+            </p>
             <MapPin className="text-roshitaDarkBlue" />
           </div>
         </div>

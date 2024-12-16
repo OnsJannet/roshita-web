@@ -17,39 +17,85 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useEffect, useState } from "react";
 
-// Updated fake data for doctors, tests, and X-rays
-const chartData = [
-  { category: "الأطباء", value: 50, fill: "#FF6F1E" }, // Doctors
-  { category: "التحاليل", value: 35, fill: "#17C653" }, // Tests
-  { category: "الأشعة", value: 25, fill: "#7239EA" }, // X-rays
-];
+type Language = "ar" | "en";
 
-// Updated chart configuration with new labels and colors
-const chartConfig = {
-  value: {
-    label: "القيمة",
+const translations = {
+  en: {
+    value: "Value",
+    doctors: "Doctors",
+    tests: "Tests",
+    xRays: "X-rays",
   },
-  الأطباء: {
-    label: "الأطباء",
-    color: "#FF6F1E",
+  ar: {
+    value: "القيمة",
+    doctors: "الأطباء",
+    tests: "التحاليل",
+    xRays: "الأشعة",
   },
-  التحاليل: {
-    label: "التحاليل",
-    color: "#17C653",
-  },
-  الأشعة: {
-    label: "الأشعة",
-    color: "#7239EA",
-  },
-} satisfies ChartConfig;
+};
 
 export function PieChartDash() {
+  const [language, setLanguage] = useState<Language>("ar");
+  // Updated fake data for doctors, tests, and X-rays
+  const chartData = [
+    { category: translations[language].doctors, value: 50, fill: "#FF6F1E" }, // Doctors
+    { category: translations[language].tests, value: 35, fill: "#17C653" }, // Tests
+    { category: translations[language].xRays, value: 25, fill: "#7239EA" }, // X-rays
+  ];
+
+  // Updated chart configuration with dynamic labels and colors based on language
+  const chartConfig = {
+    value: {
+      label: translations[language].value,
+    },
+    [translations[language].doctors]: {
+      label: translations[language].doctors,
+      color: "#FF6F1E",
+    },
+    [translations[language].tests]: {
+      label: translations[language].tests,
+      color: "#17C653",
+    },
+    [translations[language].xRays]: {
+      label: translations[language].xRays,
+      color: "#7239EA",
+    },
+  };
+  
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   return (
     <Card className="flex flex-col pb-[30px]">
-      <CardHeader className=" pb-0 flex flex-col justify-start">
-        <CardTitle className="text-end">رسم بياني دائري</CardTitle>
-        <CardDescription className="text-end">إحصائيات لأخر 6 أشهر</CardDescription>
+      <CardHeader className="pb-0 flex flex-col justify-start">
+      <CardTitle className={language === "ar" ? "text-end" : ""}>
+          {language === "ar" ? "رسم بياني دائري" : "Pie Chart"}
+        </CardTitle>
+        <CardDescription className={language === "ar" ? "text-end" : ""}>
+          {language === "ar"
+            ? "إحصائيات لأخر 6 أشهر"
+            : "Statistics for the Last 6 Months"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -80,10 +126,15 @@ export function PieChartDash() {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          ارتفاع بنسبة 5.2% هذا الشهر <TrendingUp className="h-4 w-4" />
+          {language === "ar"
+            ? "ارتفاع بنسبة 5.2% هذا الشهر"
+            : "5.2% Increase This Month"}{" "}
+          <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          يعرض إجمالي البيانات للأشهر الستة الماضية
+          {language === "ar"
+            ? "يعرض إجمالي البيانات للأشهر الستة الماضية"
+            : "Shows Total Data for the Last 6 Months"}
         </div>
       </CardFooter>
     </Card>

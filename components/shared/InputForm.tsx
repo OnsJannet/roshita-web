@@ -1,20 +1,44 @@
 import { Tests } from "@/constant";
 import { CircleDollarSign, CirclePlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface InputFormProps {
   type: "single" | "group";
   onAdd: (name: string, price: string) => void;
 }
 
+type Language = "ar" | "en";
+
 const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
   const [name, setName] = useState("");
   const [groupName, setGroupName] = useState(""); // For group name
   const [price, setPrice] = useState("");
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const handleAdd = () => {
     if (name && price) {
-      onAdd(name, price);
+      onAdd(name, price); // Ensure onAdd is triggered with correct arguments
       setName("");
       setPrice("");
       if (type === "group") {
@@ -24,14 +48,14 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
   };
 
   return (
-    <div className="flex lg:flex-row-reverse flex-col items-center gap-4 p-4 rounded">
+    <div className={`flex lg:flex-row-reverse flex-col items-center gap-4 p-4 rounded ${language === "ar" ? "rtl" : ""}`}>
       <div className="relative w-full">
-        {/* Input for group name */}
+        {/* Input for name */}
         <input
           type="text"
-          placeholder="اسم الباقة"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
+          placeholder={language === "ar" ? "اسم التحليل" : "Test Name"}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
         />
         <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
@@ -52,7 +76,7 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
             }}
           >
             <option value="" disabled>
-              اختر اسم التحليل
+              {language === "ar" ? "اختر اسم التحليل" : "Choose Test Name"}
             </option>
             {Tests.lab_tests.map((test) => (
               <option key={test.معرف_الفحص} value={test.اسم_الفحص}>
@@ -62,11 +86,12 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
           </select>
         </div>
       )}
+
       <div className="relative w-full">
         {/* Input for price */}
         <input
           type="number"
-          placeholder="السعر"
+          placeholder={language === "ar" ? "السعر" : "Price"}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
@@ -80,10 +105,11 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
         onClick={handleAdd}
         className="px-4 py-4 text-white bg-[#00B3E9] rounded-[26px] hover:bg-blue-500 w-full"
       >
-        إضافة
+        {language === "ar" ? "إضافة" : "Add"}
       </button>
     </div>
   );
 };
+
 
 export default InputForm;

@@ -21,11 +21,9 @@ import {
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-
-
+type Language = "ar" | "en";
 
 // Define the interface for profile data
-
 interface UploadImageProps {
   image: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -38,8 +36,30 @@ const PasswordChange = () => {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [passwordCheckVisible, setPasswordCheckVisible] =
     useState<boolean>(false);
-    const [error, setError] = useState("")
-    const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const changePassword = async (newPassword: string, oldPassword: string) => {
     try {
@@ -66,15 +86,23 @@ const PasswordChange = () => {
       );
 
       if (!response.ok) {
-        const errorMessage = `خطأ في تغيير كلمة المرور: ${response.statusText}`;
+        const errorMessage = `${
+          language === "ar"
+            ? "خطأ في تغيير كلمة المرور"
+            : "Error changing password"
+        }: ${response.statusText}`;
         setError(errorMessage);
         throw new Error(errorMessage);
-    }
-    
+      }
 
       const data = await response.json();
-      setMsg(`تم تغيير كلمة المرور بنجاح: ${data.message}`);
-      
+      setMsg(
+        `${
+          language === "ar"
+            ? "تم تغيير كلمة المرور بنجاح"
+            : "Password changed successfully"
+        }: ${data.message}`
+      );
     } catch (error) {
       console.error("Error changing password:", error);
     }
@@ -124,7 +152,7 @@ const PasswordChange = () => {
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>الإعدادت</p>
+                <p>{language === "ar" ? "الإعدادات" : "Settings"}</p>
               </div>
               <div
                 onClick={handleSettingsPasswordClick}
@@ -133,7 +161,9 @@ const PasswordChange = () => {
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>تغير كلمة المرور</p>
+                <p>
+                  {language === "ar" ? "تغير كلمة المرور" : "Change Password"}
+                </p>
               </div>
               <div
                 onClick={handleAppointmentsClick}
@@ -142,7 +172,7 @@ const PasswordChange = () => {
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>مواعيدي</p>
+                <p>{language === "ar" ? "مواعيدي" : "My Appointments"}</p>
               </div>
               <div
                 onClick={handleLogout}
@@ -151,7 +181,7 @@ const PasswordChange = () => {
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <LogOut className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>تسجيل الخروج</p>
+                <p>{language === "ar" ? "تسجيل الخروج" : "Log Out"}</p>
               </div>
             </div>
           </div>
@@ -159,16 +189,29 @@ const PasswordChange = () => {
             {error && <p className="text-red-500">{error}</p>}
             {msg && <p className="text-green-500">{msg}</p>}
             <div>
-              <Label className="text-start">كلمة المرور القديمة</Label>
-              <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none text-start">
+              {language === "ar" ? (
+                <Label className="text-end">كلمة المرور القديمة</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start">Old Password</Label>
+                </div>
+              )}
+
+              <div
+                className={`flex gap-2 ${
+                  language === "en" ? "flex-row" : "flex-row-reverse"
+                } items-center rounded-lg bg-white border px-4 mt-2 border-none text-start`}
+              >
                 <Lock className="text-roshitaBlue" />
                 <Input
                   type={passwordVisible ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   id="password"
-                  placeholder="كلمة المرور"
-                  className="border-transparent shadow-none h-[50px] justify-start"
+                  placeholder={language === "ar" ? "كلمة المرور" : "Password"}
+                  className={`border-transparent shadow-none h-[50px] ${
+                    language === "ar" ? "text-right" : "text-left"
+                  }`}
                 />
                 <button
                   type="button"
@@ -184,16 +227,31 @@ const PasswordChange = () => {
               </div>
             </div>
             <div>
-              <Label className="text-start">كلمة المرور الجديدة</Label>
-              <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none text-start">
+              {language === "ar" ? (
+                <Label className="text-end">كلمة المرور الجديدة</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start">New Password</Label>
+                </div>
+              )}
+
+              <div
+                className={`flex gap-2 ${
+                  language === "en" ? "flex-row" : "flex-row-reverse"
+                } items-center rounded-lg bg-white border px-4 mt-2 border-none text-start`}
+              >
                 <Lock className="text-roshitaBlue" />
                 <Input
                   type={passwordCheckVisible ? "text" : "password"}
                   value={passwordCheck}
                   onChange={(e) => setPasswordCheck(e.target.value)}
                   id="password-check"
-                  placeholder="تأكيد كلمة المرور"
-                  className="border-transparent shadow-none h-[50px] justify-start"
+                  placeholder={
+                    language === "ar" ? "تأكيد كلمة المرور" : "Confirm Password"
+                  }
+                  className={`border-transparent shadow-none h-[50px] ${
+                    language === "ar" ? "text-right" : "text-left"
+                  }`}
                 />
                 <button
                   type="button"
@@ -212,7 +270,7 @@ const PasswordChange = () => {
               onClick={handleSave}
               className="text-white bg-roshitaBlue mt-8 w-full"
             >
-              حفظ
+              {language === "ar" ? "حفظ" : "Save"}
             </Button>
           </div>
         </div>

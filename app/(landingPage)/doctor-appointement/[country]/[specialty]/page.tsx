@@ -8,10 +8,47 @@ import { doctors } from "@/constant";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
+type Language = "ar" | "en"; 
+
+const translations = {
+  ar: {
+    resetFilters: "إعادة ضبط الفلاتر",
+  },
+  en: {
+    resetFilters: "Reset Filters",
+  },
+};
+
+
 const Page = () => {
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const doctorsPerPage = 5;
+    const [language, setLanguage] = useState<Language>("ar");
+  
+    useEffect(() => {
+      // Sync the language state with the localStorage value
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      } else {
+        setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      }
+  
+      // Listen for changes in localStorage
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        }
+      };
+  
+      window.addEventListener("storage", handleStorageChange);
+  
+      // Cleanup the event listener when the component unmounts
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }, []); // Run only once on mount
 
   const params = useParams();
   const country = params?.country 
@@ -92,11 +129,11 @@ const specialty = params?.specialty
           />
 
           {/* Reset Filters Button */}
-          <button 
+          <button
             className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 w-full"
             onClick={resetFilters}
           >
-            إعادة ضبط الفلاتر
+            {translations[language].resetFilters}
           </button>
         </div>
 

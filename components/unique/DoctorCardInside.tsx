@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button"; // Assuming you have a button component
 import { Banknote, LocateIcon, MapPin, Star, StarHalf } from "lucide-react";
 
@@ -13,6 +13,8 @@ type DoctorCardInsideProps = {
   id: number;
 };
 
+type Language = "ar" | "en";
+
 const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
   name,
   specialty,
@@ -23,11 +25,53 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
   imageUrl,
   id,
 }) => {
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    // Sync the language state with the localStorage value
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+    } else {
+      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+    }
+
+    // Listen for changes in localStorage
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []); // Run only once on mount
+
+  // Translations object
+  const translations = {
+    en: {
+      priceLabel: "Price",
+      locationLabel: "Location",
+    },
+    ar: {
+      priceLabel: "سعر الكشف",
+      locationLabel: "الموقع",
+    },
+  };
+
   return (
-    <div className="flex flex-col md:flex-row p-4 bg-white  rounded-xl  mx-auto lg:p-10">
+    <div
+      className={`flex flex-col justify-between md:flex-${
+        language === "en" ? "row-reverse" : "row"
+      } p-4 bg-white rounded-xl mx-auto lg:p-10`}
+    >
       {/* Left Section: Rating and Button */}
-      <div className="flex lg:flex-col  flex-row justify-between p-4 ">
-        <div className="flex items-center mb-2 ">
+      <div className="flex lg:flex-col flex-row justify-between p-4">
+        <div className="flex items-center mb-2">
           <span className="text-gray-500 text-sm ml-2">({reviewsCount})</span>
           {/* Star Rating */}
           <div className="flex text-yellow-500">
@@ -46,17 +90,50 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
       </div>
 
       {/* Right Section: Doctor Info */}
-      <div className="flex flex-1 justify-end gap-4 items-center p-4">
+      <div
+        className={`flex  ${
+          language === "en" ? "justify-start  flex-row-reverse" : "justify-end"
+        } gap-4 items-center p-4`}
+      >
         {/* Doctor's Details */}
         <div className="flex flex-col items-end">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">{name}</h1>
-          <p className="text-sm text-gray-500 mb-2 text-end">{specialty}</p>
-          <div className="flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2">
-            <span>سعر الكشف: {price}</span>
+          <h1
+            className={`text-2xl  ${
+              language === "en" ? "text-start w-full" : "ext-end"
+            } font-bold text-gray-800 mb-1 `}
+          >
+            {name}
+          </h1>
+
+          <p
+            className={`text-sm text-gray-500 mb-2 ${
+              language === "ar" ? "text-end" : ""
+            } w-full`}
+          >
+            {specialty}
+          </p>
+
+          <div
+            className={` flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2  ${
+              language === "en"
+                ? "flex-row-reverse justify-end w-full"
+                : "justify-start"
+            }`}
+          >
+            <span>
+              {translations[language].priceLabel}: {price}
+            </span>
             <Banknote className="text-roshitaDarkBlue" />
           </div>
-          <div className="flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2">
-            <p className="text-sm text-gray-500">{location}</p>
+
+          <div
+            className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 ${
+              language === "en" ? "flex-row-reverse w-full" : ""
+            }`}
+          >
+            <p className="text-sm text-gray-500">
+              {translations[language].locationLabel}: {location}
+            </p>
             <MapPin className="text-roshitaDarkBlue" />
           </div>
         </div>

@@ -57,6 +57,8 @@ import {
   AlertDialogTrigger,
 } from "./alert-dialog";
 
+type Language = "ar" | "en";
+
 // Add your new data here
 const doctorData: APIResponse = {
   count: 10,
@@ -259,202 +261,6 @@ interface APIResponse {
   results: Doctor[];
 }
 
-export const columns: ColumnDef<Payment>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="mr-2" // Add left margin here
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mr-2" // Add left margin here
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "دكاترة",
-    header: "دكاترة",
-    cell: ({ row }) => {
-      const img = row.original.img;
-      const name = row.getValue<string>("دكاترة");
-
-      return (
-        <div className="flex items-center space-x-3 gap-6">
-          {img ? (
-            <img
-              src={img}
-              alt={name}
-              className="h-10 w-10 rounded-full object-cover"
-            />
-          ) : (
-            <UserIcon className="h-10 w-10 rounded-full" /> // Default user icon if no image is available
-          )}
-          <span className="capitalize">{name}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "تاريخ الانضمام",
-    header: ({ column }) => (
-      <Button
-        className=""
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        <ArrowUpDown className="pl-2" />
-        تاريخ الانضمام
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const date = row.getValue<Date>("تاريخ الانضمام");
-      const formattedDate = date
-        ? new Intl.DateTimeFormat("en-US", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          }).format(date)
-        : "—";
-
-      return <div className="lowercase pr-6">{formattedDate}</div>;
-    },
-  },
-  {
-    accessorKey: "التقييم",
-    header: () => <div className="text-right">التقييم</div>,
-    cell: ({ row }) => {
-      const rating = parseFloat(row.getValue("التقييم"));
-      const maxStars = 5;
-      const filledStars = Math.floor(rating);
-      const halfStar = rating % 1 >= 0.5;
-      const emptyStars = maxStars - filledStars - (halfStar ? 1 : 0);
-
-      return (
-        <div className="flex justify-start items-center space-x-1">
-          {Array.from({ length: filledStars }).map((_, i) => (
-            <Star
-              key={`filled-${i}`}
-              className="text-yellow-500 h-4 w-4"
-              fill="currentColor"
-            />
-          ))}
-          {halfStar && <Star className="text-yellow-500 h-4 w-4" fill="none" />}
-          {Array.from({ length: emptyStars }).map((_, i) => (
-            <Star
-              key={`empty-${i}`}
-              className="text-gray-400 h-4 w-4"
-              fill="none"
-            />
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-      const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-      const handleDelete = () => {
-        // Your delete logic here
-        console.log(`Deleted payment with ID: ${payment.id}`);
-
-        // Reload the page after the delete action
-        window.location.reload();
-      };
-
-      const openDialog = () => {
-        setIsDialogOpen(true); // Open dialog when user clicks delete
-      };
-
-      return (
-        <>
-          {/* Dropdown menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem className="text-right justify-end">
-                <Link
-                  href={`/dashboard/doctors/${payment.id}`}
-                  className="flex"
-                >
-                  عرض الملف
-                  <File className="h-4 w-4 ml-2" />
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-right justify-end">
-                <Link
-                  href={`/dashboard/doctors/edit/${payment.id}`}
-                  className="flex"
-                >
-                  تعديل
-                  <PencilLine className="h-4 w-4 ml-2" />
-                </Link>
-              </DropdownMenuItem>
-
-              {/* Trigger dialog through this button */}
-              <DropdownMenuItem
-                onClick={openDialog} // Open dialog when user clicks delete
-                className="text-right justify-end cursor-pointer"
-              >
-                حذف
-                <Trash2 className="h-4 w-4 ml-2" />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* AlertDialog - separate from dropdown */}
-          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-end">
-                  تأكيد الحذف
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-end">
-                  هل أنت متأكد أنك تريد حذف هذا السجل؟ هذه العملية لا يمكن
-                  التراجع عنها.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel
-                  onClick={() => setIsDialogOpen(false)} // Ensure closing the dialog correctly
-                >
-                  إلغاء
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-400"
-                >
-                  حذف
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      );
-    },
-  },
-];
-
 export function DataTable({ data }: { data: Payment[] }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -463,6 +269,245 @@ export function DataTable({ data }: { data: Payment[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [language, setLanguage] = React.useState<Language>("ar");
+
+  React.useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const columns: ColumnDef<Payment>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="mr-2" // Add left margin here
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="mr-2" // Add left margin here
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "دكاترة",
+      header: language === "ar" ? "دكاترة" : "Doctors",
+      cell: ({ row }) => {
+        const img = row.original.img;
+        const name = row.getValue<string>("دكاترة");
+
+        return (
+          <div className="flex items-center space-x-3 gap-6">
+            {img ? (
+              <img
+                src={img}
+                alt={name}
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <UserIcon className="h-10 w-10 rounded-full" /> // Default user icon if no image is available
+            )}
+            <span className="capitalize">{name}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "تاريخ الانضمام",
+      header: ({ column }) => (
+        <Button
+          className=""
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <ArrowUpDown className="pl-2" />
+          {localStorage.getItem("language") === "ar"
+            ? "تاريخ الانضمام"
+            : "Join Date"}
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const date = row.getValue<Date>("تاريخ الانضمام");
+        const formattedDate = date
+          ? new Intl.DateTimeFormat("en-US", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).format(date)
+          : "—";
+
+        return <div className="lowercase pr-6">{formattedDate}</div>;
+      },
+    },
+    {
+      accessorKey: "التقييم",
+      header: () => (
+        <div className="text-right">
+          {" "}
+          {language === "ar" ? "التقييم" : "Rating"}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const rating = parseFloat(row.getValue("التقييم"));
+        const maxStars = 5;
+        const filledStars = Math.floor(rating);
+        const halfStar = rating % 1 >= 0.5;
+        const emptyStars = maxStars - filledStars - (halfStar ? 1 : 0);
+
+        return (
+          <div className="flex justify-start items-center space-x-1">
+            {Array.from({ length: filledStars }).map((_, i) => (
+              <Star
+                key={`filled-${i}`}
+                className="text-yellow-500 h-4 w-4"
+                fill="currentColor"
+              />
+            ))}
+            {halfStar && (
+              <Star className="text-yellow-500 h-4 w-4" fill="none" />
+            )}
+            {Array.from({ length: emptyStars }).map((_, i) => (
+              <Star
+                key={`empty-${i}`}
+                className="text-gray-400 h-4 w-4"
+                fill="none"
+              />
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const payment = row.original;
+        const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+        const handleDelete = async (id: number) => {
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/doctors/removeDoctor?id=${id}`,
+              {
+                method: "DELETE",
+              }
+            );
+            if (response.ok) {
+              console.log(`Deleted doctor with ID: ${id}`);
+              // Refresh the page or update the list to reflect the changes
+              window.location.reload();
+            } else {
+              console.error("Failed to delete doctor");
+            }
+          } catch (error) {
+            console.error("Error deleting doctor:", error);
+          }
+        };
+
+        const openDialog = () => {
+          setIsDialogOpen(true); // Open dialog when user clicks delete
+        };
+
+        return (
+          <>
+            {/* Dropdown menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="text-right justify-end">
+                  <Link
+                    href={`/dashboard/doctors/${payment.id}`}
+                    className="flex"
+                  >
+                    عرض الملف
+                    <File className="h-4 w-4 ml-2" />
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-right justify-end">
+                  <Link
+                    href={`/dashboard/doctors/edit/${payment.id}`}
+                    className="flex"
+                  >
+                    تعديل
+                    <PencilLine className="h-4 w-4 ml-2" />
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* Trigger dialog through this button */}
+                <DropdownMenuItem
+                  onClick={openDialog} // Open dialog when user clicks delete
+                  className="text-right justify-end cursor-pointer"
+                >
+                  حذف
+                  <Trash2 className="h-4 w-4 ml-2" />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* AlertDialog - separate from dropdown */}
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-end">
+                    تأكيد الحذف
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-end">
+                    هل أنت متأكد أنك تريد حذف هذا السجل؟ هذه العملية لا يمكن
+                    التراجع عنها.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    onClick={() => setIsDialogOpen(false)} // Ensure closing the dialog correctly
+                  >
+                    إلغاء
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDelete(Number(payment.id))}
+                    className="bg-red-600 hover:bg-red-400"
+                  >
+                    حذف
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,
@@ -489,23 +534,26 @@ export function DataTable({ data }: { data: Payment[] }) {
       {/* Apply RTL direction */}
       <div className="flex items-center py-4">
         <Input
-          placeholder="فلترة دكاترة..."
+          placeholder={
+            language === "ar" ? "فلترة دكاترة..." : "Filter Doctors..."
+          }
           value={(table.getColumn("دكاترة")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("دكاترة")?.setFilterValue(event.target.value)
           }
           className="max-w-sm text-right" // Align text to the right
         />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="mr-auto">
-              {" "}
-              {/* Margin shifted to the left */}
-              الأعمدة <ChevronDown />
+              {language === "ar" ? "الأعمدة" : "Columns"} <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <Button variant="register" className="mr-2">
-            <Link href="/dashboard/doctors/add">إضافة</Link>
+            <Link href="/dashboard/doctors/add">
+              {language === "ar" ? "إضافة" : "Add"}
+            </Link>
           </Button>
           <DropdownMenuContent align="start">
             {" "}
@@ -573,7 +621,7 @@ export function DataTable({ data }: { data: Payment[] }) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  لا توجد نتائج.
+                  {language === "ar" ? "لا توجد نتائج." : "No results found."}
                 </TableCell>
               </TableRow>
             )}
@@ -582,8 +630,13 @@ export function DataTable({ data }: { data: Payment[] }) {
       </div>
       <div className="flex items-center justify-start space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground text-right">
-          {table.getFilteredSelectedRowModel().rows.length} من{" "}
-          {table.getFilteredRowModel().rows.length} صف (صفوف) مختارة.
+          {language === "ar"
+            ? `${table.getFilteredSelectedRowModel().rows.length} من ${
+                table.getFilteredRowModel().rows.length
+              } صف (صفوف) مختارة.`
+            : `${table.getFilteredSelectedRowModel().rows.length} of ${
+                table.getFilteredRowModel().rows.length
+              } row(s) selected.`}
         </div>
         <div className="flex items-center justify-between space-x-2">
           {/* Previous Button */}
@@ -593,7 +646,7 @@ export function DataTable({ data }: { data: Payment[] }) {
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            السابق
+            {language === "ar" ? "السابق" : "Previous"}
           </Button>
 
           {/* Page Numbers */}
@@ -622,7 +675,7 @@ export function DataTable({ data }: { data: Payment[] }) {
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            التالي
+            {language === "ar" ? "التالي" : "Next"}
           </Button>
         </div>
       </div>

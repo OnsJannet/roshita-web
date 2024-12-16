@@ -1100,24 +1100,29 @@ export const paiement = [
   {
     "id": 1,
     "name": "سداد",
+    "name_en": "Sadad",  // English name added
     "image": "/Images/sadad.png"
   },
   {
     "id": 2,
     "name": "التدوال",
+    "name_en": "Tadawal",  // English name added
     "image": "/Images/tadawal.png"
   },
   {
     "id": 3,
     "name": "موبي كاش",
+    "name_en": "MobiCash",  // English name added
     "image": "/Images/mobicash.png"
   },
   {
     "id": 4,
     "name": "بطاقة إئتمان",
+    "name_en": "Credit Card",  // English name added
     "image": "/Images/mobicash.png"
-  },
-]
+  }
+];
+
 
 export const DoctorData: Payment[] = [
   {

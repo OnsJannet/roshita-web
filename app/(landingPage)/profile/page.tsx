@@ -5,24 +5,62 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import withAuth from "@/hoc/withAuth";
-import { Camera, LogOut, Mail, MapPin, MonitorCheck, Phone, Settings, UserRound } from "lucide-react";
+import {
+  Camera,
+  LogOut,
+  Mail,
+  MapPin,
+  MonitorCheck,
+  Phone,
+  Settings,
+  UserRound,
+} from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
+
+type Language = "ar" | "en";
+
+const translations = {
+  en: {
+    settings: "Settings",
+    changePassword: "Change Password",
+    appointments: "My Appointments",
+    logout: "Log Out",
+    next: "Next",
+    previous: "Previous",
+    noAppointments: "No appointments to display",
+  },
+  ar: {
+    settings: "الإعدادات",
+    changePassword: "تغير كلمة المرور",
+    appointments: "مواعيدي",
+    logout: "تسجيل الخروج",
+    next: "التالي",
+    previous: "السابق",
+    noAppointments: "لا توجد مواعيد لعرضها",
+  },
+};
 
 /**
  * Edits the user profile by making a POST request to the profile edit API.
  */
-const editUserProfile = async (profileData: EditProfileData, accessToken: string): Promise<any> => {
-    console.log("entered editUserProfile")
+const editUserProfile = async (
+  profileData: EditProfileData,
+  accessToken: string
+): Promise<any> => {
+  console.log("entered editUserProfile");
   try {
-    const response = await fetch("https://test-roshita.net/api/account/profile/edit/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(profileData),
-    });
+    const response = await fetch(
+      "https://test-roshita.net/api/account/profile/edit/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(profileData),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Error updating profile: ${response.statusText}`);
@@ -42,11 +80,11 @@ interface EditProfileData {
     last_name: string;
     email: string;
   };
-  gender: string;  // "male", "female", etc.
-  service_country: number;  // assuming this is an ID for a country
-  birthday: string;  // ISO date string
-  city: number;  // assuming this is an ID for the city
-  user_type: number;  // assuming this is an ID for user type
+  gender: string; // "male", "female", etc.
+  service_country: number; // assuming this is an ID for a country
+  birthday: string; // ISO date string
+  city: number; // assuming this is an ID for the city
+  user_type: number; // assuming this is an ID for user type
   address: string;
 }
 
@@ -95,10 +133,31 @@ const Profile = () => {
     { id: 1, country: 2, name: "تونس العاصمة", foreign_name: "Tunis" },
     { id: 2, country: 2, name: "سوسة", foreign_name: "Soussa" },
     { id: 4, country: 2, name: "صفاقس", foreign_name: "Sfax" },
-    { id: 3, country: 1, name: "طرابلس", foreign_name: "Tripoli" }
+    { id: 3, country: 1, name: "طرابلس", foreign_name: "Tripoli" },
   ];
 
+  const [language, setLanguage] = useState<Language>("ar");
 
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
@@ -114,7 +173,9 @@ const Profile = () => {
     address: "",
   });
 
-  const filteredCities = cities.filter(city => city.country === profileData.service_country);
+  const filteredCities = cities.filter(
+    (city) => city.country === profileData.service_country
+  );
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -127,7 +188,7 @@ const Profile = () => {
     const loadProfileData = async () => {
       try {
         const data = await fetchProfileDetails();
-        
+
         // Check the structure of the fetched data
         console.log("Fetched profile data:", data);
 
@@ -140,9 +201,9 @@ const Profile = () => {
             email: data.user?.email || "",
           },
           gender: data.gender || "",
-          service_country: data.service_country || 2,  // Ensure default values are not 0
+          service_country: data.service_country || 2, // Ensure default values are not 0
           birthday: data.birthday || "",
-          city: data.city || 1,  // Ensure default values are not 0
+          city: data.city || 1, // Ensure default values are not 0
           user_type: data.user_type || 0,
           address: data.address || "",
         });
@@ -155,7 +216,7 @@ const Profile = () => {
         console.error("Error loading profile data", error);
       }
     };
-  
+
     loadProfileData();
   }, []);
 
@@ -163,50 +224,51 @@ const Profile = () => {
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      const token = localStorage.getItem('access');
-      
+      const token = localStorage.getItem("access");
+
       if (!token) {
-        throw new Error('No token found. Please log in.');
+        throw new Error("No token found. Please log in.");
       }
-  
+
       // Ensure profileData has the correct structure and all fields are populated
       await editUserProfile(profileData, token);
-      
-      setSuccessMessage('Profile updated successfully.');
+
+      setSuccessMessage("Profile updated successfully.");
       console.log("Profile updated successfully.");
     } catch (error: any) {
-      setErrorMessage(error.message || 'Error updating profile.');
+      setErrorMessage(error.message || "Error updating profile.");
       console.error("Error updating profile:", error);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = '/login';
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "/login";
   };
 
   const handleSettingsClick = () => {
-    router.push('/profile');
+    router.push("/profile");
   };
 
   const handleAppointmentsClick = () => {
-    router.push('/appointments');
+    router.push("/appointments");
   };
 
   const handleSettingsPasswordClick = () => {
-    router.push('/password-change');
+    router.push("/password-change");
   };
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
-        <div className="flex justify-start gap-10 lg:flex-row-reverse flex-col mx-auto">
-          <div className="flex lg:w-[20%] w-full justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
-            {/*<div className="mx-auto flex justify-center">
-              <UploadImage image={image} onImageChange={handleImageChange} />
-            </div>*/}
+        <div
+          className={`flex ${
+            language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
+          } flex-col justify-start gap-10 mx-auto`}
+        >
+          <div className="flex lg:w-[20%] w-[100%] justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
             <div className="mx-auto flex justify-center">
               <div className="relative lg:w-60 lg:h-60 xl:w-20 xl:h-20 h-40 w-40">
                 <div className="w-full h-full rounded-full bg-[#f1f1f1] flex items-center justify-center overflow-hidden">
@@ -215,14 +277,14 @@ const Profile = () => {
               </div>
             </div>
             <div>
-               <div
+              <div
                 onClick={handleSettingsClick}
                 className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>الإعدادت</p>
+                <p>{translations[language].settings}</p>
               </div>
               <div
                 onClick={handleSettingsPasswordClick}
@@ -231,7 +293,7 @@ const Profile = () => {
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>تغير كلمة المرور</p>
+                <p>{translations[language].changePassword}</p>
               </div>
               <div
                 onClick={handleAppointmentsClick}
@@ -240,148 +302,242 @@ const Profile = () => {
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>مواعيدي</p>
+                <p>{translations[language].appointments}</p>
               </div>
-              <div onClick={handleLogout} className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer">
+              <div
+                onClick={handleLogout}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <LogOut className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
-                <p>تسجيل الخروج</p>
+                <p>{translations[language].logout}</p>
               </div>
             </div>
           </div>
           <div className="flex gap-10 text-end flex-col w-[80%] mx-auto">
-            {successMessage && <p className="text-green-400">{successMessage}</p>}
+            {successMessage && (
+              <p className="text-green-400">{successMessage}</p>
+            )}
             {errorMessage && <p className="text-red-400">{errorMessage}</p>}
             <div className="flex justify-between gap-4">
               <div className="w-1/2">
-                <Label className="text-start">الإسم الأول</Label>
-                <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none">
+                {language === "ar" ? (
+                  <Label className="text-start">الإسم الأول</Label>
+                ) : (
+                  <div className="w-full flex ">
+                  <Label className="text-end pb-2"> First Name</Label>
+                  </div>
+                )}
+                <div className={`flex gap-2 ${language === "ar" ? "flex-row-reverse" : "flex-row"} items-center rounded-lg bg-white border px-4 mt-2 border-none`}>
+
                   <UserRound className="text-roshitaBlue" />
                   <Input
-                    value={profileData.user.first_name || '-'}
+                    value={profileData.user.first_name || "-"}
                     onChange={(e) =>
-                      setProfileData(prevState => ({
+                      setProfileData((prevState) => ({
                         ...prevState,
-                        user: { ...prevState.user, first_name: e.target.value }
+                        user: { ...prevState.user, first_name: e.target.value },
                       }))
                     }
                     placeholder="الإسم الأول"
-                    className="border-transparent shadow-none focus-visible:transparent h-[50px]"
+                    className={`border-transparent shadow-none h-[50px] ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}
                   />
                 </div>
               </div>
               <div className="w-1/2">
-                <Label className="text-start">الإسم الأخير</Label>
-                <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none">
+                {language === "ar" ? (
+                  <Label className="text-start">الإسم الأخير</Label>
+                ) : (
+                  <div className="w-full flex ">
+                  <Label className="text-end pb-2"> Last Name</Label>
+                  </div>
+                )}
+                <div className={`flex gap-2 ${language === "ar" ? "flex-row-reverse" : "flex-row"} items-center rounded-lg bg-white border px-4 mt-2 border-none`}>
+
                   <UserRound className="text-roshitaBlue" />
                   <Input
-                    value={profileData.user.last_name || '-'}
+                    value={profileData.user.last_name || "-"}
                     onChange={(e) =>
-                      setProfileData(prevState => ({
+                      setProfileData((prevState) => ({
                         ...prevState,
-                        user: { ...prevState.user, last_name: e.target.value }
+                        user: { ...prevState.user, last_name: e.target.value },
                       }))
                     }
                     placeholder="الإسم الأخير"
-                    className="border-transparent shadow-none h-[50px]"
+                    className={`border-transparent shadow-none h-[50px] ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}
                   />
                 </div>
               </div>
             </div>
             <div>
-              <Label className="text-start">البريد الإلكتروني</Label>
-              <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none text-start">
+              {language === "ar" ? (
+                <Label className="text-end">البريد الإلكتروني</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start">Email</Label>
+                </div>
+              )}
+
+              <div className="flex gap-2 items-center rounded-lg bg-white border px-4 mt-2 border-none">
                 <Mail className="text-roshitaBlue" />
                 <Input
-                  value={profileData.user.email || '-'}
+                  value={profileData.user.email || "-"}
                   onChange={(e) =>
-                    setProfileData(prevState => ({
+                    setProfileData((prevState) => ({
                       ...prevState,
-                      user: { ...prevState.user, email: e.target.value }
+                      user: { ...prevState.user, email: e.target.value },
                     }))
                   }
-                  placeholder="البريد الإلكتروني"
-                  className="border-transparent shadow-none h-[50px] justify-start"
+                  placeholder={
+                    language === "ar" ? "البريد الإلكتروني" : "Email"
+                  } // Adjust placeholder based on language
+                  className={`border-transparent shadow-none h-[50px] ${
+                    language === "ar" ? "text-right" : "text-left"
+                  }`} // Apply text-right for Arabic
                 />
               </div>
             </div>
 
             <div>
-  <Label className="text-start">البلد</Label>
-  <select
-    value={profileData.service_country || ''}
-    onChange={(e) =>
-      setProfileData((prevState) => ({
-        ...prevState,
-        service_country: Number(e.target.value), // Ensure it's a number
-      }))
-    }
-    className="border-transparent shadow-none h-[50px] w-full"
-  >
-    <option value="">اختر البلد</option>
-    <option value="2">تونس</option>
-    <option value="1">ليبيا</option>
-  </select>
-</div>
+              {language === "ar" ? (
+                <Label className="text-start">البلد</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start pb-2">Country</Label>
+                </div>
+              )}
+              <select
+                value={profileData.service_country || ""}
+                onChange={(e) =>
+                  setProfileData((prevState) => ({
+                    ...prevState,
+                    service_country: Number(e.target.value), // Ensure it's a number
+                  }))
+                }
+                className="border-transparent shadow-none h-[50px] w-full"
+              >
+                {language === "ar" ? (
+                  <option value="">اختر البلد</option>
+                ) : (
+                  <option value="">Country</option>
+                )}
+                {language === "ar" ? (
+                  <>
+                    <option value="2">تونس</option>
+                    <option value="1">ليبيا</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="2">Tunisia</option>
+                    <option value="1">Libya</option>
+                  </>
+                )}
+              </select>
+            </div>
 
-<div className="mt-4">
-        <Label className="text-start">المدينة</Label>
-        <select
-          value={profileData.city || ''}
-          onChange={(e) =>
-            setProfileData((prevState) => ({
-              ...prevState,
-              service_city: Number(e.target.value), // Ensure it's a number
-            }))
-          }
-          className="border-transparent shadow-none h-[50px] w-full"
-          disabled={!profileData.service_country} // Disable if no country is selected
-        >
-          <option value="">اختر المدينة</option>
-          {filteredCities.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-      </div>
+            <div className="mt-4">
+              {language === "ar" ? (
+                <Label className="text-start">المدينة</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start pb-2">City</Label>
+                </div>
+              )}
+              <select
+                value={profileData.city || ""}
+                onChange={(e) =>
+                  setProfileData((prevState) => ({
+                    ...prevState,
+                    service_city: Number(e.target.value), // Ensure it's a number
+                  }))
+                }
+                className="border-transparent shadow-none h-[50px] w-full"
+                disabled={!profileData.service_country} // Disable if no country is selected
+              >
+                {language === "ar" ? (
+                  <option value="">اختر المدينة</option>
+                ) : (
+                  <option value="">City</option>
+                )}
+                {filteredCities.map((city) => (
+                  <option key={city.id} value={city.id}>
+                    {language === "ar" ? city.name : city.foreign_name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-
-            
             <div>
-              <Label className="text-start">الجنس</Label>
+              {language === "ar" ? (
+                <Label className="text-start">الجنس</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start pb-2">Gender</Label>
+                </div>
+              )}
               <RadioGroup
-
                 value={profileData.gender}
                 onValueChange={(value) =>
-                  setProfileData(prevState => ({
+                  setProfileData((prevState) => ({
                     ...prevState,
-                    gender: value
+                    gender: value,
                   }))
                 }
               >
-                <div className="flex gap-4 justify-end mt-4">
+                <div
+                  className={`flex gap-4 ${
+                    language === "en" ? "justify-start" : "justify-end"
+                  } mt-4`}
+                >
                   <RadioGroupItem value="male" id="male" className="h-4 w-4" />
-                  <Label htmlFor="male" className="text-start">ذكر</Label>
-                  <RadioGroupItem value="female" id="female" className="h-4 w-4" />
-                  <Label htmlFor="female" className="text-start">أنثى</Label>
+                  {language === "ar" ? (
+                    <Label className="text-start">ذكر</Label>
+                  ) : (
+                    <Label className="text-start">Male</Label>
+                  )}
+                  <RadioGroupItem
+                    value="female"
+                    id="female"
+                    className="h-4 w-4"
+                  />
+                  {language === "ar" ? (
+                    <Label className="text-start">أنثى</Label>
+                  ) : (
+                    <Label className="text-start">Female</Label>
+                  )}
                 </div>
               </RadioGroup>
             </div>
             <div>
-              <Label className="text-start">تاريخ الميلاد</Label>
-              <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none">
+              {language === "ar" ? (
+                <Label className="text-start">تاريخ الميلاد</Label>
+              ) : (
+                <div className="w-full flex ">
+                  <Label className="text-start pb-2">Birthday</Label>
+                </div>
+              )}
+              <div
+                className={`flex gap-2 ${
+                  language === "en" ? "flex-row" : "flex-row-reverse"
+                } items-center rounded-lg bg-white border px-4 mt-2 border-none`}
+              >
                 <Input
                   type="date"
-                  value={profileData.birthday || ''}
+                  value={profileData.birthday || ""}
                   onChange={(e) =>
-                    setProfileData(prevState => ({
+                    setProfileData((prevState) => ({
                       ...prevState,
-                      birthday: e.target.value
+                      birthday: e.target.value,
                     }))
                   }
-                  className="border-transparent shadow-none h-[50px] justify-end"
+                  className={`border-transparent shadow-none h-[50px] ${
+                    language === "en" ? "justify-start" : "justify-end"
+                  }`}
                 />
               </div>
             </div>
@@ -403,7 +559,12 @@ const Profile = () => {
               </div>
             </div>*/}
             <div className="w-[20%]">
-              <Button onClick={handleSave} className="w-full mt-4 bg-roshitaDarkBlue">حفظ</Button>
+              <Button
+                onClick={handleSave}
+                className="w-full mt-4 bg-roshitaDarkBlue"
+              >
+                {language === "ar" ? "حفظ" : "Save"}{" "}
+              </Button>
             </div>
           </div>
         </div>

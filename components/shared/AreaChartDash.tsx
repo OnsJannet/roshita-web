@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import * as React from "react";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -17,14 +17,17 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+
+type Language = "ar" | "en";
+
 const chartData = [
   { date: "2024-04-01", الأطباء: 222, mobile: 150 },
   { date: "2024-04-02", الأطباء: 97, mobile: 180 },
@@ -117,64 +120,93 @@ const chartData = [
   { date: "2024-06-28", الأطباء: 149, mobile: 200 },
   { date: "2024-06-29", الأطباء: 103, mobile: 160 },
   { date: "2024-06-30", الأطباء: 446, mobile: 400 },
-]
-
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  الأطباء: {
-    label: "الأطباء",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig
+];
 
 export function AreaChartDash() {
-  const [timeRange, setTimeRange] = React.useState("90d")
+  const [timeRange, setTimeRange] = React.useState("90d");
+  const [language, setLanguage] = React.useState<Language>("ar");
+
+  React.useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const chartConfig = {
+    visitors: {
+      label: "Visitors",
+    },
+    الأطباء: {
+      label: language === "ar" ? "الأطباء" : "doctors",
+      color: "hsl(var(--chart-1))",
+    },
+
+    mobile: {
+      label: "Mobile",
+      color: "hsl(var(--chart-2))",
+    },
+  } satisfies ChartConfig;
 
   const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const referenceDate = new Date("2024-06-30")
-    let daysToSubtract = 90
+    const date = new Date(item.date);
+    const referenceDate = new Date("2024-06-30");
+    let daysToSubtract = 90;
     if (timeRange === "30d") {
-      daysToSubtract = 30
+      daysToSubtract = 30;
     } else if (timeRange === "7d") {
-      daysToSubtract = 7
+      daysToSubtract = 7;
     }
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  })
+    const startDate = new Date(referenceDate);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    return date >= startDate;
+  });
 
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 flex-row-reverse gap-1 text-center sm:text-left">
-          <CardTitle>تحليل عدد الأطباء</CardTitle>
+          <CardTitle>
+            {language === "ar" ? "تحليل عدد الأطباء" : "Doctors Analysis"}
+          </CardTitle>
           <CardDescription>
-          رصد وتوجهات عدد الأطباء على مدار الأيام
+            {language === "ar"
+              ? "رصد وتوجهات عدد الأطباء على مدار الأيام"
+              : "Tracking and trends of the number of doctors over the days"}
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
             className="w-[160px] rounded-lg sm:ml-auto"
-            aria-label="Select a value"
+            aria-label={language === "ar" ? "اختر قيمة" : "Select a value"}
           >
-            <SelectValue placeholder="Last 3 months" />
+            <SelectValue
+              placeholder={language === "ar" ? "آخر 3 شهور" : "Last 3 months"}
+            />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
             <SelectItem value="90d" className="rounded-lg">
-              Last 3 months
+              {language === "ar" ? "آخر 3 شهور" : "Last 3 months"}
             </SelectItem>
             <SelectItem value="30d" className="rounded-lg">
-              Last 30 days
+              {language === "ar" ? "آخر 30 يومًا" : "Last 30 days"}
             </SelectItem>
             <SelectItem value="7d" className="rounded-lg">
-              Last 7 days
+              {language === "ar" ? "آخر 7 أيام" : "Last 7 days"}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -187,16 +219,8 @@ export function AreaChartDash() {
           <AreaChart data={filteredData}>
             <defs>
               <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="40%"
-                  stopColor="#1B84FF1A"
-                  stopOpacity={2}
-                />
-                <stop
-                  offset="60%"
-                  stopColor="#FFFFFF00"
-                  stopOpacity={0.1}
-                />
+                <stop offset="40%" stopColor="#1B84FF1A" stopOpacity={2} />
+                <stop offset="60%" stopColor="#FFFFFF00" stopOpacity={0.1} />
               </linearGradient>
               <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
                 <stop
@@ -219,11 +243,11 @@ export function AreaChartDash() {
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(value) => {
-                const date = new Date(value)
+                const date = new Date(value);
                 return date.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
-                })
+                });
               }}
             />
             <ChartTooltip
@@ -234,7 +258,7 @@ export function AreaChartDash() {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
-                    })
+                    });
                   }}
                   indicator="dot"
                 />
@@ -254,5 +278,5 @@ export function AreaChartDash() {
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

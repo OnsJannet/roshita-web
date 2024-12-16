@@ -6,7 +6,7 @@ import Image from 'next/image'; // Assuming you use Next.js for image optimizati
 import { useRouter } from "next/navigation";
 import LanguageSwitcher from "../layout/LanguageSwitcher";
 
-
+type Language = "ar" | "en"; // Define allowed languages
 
 const fetchProfileDetails = async (): Promise<any> => {
   try {
@@ -36,6 +36,32 @@ const fetchProfileDetails = async (): Promise<any> => {
 };
 
 const NavBar = () => {
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    // Sync the language state with the localStorage value
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+    } else {
+      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+    }
+
+    // Listen for changes in localStorage
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []); // Run only once on mount
+
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
@@ -72,7 +98,6 @@ const NavBar = () => {
   }
 
   const handleClickSettings = () => {
-
     router.push('/profile');
   };
 
@@ -85,15 +110,17 @@ const NavBar = () => {
       className="h-[80px] lg:px-0 px-4 pb-4 pt-2 rounded-b-lg"
       style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)" }}
     >
-      <div className="flex justify-between max-w-[1280px] mx-auto flex-row-reverse">
-        <div className="flex gap-2 items-center mt-4 ">
+      <div className={`flex justify-between max-w-[1280px] mx-auto ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex gap-2 items-center mt-4 ${language === 'en' ? 'flex-row-reverse' : ''}`}>
           <div className="">
-            <h2 className="text-end font-bold lg:text-[16px] text-[12px]">
-              روشــــــــيتــــــا
+            <h2 className={`${language === 'ar' ? 'text-right' : 'text-left'} font-bold lg:text-[16px] text-[12px]`}>
+              {language === 'ar' ? 'روشــــــــيتــــــا' : 'Roshita'}
             </h2>
-            <p className="font-[500] lg:text-[16px] text-[12px]">
-              صحــة أفضل{" "}
-              <span className="text-roshitaGreen">تواصـــــل أســـرع</span>{" "}
+            <p className={`${language === 'ar' ? 'text-right' : 'text-left'} font-[500] lg:text-[16px] text-[12px]`}>
+              {language === 'ar' ? 'صحــة أفضل' : 'Better Health'}{" "}
+              <span className="text-roshitaGreen">
+                {language === 'ar' ? 'تواصـــــل أســـرع' : 'Faster Communication'}
+              </span>{" "}
             </p>
           </div>
           <img
@@ -106,8 +133,8 @@ const NavBar = () => {
 
         <div className="gap-4 lg:flex pt-2 hidden">
           <div className="mt-2">
-        {/*<LanguageSwitcher/>*/}
-        </div>
+            <LanguageSwitcher />
+          </div>
           {!isLoggedIn ? (
             <>
               <Button
@@ -115,36 +142,39 @@ const NavBar = () => {
                 variant="login"
                 className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
               >
-                تسجيل الدخول
+                {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
               </Button>
               <Button
                 onClick={handleClickRegister}
                 variant="register"
                 className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
               >
-                تسجيل
+                {language === 'ar' ? 'تسجيل' : 'Register'}
               </Button>
             </>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex gap-2 items-center flex-row-reverse">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="overflow-hidden rounded-full"
-                >
-                    <UserRound /> 
-                </Button>
-                <p>حسابي</p>
+                <div className="flex gap-2 items-center">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="overflow-hidden rounded-full"
+                  >
+                    <UserRound />
+                  </Button>
+                  <p>{language === 'ar' ? 'حسابي' : 'My Account'}</p>
                 </div>
-
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>حسابي</DropdownMenuLabel>
+                <DropdownMenuLabel>{language === 'ar' ? 'حسابي' : 'My Account'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleClickSettings}>الإعدادات</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleClickAppointments}>مواعيدي</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClickSettings}>
+                  {language === 'ar' ? 'الإعدادات' : 'Settings'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClickAppointments}>
+                  {language === 'ar' ? 'مواعيدي' : 'My Appointments'}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => {
                   localStorage.removeItem('access');
@@ -152,9 +182,10 @@ const NavBar = () => {
                   localStorage.removeItem('isLoggedIn');
                   setIsLoggedIn(false);
                   window.location.href = '/login'; // Redirect to login page after logout
-                }}>تسجيل الخروج</DropdownMenuItem>
+                }}>
+                  {language === 'ar' ? 'تسجيل الخروج' : 'Logout'}
+                </DropdownMenuItem>
               </DropdownMenuContent>
-
             </DropdownMenu>
           )}
         </div>

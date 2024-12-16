@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { loginUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
+type Language = "ar" | "en";
+
 const Page = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +17,28 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const router = useRouter();
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -43,20 +67,20 @@ const Page = () => {
       }
 
     } catch (error: any) {
-      setError(error.message || 'حدث خطأ أثناء تسجيل الدخول.');
+      setError(error.message || (language === 'en' ? 'An error occurred during login.' : 'حدث خطأ أثناء تسجيل الدخول.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+    <div className={`w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px] ${language === 'en' ? 'text-left' : 'text-right'}`}>
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold text-end">مرحبـــا </h1>
-            <p className="text-balance text-muted-foreground text-end">
-              عبئ المتطلبات الأتيه لتسجيل الدخول
+            <h1 className="text-3xl font-bold">{language === 'en' ? 'Welcome' : 'مرحبـــا'}</h1>
+            <p className="text-balance text-muted-foreground">
+              {language === 'en' ? 'Fill in the following details to login' : 'عبئ المتطلبات الأتيه لتسجيل الدخول'}
             </p>
           </div>
 
@@ -68,8 +92,8 @@ const Page = () => {
 
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="phone" className="text-end">
-                رقم الهاتف
+              <Label htmlFor="phone">
+                {language === 'en' ? 'Phone number' : 'رقم الهاتف'}
               </Label>
               <Input
                 id="phone"
@@ -86,9 +110,9 @@ const Page = () => {
                   href="/forgot-password"
                   className="mr-auto inline-block text-sm underline"
                 >
-                  نسيت كلمة المرور
+                  {language === 'en' ? 'Forgot password?' : 'نسيت كلمة المرور'}
                 </Link>
-                <Label htmlFor="password">كلمة المرور</Label>
+                <Label htmlFor="password">{language === 'en' ? 'Password' : 'كلمة المرور'}</Label>
               </div>
 
               <Input
@@ -100,14 +124,14 @@ const Page = () => {
               />
             </div>
             <Button type="submit" className="w-full bg-roshitaBlue" disabled={loading}>
-              {loading ? 'جاري التسجيل...' : 'تسجيل'}
+              {loading ? (language === 'en' ? 'Logging in...' : 'جاري التسجيل...') : (language === 'en' ? 'Login' : 'تسجيل')}
             </Button>
           </form>
 
           <div className="mt-4 text-center text-sm">
-            لا تمتلك حسابًا؟{' '}
+            {language === 'en' ? "Don't have an account?" : 'لا تمتلك حسابًا؟'}{' '}
             <Link href="/register" className="underline">
-              اشترك
+              {language === 'en' ? 'Sign up' : 'اشترك'}
             </Link>
           </div>
         </div>

@@ -27,6 +27,33 @@ type DoctorCardAppointmentProps = {
   time: string;
 };
 
+type Language = "ar" | "en";
+
+const translations = {
+  ar: {
+    confirmBooking: "تأكيد حجــز",
+    appointmentSuccess: "تــم تسجيــــل الموعد بنجاح",
+    user: "مستخـــــدم",
+    appointmentDetails: "بيـــــانات الحجــــز",
+    doctorName: "اسم الدكتــور",
+    specialty: "التخصص",
+    date: "التاريخ",
+    time: "الساعة",
+    myAppointments: "مواعيــــدي",
+  },
+  en: {
+    confirmBooking: "Confirm Booking",
+    appointmentSuccess: "Appointment successfully registered",
+    user: "User",
+    appointmentDetails: "Appointment Details",
+    doctorName: "Doctor's Name",
+    specialty: "Specialty",
+    date: "Date",
+    time: "Time",
+    myAppointments: "My Appointments",
+  },
+};
+
 export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   name,
   specialty,
@@ -51,6 +78,29 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     user_type: 0,
     address: "",
   });
+
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -78,7 +128,6 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   }, []);
 
   const handleCreateAppointment = () => {
-    // Create appointment object
     const newAppointment = {
       appointmentDate: new Date().toLocaleDateString(),
       imageUrl: imageUrl,
@@ -89,22 +138,21 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       day: day,
     };
 
-    // Get existing appointments from localStorage
-    const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-
-    // Add new appointment to the list
+    const existingAppointments = JSON.parse(
+      localStorage.getItem("appointments") || "[]"
+    );
     existingAppointments.push(newAppointment);
-
-    // Save updated list back to localStorage
-    localStorage.setItem('appointments', JSON.stringify(existingAppointments));
-    window.location.href = '/appointments'
+    localStorage.setItem("appointments", JSON.stringify(existingAppointments));
+    window.location.href = "/appointments";
   };
+
+  const t = translations[language]; // Choose translation based on selected language
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button className="p-4 bg-roshitaBlue rounded text-white !text-center font-bold flex justify-center mt-4">
-          تأكيد حجــز
+          {t.confirmBooking}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
@@ -113,32 +161,44 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
             <CircleCheck className="h-40 w-40 text-white fill-roshitaBlue" />
           </DialogTitle>
           <DialogDescription className="text-center">
-            تــم تسجيــــل الموعد بنجاح
+            {t.appointmentSuccess}
           </DialogDescription>
         </DialogHeader>
         <div className="p-4">
-          <div className="flex justify-end items-center gap-8">
+          <div
+            className={`flex justify-end items-center gap-8 ${
+              language === "en" ? "flex-row-reverse" : ""
+            }`}
+          >
             <div>
               <p className="font-semibold text-end">
                 {profileData.user.first_name || "admin"}
               </p>
-              <p className="font-regular text-gray-400">مستخـــــدم</p>
+              <p className="font-regular text-gray-400">{t.user}</p>
             </div>
             <div className="bg-roshitaBlue rounded-full h-24 w-24 flex justify-center items-center">
               <UserRound className="h-20 w-20 text-white" />
             </div>
           </div>
+
           <div className="px-6">
-            <p className="text-end font-semibold mt-4 text-xl">
-              بيـــــانات الحجــــز
+            <p
+              className={`font-semibold mt-4 text-xl ${
+                language === "en" ? "text-start" : "text-end"
+              }`}
+            >
+              {t.appointmentDetails}
             </p>
           </div>
         </div>
         <div className="grid gap-4 py-4">
           <div className="grid gap-4 py-4">
-            {/* First Row */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-4">
+              <div
+                className={`flex items-center gap-4 ${
+                  language === "en" ? "flex-row-reverse" : ""
+                }`}
+              >
                 <Input
                   id="name"
                   defaultValue={name}
@@ -146,11 +206,20 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   readOnly
                   disabled
                 />
-                <Label htmlFor="name" className="text-right w-40">
-                  اسم الدكتــور
+                <Label
+                  htmlFor="name"
+                  className={`text-${
+                    language === "en" ? "left" : "right"
+                  } w-40`}
+                >
+                  {t.doctorName}
                 </Label>
               </div>
-              <div className="flex items-center gap-4">
+              <div
+                className={`flex items-center gap-4 ${
+                  language === "en" ? "flex-row-reverse" : ""
+                }`}
+              >
                 <Input
                   id="specialty"
                   defaultValue={specialty}
@@ -158,14 +227,22 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   readOnly
                   disabled
                 />
-                <Label htmlFor="specialty" className="text-right w-40">
-                  التخصص
+                <Label
+                  htmlFor="specialty"
+                  className={`text-${
+                    language === "en" ? "left" : "right"
+                  } w-40`}
+                >
+                  {t.specialty}
                 </Label>
               </div>
             </div>
-            {/* Second Row */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-4">
+              <div
+                className={`flex items-center gap-4 ${
+                  language === "en" ? "flex-row-reverse" : ""
+                }`}
+              >
                 <Input
                   id="day"
                   defaultValue={day}
@@ -173,11 +250,20 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   readOnly
                   disabled
                 />
-                <Label htmlFor="day" className="text-right w-40">
-                  التاريخ
+                <Label
+                  htmlFor="day"
+                  className={`text-${
+                    language === "en" ? "left" : "right"
+                  } w-40`}
+                >
+                  {t.date}
                 </Label>
               </div>
-              <div className="flex items-center gap-4">
+              <div
+                className={`flex items-center gap-4 ${
+                  language === "en" ? "flex-row-reverse" : ""
+                }`}
+              >
                 <Input
                   id="time"
                   defaultValue={time}
@@ -185,8 +271,13 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   readOnly
                   disabled
                 />
-                <Label htmlFor="time" className="text-right w-40">
-                  الساعة
+                <Label
+                  htmlFor="time"
+                  className={`text-${
+                    language === "en" ? "left" : "right"
+                  } w-40`}
+                >
+                  {t.time}
                 </Label>
               </div>
             </div>
@@ -200,7 +291,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
               className="bg-roshitaBlue"
               onClick={handleCreateAppointment}
             >
-              مواعيــــدي
+              {t.myAppointments}
             </Button>
           </div>
         </DialogFooter>

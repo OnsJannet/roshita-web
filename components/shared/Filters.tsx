@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Select,
   SelectTrigger,
@@ -13,9 +13,33 @@ import { countries, specialities } from "@/constant";
 
 const Filters = () => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(
-    null
-  );
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [language, setLanguage] = useState<string>("");
+
+  useEffect(() => {
+    // Synchronize the language state with the localStorage value
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    } else {
+      setLanguage("ar"); // Default language is 'ar' (Arabic)
+    }
+
+    // Listen for changes in localStorage
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        // Update the language state when the language in localStorage changes
+        setLanguage(event.newValue || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const handleCountryChange = (value: string | undefined) => {
     setSelectedCountry(value ?? null);
@@ -39,7 +63,9 @@ const Filters = () => {
       style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
     >
       <p className="text-end mb-4 font-medium">
-        حجـــز موعد طبي ، تقديم استشارات
+        {language === "ar"
+          ? "حجـــز موعد طبي ، تقديم استشارات"
+          : "Book a medical appointment or seek consultations"}
       </p>
       <div className="flex justify-between gap-4">
         <Button
@@ -47,7 +73,7 @@ const Filters = () => {
           className="rounded-xl h-[52px] w-[440px] gap-1 font-bold text-[18px]"
           onClick={handleSearch}
         >
-          بحث
+          {language === "ar" ? "بحث" : "Search"}
           <Search className="h-4 w-4" />
         </Button>
 
@@ -59,7 +85,7 @@ const Filters = () => {
           <SelectTrigger className="h-[52px] flex-row-reverse ">
             <div className="flex flex-row-reverse gap-2 items-center">
               <MapPin className="h-[20px] w-[20px] text-roshitaDarkBlue" />
-              <SelectValue placeholder="البلد" />
+              <SelectValue placeholder={language === "ar" ? "البلد" : "Country"} />
             </div>
           </SelectTrigger>
           <SelectContent className="z-[999999]">
@@ -78,8 +104,10 @@ const Filters = () => {
         >
           <SelectTrigger className="h-[52px] flex-row-reverse">
             <div className="flex flex-row-reverse gap-2 items-center">
-              <HeartPulse className="h-[20px] w-[20px] text-roshitaDarkBlue"  />
-              <SelectValue placeholder="التخصص" />
+              <HeartPulse className="h-[20px] w-[20px] text-roshitaDarkBlue" />
+              <SelectValue
+                placeholder={language === "ar" ? "التخصص" : "Specialty"}
+              />
             </div>
           </SelectTrigger>
           <SelectContent className="z-[999999]">

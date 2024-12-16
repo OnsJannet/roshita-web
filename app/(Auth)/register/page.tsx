@@ -1,64 +1,91 @@
+'use client'
 import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
 
+type Language = "ar" | "en";
 
 const page = () => {
+
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   return (
-    <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+    <div className={`w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px] ${language === "ar" ? "text-right" : "text-left"}`}>
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold text-end">
-              أنضــم الي <span className="text-roshitaDarkBlue"> روشيتا</span>{" "}
+            <h1 className="text-3xl font-bold">
+              {language === "ar" ? "أنضــم الي" : "Join"} <span className="text-roshitaDarkBlue">Roshita</span>
             </h1>
-            <p className="text-balance text-muted-foreground text-end">
-              عبئ المتطلبات الأتيه لتسجيل الدخول
+            <p className="text-balance text-muted-foreground">
+              {language === "ar" ? "عبئ المتطلبات الأتيه لتسجيل الدخول" : "Fill in the following details to register"}
             </p>
           </div>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="name " className="text-end">
-                الإسم
+              <Label htmlFor="name" className={language === "ar" ? "text-end" : "text-start"}>
+                {language === "ar" ? "الإسم" : "Name"}
               </Label>
-              <Input id="name" type="text" placeholder="jon doe" required />
+              <Input id="name" type="text" placeholder={language === "ar" ? "جون دو" : "Jon Doe"} required />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email " className="text-end">
-                الإيميل
+              <Label htmlFor="email" className={language === "ar" ? "text-end" : "text-start"}>
+                {language === "ar" ? "الإيميل" : "Email"}
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder={language === "ar" ? "m@example.com" : "m@example.com"}
                 required
               />
             </div>
             <div className="grid gap-2">
-              <div className="flex justify-end items-center ">
-                <Label htmlFor="password">كلمة السر </Label>
+              <div className={`flex ${language === "ar" ? "justify-end" : "justify-start"} items-center`}>
+                <Label htmlFor="password">{language === "ar" ? "كلمة السر" : "Password"}</Label>
               </div>
 
               <Input id="password" type="password" required />
             </div>
             <div className="grid gap-2">
-              <div className="flex justify-end items-center">
-                <Label htmlFor="password"> تأكيد كلمة السر</Label>
+              <div className={`flex ${language === "ar" ? "justify-end" : "justify-start"} items-center`}>
+                <Label htmlFor="confirm-password">{language === "ar" ? "تأكيد كلمة السر" : "Confirm Password"}</Label>
               </div>
 
-              <Input id="password" type="password" required />
+              <Input id="confirm-password" type="password" required />
             </div>
             <Button type="submit" className="w-full bg-roshitaBlue">
-              تسجيل
+              {language === "ar" ? "تسجيل" : "Register"}
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
-            لديك حساب بالفعل؟{" "}
+            {language === "ar" ? "لديك حساب بالفعل؟" : "Already have an account?"}{" "}
             <Link href="/login" className="underline">
-              تسجيل الدخول
+              {language === "ar" ? "تسجيل الدخول" : "Login"}
             </Link>
           </div>
         </div>
@@ -75,4 +102,5 @@ const page = () => {
     </div>
   );
 };
+
 export default page;

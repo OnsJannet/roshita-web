@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import GuideTitleSection from "@/components/unique/GuideTitleSection";
 import PaginationDemo from "@/components/shared/PaginationDemo";
 import FilterDoctor from "@/components/unique/FilterDoctor";
@@ -8,66 +8,88 @@ import HospitalCard from "@/components/unique/HospitalCard";
 import LabsCard from "@/components/unique/LabsCard";
 import DoctorCard from "@/components/unique/DorctorCard";
 
+type Language = "ar" | "en";
+
+const translations = {
+  en: {
+    resetFilters: "Reset Filters",
+    noPharmacies: "No pharmacies available currently",
+  },
+  ar: {
+    resetFilters: "إعادة ضبط الفلاتر",
+    noPharmacies: "لا توجد صيدليات متاحة حاليًا",
+  },
+};
+
 const Page = () => {
-  // Pagination State for Doctors and Hospitals
   const [currentPage, setCurrentPage] = useState(1);
   const doctorsPerPage = 5;
   const hospitalsPerPage = 5;
-
-  // Filter State for Price, Country, and Specialty
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [countryTerm, setCountryTerm] = useState<string>("");
   const [specialtyTerm, setSpecialtyTerm] = useState<string>("");
+  const [language, setLanguage] = useState<Language>("ar");
 
-  // Handle resetting all filters
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   const resetFilters = () => {
     setSelectedPrices([]);
     setSelectedCountries([]);
     setSelectedSpecialties([]);
-    setCountryTerm(""); // Reset country term
-    setSpecialtyTerm(""); // Reset specialty term
+    setCountryTerm("");
+    setSpecialtyTerm("");
     setCurrentPage(1);
   };
 
-  console.log('selectedCountries guide', selectedCountries)
+  const filteredDoctors = doctors.filter((doctor) => {
+    const countryMatch = doctor.location
+      .toLowerCase()
+      .includes(countryTerm.toLowerCase());
+    const specialtyMatch = doctor.specialty
+      .toLowerCase()
+      .includes(specialtyTerm.toLowerCase());
+    return countryMatch && specialtyMatch;
+  });
 
-// Filter doctors by country term and specialty term
-const filteredDoctors = doctors.filter((doctor) => {
-    const countryMatch =
-      doctor.location.toLowerCase().includes(countryTerm.toLowerCase());
-  
-    const specialtyMatch =
-      doctor.specialty.toLowerCase().includes(specialtyTerm.toLowerCase());
-  
-    return countryMatch && specialtyMatch;
-  });
-  
-  // Filter hospitals by country term and specialty term
   const filteredHospitals = hospitals.filter((hospital) => {
-    const countryMatch =
-      hospital.doctors[1].city.toLowerCase().includes(countryTerm.toLowerCase());
-  
-    const specialtyMatch =
-      hospital.specialities.some((speciality) =>
-        speciality.name.toLowerCase().includes(specialtyTerm.toLowerCase())
-      );
-  
+    const countryMatch = hospital.doctors[1].city
+      .toLowerCase()
+      .includes(countryTerm.toLowerCase());
+    const specialtyMatch = hospital.specialities.some((speciality) =>
+      speciality.name.toLowerCase().includes(specialtyTerm.toLowerCase())
+    );
     return countryMatch && specialtyMatch;
   });
-  
-  // Filter labs by country term
+
   const filteredLabs = labs.filter((lab) => {
-    const countryMatch =
-      lab.city.toLowerCase().includes(countryTerm.toLowerCase());
-  
-    // Assuming labs might not have specialty filtering, adjust if necessary
+    const countryMatch = lab.city
+      .toLowerCase()
+      .includes(countryTerm.toLowerCase());
     return countryMatch;
   });
 
-  // Pagination logic for doctors
   const totalDoctorPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
@@ -76,7 +98,6 @@ const filteredDoctors = doctors.filter((doctor) => {
     indexOfLastDoctor
   );
 
-  // Pagination logic for hospitals
   const totalHospitalPages = Math.ceil(
     filteredHospitals.length / hospitalsPerPage
   );
@@ -87,21 +108,18 @@ const filteredDoctors = doctors.filter((doctor) => {
     indexOfLastHospital
   );
 
-  // Pagination logic for labs
-  const totalLabPages = Math.ceil(filteredLabs.length / hospitalsPerPage); // Reuse hospitalsPerPage for labs
+  const totalLabPages = Math.ceil(filteredLabs.length / hospitalsPerPage);
   const indexOfLastLab = currentPage * hospitalsPerPage;
   const indexOfFirstLab = indexOfLastLab - hospitalsPerPage;
   const currentLabs = filteredLabs.slice(indexOfFirstLab, indexOfLastLab);
 
-  // Handle page change for both doctors and hospitals
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
-  // Handle search update
   const handleSearchUpdate = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1); // Reset pagination when a new search term is entered
+    setCurrentPage(1);
   };
 
   const handleCountryUpdate = (term: string) => {
@@ -120,33 +138,12 @@ const filteredDoctors = doctors.filter((doctor) => {
         onSpecialtyChange={handleSpecialtyUpdate}
       />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
-        {/*<div className="lg:w-[20%]">
-           Filter Component 
-          <FilterDoctor
-            doctors={doctors}
-            selectedPrices={selectedPrices}
-            setSelectedPrices={setSelectedPrices}
-            selectedCountries={selectedCountries}
-            setSelectedCountries={setSelectedCountries}
-            selectedSpecialties={selectedSpecialties}
-            setSelectedSpecialties={setSelectedSpecialties}
-          />*/}
-
-        {/* Reset Filters Button 
-          <button 
-            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 w-full"
-            onClick={resetFilters}
-          >
-            إعادة ضبط الفلاتر
-          </button>
-        </div>*/}
-
         {searchTerm === "doctorsSearch" ? (
           <div className="space-y-4 lg:w-full">
             {currentDoctors.map((doctor, index) => (
               <DoctorCard
-              key={doctor.doctor_id}
-              id={doctor.doctor_id}
+                key={doctor.doctor_id}
+                id={doctor.doctor_id}
                 name={doctor.name}
                 specialty={doctor.specialty}
                 rating={doctor.rating}
@@ -181,7 +178,7 @@ const filteredDoctors = doctors.filter((doctor) => {
           </div>
         ) : searchTerm === "pharmaciesSearch" ? (
           <p className="text-center text-xl font-semibold mx-auto">
-            لا توجد صيدليات متاحة حاليًا
+            {translations[language].noPharmacies}
           </p>
         ) : (
           <div className="space-y-4 lg:w-full">

@@ -1,5 +1,5 @@
 import { Banknote, ChevronDown, Filter, Globe, HeartPulse, Star } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 // Define the types for Doctor and Props
 interface Doctor {
@@ -22,6 +22,8 @@ interface FilterDoctorProps {
   setSelectedSpecialties: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
+type Language = "ar" | "en";
+
 const FilterDoctor: React.FC<FilterDoctorProps> = ({
   doctors,
   selectedPrices,
@@ -35,6 +37,31 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isSpecialtyOpen, setIsSpecialtyOpen] = useState(false);
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    // Sync the language state with the localStorage value
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+    } else {
+      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+    }
+
+    // Listen for changes in localStorage
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const prices = Array.from(new Set(doctors.map((doctor) => doctor.price || "")));
   const countries = Array.from(new Set(doctors.map((doctor) => doctor.location || "")));
@@ -73,10 +100,10 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
         className="bg-[#71C9F9] p-8 flex flex-col rounded-2xl cursor-pointer"
         onClick={() => setIsFilterOpen(!isFilterOpen)}
       >
-        <div className="flex justify-between items-center flex-row-reverse">
+        <div className={`flex justify-between items-center ${language === "en" ? "flex-row-reverse" : ""}`}>
           <div className="flex gap-1">
             <Filter className="text-white" />
-            <h2 className="text-white">الفلتـرة</h2>
+            <h2 className="text-white">{language === "en" ? "Filter" : "الفلتـرة"}</h2>
           </div>
           <ChevronDown
             className={`text-white ${isFilterOpen ? "rotate-180" : ""}`}
@@ -94,20 +121,18 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               onClick={() => setIsPriceOpen(!isPriceOpen)}
             >
               <ChevronDown
-                className={`text-roshitaDarkBlue ${
-                  isPriceOpen ? "rotate-180" : ""
-                }`}
+                className={`text-roshitaDarkBlue ${isPriceOpen ? "rotate-180" : ""}`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">السعــر</h3>
+                <h3 className="font-bold mb-2">{language === "en" ? "Price" : "السعــر"}</h3>
                 <Banknote className="text-roshitaDarkBlue" />
               </div>
             </div>
             {isPriceOpen && (
               <div className="flex flex-col-reverse gap-2">
                 {prices.map((price) => (
-                  <div key={price} className="flex gap-2 items-center justify-end ">
-                    <div className="flex flex-row-reverse  gap-1">
+                  <div key={price} className="flex gap-2 items-center justify-end">
+                    <div className="flex flex-row-reverse gap-1">
                       <label className="text-gray-400">
                         {price.replace("د.ل", "").trim()}
                       </label>
@@ -132,12 +157,10 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               onClick={() => setIsCountryOpen(!isCountryOpen)}
             >
               <ChevronDown
-                className={`text-roshitaDarkBlue ${
-                  isCountryOpen ? "rotate-180" : ""
-                }`}
+                className={`text-roshitaDarkBlue ${isCountryOpen ? "rotate-180" : ""}`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">البلد</h3>
+                <h3 className="font-bold mb-2">{language === "en" ? "Country" : "البلد"}</h3>
                 <Globe className="text-roshitaDarkBlue" />
               </div>
             </div>
@@ -166,12 +189,10 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               onClick={() => setIsSpecialtyOpen(!isSpecialtyOpen)}
             >
               <ChevronDown
-                className={`text-roshitaDarkBlue ${
-                  isSpecialtyOpen ? "rotate-180" : ""
-                }`}
+                className={`text-roshitaDarkBlue ${isSpecialtyOpen ? "rotate-180" : ""}`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">التخصص</h3>
+                <h3 className="font-bold mb-2">{language === "en" ? "Specialty" : "التخصص"}</h3>
                 <HeartPulse className="text-roshitaDarkBlue" />
               </div>
             </div>
