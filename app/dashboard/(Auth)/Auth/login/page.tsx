@@ -29,18 +29,34 @@ const Page = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+  
     try {
-      const data = await loginUser({ phone, password });
-
-      if (data.error) {
-        throw new Error(data.error);
+      // Sending the login request to your API
+      const response = await fetch("/api/auth/login/loginStaff", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone, password }), // Sending phone and password
+      });
+  
+      // Parsing the response data
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "An error occurred during login.");
       }
-
-      localStorage.setItem("refresh", data.refresh);
-      localStorage.setItem("access", data.access);
+  
+      console.log("data", data);
+  
+      // Store the tokens and user data in localStorage
+      localStorage.setItem("refresh", data.refreshToken);
+      localStorage.setItem("access", data.token);
       localStorage.setItem("isLoggedIn", "true");
-
+      localStorage.setItem("userRole", data.user.user_type); // You may need to adjust this if the user type is an object
+      localStorage.setItem("user", JSON.stringify(data.user)); // Store full user object
+  
+      // Redirect to the intended URL
       if (redirectUrl) {
         router.push(redirectUrl); // Redirect to the intended destination
       }
@@ -50,6 +66,7 @@ const Page = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
@@ -64,8 +81,8 @@ const Page = () => {
           </div>
 
           <p className="text-balance text-muted-foreground text-center">
-            password: Roshita2025? <br/>
-            phone: 0925822328
+            password: string <br/>
+            phone: 0925544332
           </p>
 
           {error && <div className="text-red-500 text-center">حدث خطأ ما، يرجى المحاولة مرة أخرى</div>}

@@ -35,6 +35,12 @@ const TestGroupSelector = ({
     };
   }, []);
 
+  // Remove duplicate groups based on اسم_المجموعة
+  const uniqueGroups = groups.filter(
+    (value, index, self) =>
+      index === self.findIndex((group) => group.اسم_المجموعة === value.اسم_المجموعة)
+  );
+
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const groupName = e.target.value;
     internalSetSelectedGroup(groupName);
@@ -51,7 +57,7 @@ const TestGroupSelector = ({
         <option value="">
           {language === "ar" ? "باقة" : "Package"}
         </option>
-        {groups.map((group, index) => (
+        {uniqueGroups.map((group, index) => (
           <option key={index} value={group.اسم_المجموعة}>
             {language === "ar" ? group.اسم_المجموعة : group.اسم_المجموعة} {/* Adjust translation for group name if necessary */}
           </option>

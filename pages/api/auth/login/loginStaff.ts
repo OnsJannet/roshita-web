@@ -1,9 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import cookie from "cookie";
 
-// Define the structure of the incoming request data for type safety
 interface LoginStaffRequest {
   phone: string;
   password: string;
+}
+
+interface User {
+  user_id: number;
+  phone: string;
+  is_verified: boolean;
+  medical_organization: string | null;
+  staff_groups: string[];
+  staff_permissions: string[];
+  user_type: string;
+  staff: any;
 }
 
 interface ApiResponse {
@@ -13,61 +24,36 @@ interface ApiResponse {
   details?: any; // Optional, for additional error details
   token?: string;
   refreshToken?: string;
+  user?: User; // Added user info in the response
 }
 
-/**
- * Handles the staff login by sending a POST request
- * to the Roshita backend API for authentication.
- *
- * @param {NextApiRequest} req - The incoming HTTP request object.
- * @param {NextApiResponse<ApiResponse>} res - The outgoing HTTP response object.
- *
- * Request Body Example:
- * {
- *   "phone": "string",
- *   "password": "string"
- * }
- *
- * Environment Variables:
- * - CSRF_TOKEN: The CSRF token required for authentication with the external API.
- *
- * Responses:
- * - 200: Staff logged in successfully.
- * - 400: Invalid input data or error from the external API.
- * - 405: Method not allowed (only POST is supported).
- * - 500: Internal Server Error (e.g., missing CSRF token or unexpected error).
- */
 export default async function loginStaff(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
 ) {
-  // Ensure the request method is POST
   if (req.method !== "POST") {
+    console.log("Request method is not POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    // Destructure the necessary fields from the request body
     const { phone, password } = req.body as LoginStaffRequest;
+    console.log("Received phone and password:", { phone, password });
 
-    // Basic validation to ensure required data is provided
     if (!phone || !password) {
+      console.log("Phone or password is missing");
       return res.status(400).json({ error: "Phone and password are required" });
     }
 
-    // Prepare the payload to send to the backend API
-    const payload: LoginStaffRequest = {
-      phone,
-      password,
-    };
+    const payload: LoginStaffRequest = { phone, password };
 
-    // Fetch CSRF token from environment variables
     const csrfToken = process.env.CSRF_TOKEN;
     if (!csrfToken) {
+      console.log("CSRF token is not configured");
       return res.status(500).json({ error: "CSRF token not configured" });
     }
 
-    // Send the POST request to the Roshita backend for login
+    console.log("Making request to backend with payload:", payload);
     const response = await fetch(
       "https://test-roshita.net/api/auth/staff-login/",
       {
@@ -81,30 +67,39 @@ export default async function loginStaff(
       }
     );
 
-    // Parse the JSON response from the API
     const data = await response.json();
+    console.log("Received response from backend:", data);
 
-    // If the response is not successful, log the error and return it
     if (!response.ok) {
-      console.error("Roshita backend error:", data); // Log the error for debugging
+      console.error("Roshita backend error:", data);
       return res.status(response.status).json({
         error: "Error from Roshita backend",
-        details: data, // Forward detailed error for frontend debugging if needed
+        details: data,
       });
     }
 
-    // Extract tokens from the response
-    const { access, refresh } = data;
+    const { access, refresh, user } = data;
+    console.log("Setting cookie with user data:", user);
 
-    // Return the tokens and a success message
+    res.setHeader(
+      "Set-Cookie",
+      cookie.serialize("user", JSON.stringify(user.user_type), {
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        path: "/",
+      })
+    );
+
+    console.log("Cookie set successfully");
+
     return res.status(200).json({
       success: true,
       message: "Staff logged in successfully",
       token: access,
       refreshToken: refresh,
+      user: user,
     });
   } catch (error) {
-    // Log unexpected errors to help with debugging
     console.error("Error logging in staff:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }

@@ -42,7 +42,7 @@ const FilterTests = ({
       <Search className="text-[#00B3E9]" />
       <input
         type="text"
-        className="h-[50px] bg-transparent border-0 border-[#D1D1D1] focus:border-transparent placeholder:text-end focus:outline-none placeholder:text-[#D1D1D1] placeholder:focus:text-transparent rounded-[23px]"
+        className="w-[90%] h-[50px] bg-transparent border-0 border-[#D1D1D1] focus:border-transparent placeholder:text-end focus:outline-none placeholder:text-[#D1D1D1] placeholder:focus:text-transparent rounded-[23px]"
         placeholder={language === "ar" ? "البحث عن تحليل" : "Search for Analysis"}
         onChange={handleSearchChange}
       />

@@ -118,8 +118,8 @@ export default function Page() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <header className="flex justify-between h-16 shrink-0 items-center border-b px-4 gap-2">
-          <div className="flex flex-row-reverse gap-2 items-center">
+      <header className={`flex ${language === "ar" ? "justify-end" : "justify-between"} h-16 shrink-0 items-center border-b px-4 gap-2`}>
+      <div className={`flex ${language === "ar" ? "flex-row" : "flex-row-reverse"} gap-2 items-center`}>
             <Breadcrumb items={items} translate={(key) => key} />{" "}
             {/* Pass a no-op translate function */}
             <SidebarTrigger className="rotate-180 " />

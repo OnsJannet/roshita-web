@@ -19,6 +19,7 @@ import {
 import { ViewVerticalIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { LogOut, Settings, House, Heart, Pill, TestTube } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const iconMapping: Record<string, React.ComponentType<any>> = {
   House,
@@ -280,6 +281,29 @@ const Sidebar = React.forwardRef<
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
     const [language, setLanguage] = React.useState<Language>("ar");
 
+    const router = useRouter();
+
+    const handleLogout = () => {
+      // Clear all session storage
+      sessionStorage.clear();
+  
+      // Clear all local storage
+      localStorage.clear();
+  
+      // Clear any cache (optional, this can be handled in different ways, depending on your app's cache strategy)
+      caches.keys().then((cacheNames) => {
+        cacheNames.forEach((cacheName) => {
+          caches.delete(cacheName);
+        });
+      });
+  
+      // Optionally, if you have cookies that should also be cleared:
+      // document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+  
+      // Redirect to login page
+      router.push('/dashboard/Auth/login');
+    };
+
     React.useEffect(() => {
       const storedLanguage = localStorage.getItem("language");
       if (storedLanguage) {
@@ -392,7 +416,9 @@ const Sidebar = React.forwardRef<
                   })}
                 </div>
                 <div className="h-[10%] flex justify-between items-center px-2">
-                  <LogOut className="h-4 w-4 cursor-pointer" />
+                <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
+      <LogOut className="h-4 w-4 cursor-pointer" />
+    </div>
                   <Avatar>
                     <AvatarImage
                       src="https://github.com/shadcn.png"
@@ -508,7 +534,9 @@ const Sidebar = React.forwardRef<
                 })}
               </div>
               <div className="h-[10%] flex justify-between items-center px-2">
-                <LogOut className="h-4 w-4 cursor-pointer" />
+              <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
+      <LogOut className="h-4 w-4 cursor-pointer" />
+    </div>
                 <Avatar>
                   <AvatarImage
                     src="https://github.com/shadcn.png"

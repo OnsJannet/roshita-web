@@ -14,6 +14,52 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
   const [groupName, setGroupName] = useState(""); // For group name
   const [price, setPrice] = useState("");
   const [language, setLanguage] = useState<Language>("ar");
+  const [medicalServices, setMedicalServices] = useState<any[]>([]); // State for medical services
+  const [categories, setCategories] = useState<any[]>([]); // State for categories
+  const [loadingServices, setLoadingServices] = useState(true); // Loading state for medical services
+  const [loadingCategories, setLoadingCategories] = useState(true); // Loading state for categories
+
+  // Fetch medical services
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/medical-services-list/"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch medical services");
+        }
+        const data = await response.json();
+        setMedicalServices(data);
+        setLoadingServices(false);
+      } catch (error) {
+        console.error("Error fetching medical services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/services-categories/"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await response.json();
+        setCategories(data);
+        setLoadingCategories(false);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -48,27 +94,45 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
   };
 
   return (
-    <div className={`flex lg:flex-row-reverse flex-col items-center gap-4 p-4 rounded ${language === "ar" ? "rtl" : ""}`}>
+    <div
+      className={`flex lg:flex-row-reverse flex-col items-center gap-4 p-4 rounded ${
+        language === "ar" ? "rtl" : ""
+      }`}
+    >
       <div className="relative w-full">
         {/* Input for name */}
-        <input
-          type="text"
-          placeholder={language === "ar" ? "اسم التحليل" : "Test Name"}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+        <select
           className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
-        />
-        <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
+          value={name} // bind to 'name' state to reflect the selected value
+          onChange={(e) => setName(e.target.value)} // Update the 'name' state on selection
+        >
+          <option value="" disabled>
+            {language === "ar" ? "اختر اسم التحليل" : "Choose Test Name"}
+          </option>
+          {!loadingServices ? (
+            medicalServices.map((service) => (
+              <option key={service.id} value={service.name}>
+                {language === "ar" ? service.name : service.foreign_name}
+              </option>
+            ))
+          ) : (
+            <option>
+              {language === "ar" ? "جارٍ التحميل..." : "Loading..."}
+            </option>
+          )}
+        </select>
+
+        {/*<span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
           <CirclePlus className="w-5 h-5 text-[#00B3E9]" />
-        </span>
+        </span>*/}
       </div>
 
       {type === "group" && (
         <div className="relative w-full">
           {/* Dropdown for test names */}
           <select
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={name} // Bind to 'name' state to reflect the selected value
+            onChange={(e) => setName(e.target.value)} // Update the 'name' state on selection
             className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end appearance-none"
             style={{
               background: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6 text-gray-400"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>') no-repeat right 1rem center`,
@@ -76,11 +140,13 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
             }}
           >
             <option value="" disabled>
-              {language === "ar" ? "اختر اسم التحليل" : "Choose Test Name"}
+              {language === "ar"
+                ? "اختر فئة الخدمة الطبية"
+                : "Choose Medical Service Category"}
             </option>
-            {Tests.lab_tests.map((test) => (
-              <option key={test.معرف_الفحص} value={test.اسم_الفحص}>
-                {test.اسم_الفحص}
+            {categories.map((category) => (
+              <option key={category.id} value={category.name}>
+                {language === "ar" ? category.name : category.foreign_name}
               </option>
             ))}
           </select>
@@ -110,6 +176,5 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
     </div>
   );
 };
-
 
 export default InputForm;

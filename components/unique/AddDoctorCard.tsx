@@ -97,8 +97,8 @@ const AddDoctorCard = () => {
         </CardDescription>
         <CardContent className="flex flex-row-reverse justify-between items-center w-full ">
           <div className="w-full mt-10 ">
-            {DoctorData.slice(0, 5).map((doctor) => (
-              <div className="flex justify-between flex-row-reverse w-full items-center">
+            {DoctorData.slice(0, 5).map((doctor, id) => (
+              <div className="flex justify-between flex-row-reverse w-full items-center" key={id}>
                 <div
                   key={doctor.id}
                   className="flex flex-row-reverse items-center gap-4  mb-2"

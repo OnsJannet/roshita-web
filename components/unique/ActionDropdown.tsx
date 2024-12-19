@@ -48,17 +48,17 @@ const ActionDropdown = () => {
       {showDropdown && (
         <div
           className={`bg-[#F6F6F6] rounded-[23px] p-4 absolute top-[100%] ${
-            language === "ar" ? "right-10" : "left-10"
-          } mt-[-20px] w-[200px]`}
+            language === "ar" ? "right-6" : "left-6"
+          } mt-[-20px] w-[160px]`}
         >
-          <div
+          {/*<div
             onClick={handleAddTest}
             className={`py-2 cursor-pointer hover:bg-gray-200 hover:text-black rounded-md ${
               language === "ar" ? "text-right" : "text-left"
             }`}
           >
             {language === "ar" ? "إضافة تحليل جديد" : "Add New Test"}
-          </div>
+          </div>*/}
           <div
             onClick={handleAddGroup}
             className={`py-2 cursor-pointer hover:bg-gray-200 hover:text-black rounded-md ${

@@ -103,6 +103,8 @@ export default function Page() {
     setTests([...tests, { name, price }]);
   };
 
+  
+
   return (
     <SidebarProvider>
       <SidebarInset>
@@ -122,7 +124,7 @@ export default function Page() {
               }`}
             >
               {language === "ar"
-                ? "إضافة تحليل الحزمة"
+                ? "إضافة تحليل الباقه"
                 : "Add Package Analysis"}
             </h2>
 
