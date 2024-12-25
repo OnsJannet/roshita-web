@@ -127,6 +127,86 @@ const data: Data = {
   ],
 };
 
+// This is sample data.
+const dataLabs: Data = {
+  navMain: [
+    {
+      title: "الرئسية",
+      foreginTitle: "Dashboard",
+      url: "/dashboard/",
+      items: [],
+      isActive: false,
+      icon: "House" as IconNames,
+    },
+    {
+      title: "تحاليل",
+      foreginTitle: "Tests",
+      url: "/dashboard/labs",
+      items: [],
+      isActive: false,
+      icon: "TestTube" as IconNames,
+    },
+
+    {
+      title: "الإعدادت",
+      foreginTitle: "Settings",
+      url: "/dashboard/settings",
+      items: [],
+      isActive: false,
+      icon: "Settings" as IconNames,
+    },
+  ],
+};
+
+// This is sample data.
+const dataRadiologic: Data = {
+  navMain: [
+    {
+      title: "الرئسية",
+      foreginTitle: "Dashboard",
+      url: "/dashboard/",
+      items: [],
+      isActive: false,
+      icon: "House" as IconNames,
+    },
+    {
+      title: "الأشعة",
+      foreginTitle: "x-rays",
+      url: "/dashboard/x-rays",
+      items: [],
+      isActive: false,
+      icon: "TestTube" as IconNames,
+    },
+
+    {
+      title: "الإعدادت",
+      foreginTitle: "Settings",
+      url: "/dashboard/settings",
+      items: [],
+      isActive: false,
+      icon: "Settings" as IconNames,
+    },
+  ],
+};
+
+
+const userString = localStorage.getItem("user");
+let lab = false;
+let hospital = false;
+let xRays = false;
+
+if (userString) {
+  const user = JSON.parse(userString);
+  lab = user?.medical_organization_type === "Laboratory";
+  hospital = user?.medical_organization_type === "Hospital";
+  xRays = user?.medical_organization_type === "Rays";
+}
+
+const dataToMap = lab ? data : dataLabs;
+console.log("dataToMap", dataToMap)
+
+
+
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -377,7 +457,7 @@ const Sidebar = React.forwardRef<
                   </div>
                 </div>
                 <div className="h-[70%]">
-                  {data.navMain.map((item) => {
+                  {dataToMap.navMain.map((item) => {
                     const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
                     return (
                       <SidebarMenuItem
@@ -495,7 +575,7 @@ const Sidebar = React.forwardRef<
                 </div>
               </div>
               <div className="h-[70%]">
-                {data.navMain.map((item) => {
+                {dataToMap.navMain.map((item) => {
                   const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
                   return (
                     <SidebarMenuItem

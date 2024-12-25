@@ -23,13 +23,44 @@ import ActionDropdown from "@/components/unique/ActionDropdown";
 import FilterTests from "@/components/unique/FilterTests";
 import TestGroupSelector from "@/components/unique/TestGroupeSelector";
 import { Tests } from "@/constant";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+
+type Language = "ar" | "en";
 
 export default function Page() {
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   const items = [
-    { label: "الرئسية", href: "/dashboard" },
-    { label: "الأشعة السينية", href: "/dashboard/x-rays" },
-    { label: "إضافة الأشعة السينية", href: "#" },
+    { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
+    {
+      label: language === "ar" ? "اختبارات المعمل" : "Tests",
+      href: "/dashboard/labs",
+    },
+    {
+      label: language === "ar" ? " اضافة الاختبارات " : "Add Test",
+      href: "#",
+    },
   ];
 
   const testsPerPage = 5;
@@ -87,14 +118,23 @@ export default function Page() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <header className="flex justify-between h-16 shrink-0 items-center border-b px-4 gap-2">
-          <Breadcrumb items={items} translate={(key) => key} />
-          <SidebarTrigger className="rotate-180 " />
+      <header className={`flex ${language === "ar" ? "justify-end" : "justify-between"} h-16 shrink-0 items-center border-b px-4 gap-2`}>
+      <div className={`flex ${language === "ar" ? "flex-row" : "flex-row-reverse"} gap-2 items-center`}>
+            <Breadcrumb items={items} translate={(key) => key} />{" "}
+            {/* Pass a no-op translate function */}
+            <SidebarTrigger className="rotate-180 " />
+          </div>
         </header>
 
         <div className="w-full max-w-[1280px] mx-auto">
           <div className="flex justify-center flex-col gap-4 p-4 ">
-            <h2 className="text-[25px] font-semibold text-end">اضافة تحليل</h2>
+            <h2
+              className={`text-[25px] font-semibold ${
+                language === "ar" ? "text-end" : "text-start"
+              }`}
+            >
+              {language === "ar" ? "اضافة تحليل" : "Add Analysis"}
+            </h2>
 
             <div className="mx-auto w-full ">
               <InputForm onAdd={handleAddItem} type="single" />
@@ -110,7 +150,6 @@ export default function Page() {
               </div>
             </div>
 
-
             {tests.length > 0 && (
               <div className="flex justify-center mt-20">
                 <Button
@@ -118,12 +157,10 @@ export default function Page() {
                   className=" rounded-2xl h-[52px] w-[140px]"
                   onClick={() => (window.location.href = "/dashboard/labs")}
                 >
-                  حفظ
+                  {language === "ar" ? "حفظ" : "Save"}
                 </Button>
               </div>
             )}
-
-
           </div>
         </div>
       </SidebarInset>

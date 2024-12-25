@@ -127,7 +127,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     loadProfileData();
   }, []);
 
-  const handleCreateAppointment = () => {
+  /*const handleCreateAppointment = () => {
     const newAppointment = {
       appointmentDate: new Date().toLocaleDateString(),
       imageUrl: imageUrl,
@@ -144,9 +144,72 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     existingAppointments.push(newAppointment);
     localStorage.setItem("appointments", JSON.stringify(existingAppointments));
     window.location.href = "/appointments";
-  };
+  };*/
 
   const t = translations[language]; // Choose translation based on selected language
+
+  const handleCreateAppointment = async () => {
+    const token = localStorage.getItem("access"); // Get the access token from localStorage
+  
+    if (!token) {
+      console.error("No access token found");
+      return;
+    }
+  
+    console.log("day", day);
+    console.log("time", time);
+  
+    // Convert the day and time to ISO 8601 format
+    const [dayPart, monthPart, yearPart] = day.split("/"); // Split day into DD/MM/YYYY
+    const formattedDate = `${yearPart}-${monthPart}-${dayPart}`; // Rearrange to YYYY-MM-DD
+    const reservationDate = `${formattedDate}T${time}:00Z`; // Combine date and time into ISO format
+  
+    // Prepare the payload for the API
+    const newAppointment = {
+      reservation: {
+        patient: {
+          first_name: profileData.user.first_name,
+          last_name: profileData.user.last_name,
+          phone: "123456789", // Replace with user's phone number if available
+          email: profileData.user.email,
+          city: profileData.city || 2,
+          address: profileData.address,
+        },
+        reservation_date: reservationDate, // Use correctly formatted ISO 8601 date
+      },
+      confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
+      doctor: 1, // Replace with the actual doctor ID
+      price: price,
+    };
+  
+    try {
+      // Send a POST request to your backend
+      const response = await fetch("/api/appointements/createAppointement", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+        },
+        body: JSON.stringify(newAppointment),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error reserving appointment:", errorData);
+        alert("Failed to book the appointment.");
+        return;
+      }
+  
+      const responseData = await response.json();
+      console.log("Reservation successful:", responseData);
+      alert("Appointment successfully booked!");
+      window.location.href = "/appointments"; // Redirect to appointments page
+    } catch (error) {
+      console.error("Error booking the appointment:", error);
+      alert("An error occurred while booking the appointment.");
+    }
+  };
+  
 
   return (
     <Dialog>

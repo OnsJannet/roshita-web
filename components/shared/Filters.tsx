@@ -91,7 +91,7 @@ const Filters = () => {
           <SelectContent className="z-[999999]">
             {countries.flat().map((country) => (
               <SelectItem key={country.id} value={country.name}>
-                {country.name}
+                {language === "ar" ? country.name : country.foreign_name}
               </SelectItem>
             ))}
           </SelectContent>

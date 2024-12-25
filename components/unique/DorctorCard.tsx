@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button"; // Assuming you have a button component
 import { Banknote, MapPin, Star, StarHalf } from "lucide-react";
 
-type DoctorCardProps = {
+interface DoctorCardProps {
+  id: number;
   name: string;
   specialty: string;
-  rating: number;
+  rating: number | null;
   reviewsCount: number;
   price: string;
   location: string;
   imageUrl: string;
-  id: number;
-};
+}
+
 
 type Language = "ar" | "en";
 
@@ -86,10 +87,10 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
           {/* Star Rating */}
           <div className="flex text-yellow-500">
             {Array.from({ length: 5 }, (_, i) => {
-              // Check if it's a full star or a half star
-              if (i + 1 <= rating) {
+              const safeRating = rating ?? 0; // Default to 0 if rating is null
+              if (i + 1 <= safeRating) {
                 return <Star key={i} className="h-5 w-5 fill-yellow-500" />;
-              } else if (i + 0.5 <= rating) {
+              } else if (i + 0.5 <= safeRating) {
                 return <StarHalf key={i} className="h-5 w-5 fill-yellow-500" />;
               } else {
                 return <Star key={i} className="h-5 w-5 text-gray-300" />;

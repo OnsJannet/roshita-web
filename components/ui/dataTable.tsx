@@ -220,13 +220,8 @@ const doctorData: APIResponse = {
   ],
 };
 
-const paymentData: Payment[] = doctorData.results.map((doctor) => ({
-  img: doctor.staff.staff_avatar,
-  id: doctor.id.toString(),
-  دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
-  "تاريخ الانضمام": new Date(doctor.staff.address), // Change it to date please
-  التقييم: doctor.rating || 0,
-}));
+
+
 
 export type Payment = {
   img: string;
@@ -262,6 +257,10 @@ interface APIResponse {
 }
 
 export function DataTable({ data }: { data: Payment[] }) {
+    // Log data whenever the component renders
+    React.useEffect(() => {
+      console.log("Data passed to the table:", data);
+    }, [data]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -413,10 +412,14 @@ export function DataTable({ data }: { data: Payment[] }) {
         const [isDialogOpen, setIsDialogOpen] = React.useState(false);
         const handleDelete = async (id: number) => {
           try {
+            const accessToken = localStorage.getItem("access"); // Get the token from localStorage
             const response = await fetch(
-              `http://localhost:3000/api/doctors/removeDoctor?id=${id}`,
+              `/api/doctors/removeDoctor?id=${id}`,
               {
                 method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`, // Add the Authorization header with the token
+                },
               }
             );
             if (response.ok) {
@@ -430,6 +433,7 @@ export function DataTable({ data }: { data: Payment[] }) {
             console.error("Error deleting doctor:", error);
           }
         };
+        
 
         const openDialog = () => {
           setIsDialogOpen(true); // Open dialog when user clicks delete

@@ -22,6 +22,7 @@ interface DoctorFormData {
   fixedPrice: string;
   rating: number;
   isConsultant: boolean;
+  Image?: string;
 }
 
 interface Specialty {
@@ -135,6 +136,7 @@ export default function Page() {
     }
     try {
       const accessToken = localStorage.getItem("access");
+      console.log("formData", formData)
       const response = await fetch("/api/doctors/createDoctor", {
         method: "POST",
         headers: {
@@ -147,11 +149,13 @@ export default function Page() {
             last_name: formData.lastName,
             city: formData.city,
             address: formData.address,
+            staff_avatar: formData.Image,
           },
           specialty: Number(formData.specialty), // Ensure specialty is sent as a number
           fixed_price: formData.fixedPrice,
           rating: Number(formData.rating), // Ensure rating is sent as a number
           is_consultant: formData.isConsultant, // This will be a boolean
+          //Image: formData.Image,
         }),
       });
 
@@ -218,8 +222,16 @@ export default function Page() {
     <SidebarProvider>
       <SidebarInset>
         {/* Header Section */}
-        <header className="flex justify-between h-16 shrink-0 items-center border-b px-4 gap-2">
-          <div className="flex flex-row-reverse gap-2 items-center">
+        <header
+          className={`flex ${
+            language === "ar" ? "justify-end" : "justify-between"
+          } h-16 shrink-0 items-center border-b px-4 gap-2`}
+        >
+                    <div
+            className={`flex ${
+              language === "ar" ? "flex-row" : "flex-row-reverse"
+            } gap-2 items-center`}
+          >
             <Breadcrumb items={items} translate={(key) => key} />{" "}
             {/* Pass a no-op translate function */}
             <SidebarTrigger className="rotate-180 " />
@@ -257,9 +269,10 @@ export default function Page() {
                 } justify-start items-center p-4 gap-4`}
               >
                 <UploadButton
-                  onUpload={(file) =>
-                    console.log("تم تحميل الصورة الشخصية:", file)
-                  }
+                  onUpload={(file) => {
+                    setFormData((prevData) => ({ ...prevData, Image: file }));
+                    console.log("Uploaded image path:", file);
+                  }}
                   picture=""
                 />
                 <div className="flex flex-col">

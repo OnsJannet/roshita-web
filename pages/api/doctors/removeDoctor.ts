@@ -17,7 +17,6 @@ export default async function removeDoctor(
   res: NextApiResponse
 ) {
   try {
-    // Get the doctor ID from the URL parameters (captured by the dynamic [id] segment)
     const { id } = req.query;
     console.log("id", id); // Logs the id to the console for debugging
 
@@ -50,11 +49,23 @@ export default async function removeDoctor(
       },
     });
 
-    // Parse the response as JSON
-    const data = await response.json();
+    // Check if the response status is 404, which means the doctor was not found
+    if (response.status === 404) {
+      return res.status(404).json({ error: "Doctor not found" });
+    }
 
-    // Log the raw response data for debugging
-    console.log("Raw API Response:", data);
+    // Parse the response as JSON only if it's not empty or non-JSON
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      console.error("Failed to parse JSON:", error);
+      // Handle non-JSON responses (e.g., plain text errors)
+      return res.status(response.status).json({
+        error: "Error parsing response from Roshita backend",
+        details: await response.text(), // You can inspect this to see the raw response body
+      });
+    }
 
     // If the request fails, return an error response
     if (!response.ok) {

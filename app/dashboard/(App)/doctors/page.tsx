@@ -27,6 +27,7 @@ interface Doctor {
   fixed_price?: string;
   rating?: number;
   is_consultant: boolean;
+  create_date: Date;
 }
 
 interface APIResponse {
@@ -105,7 +106,7 @@ export default function Page() {
         img: doctor.staff.staff_avatar,
         id: doctor.id.toString(),
         دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
-        "تاريخ الانضمام": new Date(doctor.staff.address), // Adjust this field as needed
+        "تاريخ الانضمام": new Date(doctor.create_date), // Adjust this field as needed
         التقييم: doctor.rating || 0,
       }));
 
@@ -134,8 +135,16 @@ export default function Page() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <header className="flex justify-between h-16 shrink-0 items-center border-b px-4 gap-2">
-          <div className="flex flex-row-reverse gap-2 items-center">
+      <header
+          className={`flex ${
+            language === "ar" ? "justify-end" : "justify-between"
+          } h-16 shrink-0 items-center border-b px-4 gap-2`}
+        >
+                    <div
+            className={`flex ${
+              language === "ar" ? "flex-row" : "flex-row-reverse"
+            } gap-2 items-center`}
+          >
             <Breadcrumb items={items} translate={(key) => key} />{" "}
             {/* Pass a no-op translate function */}
             <SidebarTrigger className="rotate-180 " />

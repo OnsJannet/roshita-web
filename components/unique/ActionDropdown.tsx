@@ -2,9 +2,19 @@ import React, { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
 
-const ActionDropdown = () => {
+interface ActionDropdownProps {
+  type: string;
+}
+
+const ActionDropdown: React.FC<ActionDropdownProps> = ({ type }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
+
+  const lab = type === "lab"
+  const rays = type === "rays"
+
+  console.log("type", type)
+  console.log("rays", rays)
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -28,11 +38,11 @@ const ActionDropdown = () => {
   }, []);
 
   const handleAddTest = () => {
-    window.location.href = "/dashboard/labs/add-test";
+    {lab ? window.location.href = "/dashboard/labs/add-test" : window.location.href = "/dashboard/x-rays/add-test"}
   };
 
   const handleAddGroup = () => {
-    window.location.href = "/dashboard/labs/add-group";
+    {lab ? window.location.href = "/dashboard/labs/add-group" : window.location.href = "/dashboard/x-rays/add-group"}
   };
 
   return (

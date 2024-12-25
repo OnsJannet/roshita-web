@@ -108,8 +108,16 @@ export default function Page() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <header className="flex justify-between h-16 shrink-0 items-center border-b px-4 gap-2">
-          <div className="flex flex-row-reverse gap-2 items-center">
+      <header
+          className={`flex ${
+            language === "ar" ? "justify-end" : "justify-between"
+          } h-16 shrink-0 items-center border-b px-4 gap-2`}
+        >
+          <div
+            className={`flex ${
+              language === "ar" ? "flex-row" : "flex-row-reverse"
+            } gap-2 items-center`}
+          >
             <Breadcrumb items={items} translate={(key) => key} />{" "}
             {/* Pass a no-op translate function */}
             <SidebarTrigger className="rotate-180 " />
@@ -129,7 +137,7 @@ export default function Page() {
             </h2>
 
             <div className="mx-auto w-full ">
-              <InputForm onAdd={handleAddItem} type="group" />
+              <InputForm onAdd={handleAddItem} type="group" testType="lab"/>
               <div className="mt-6 space-y-4">
                 {tests.map((item, index) => (
                   <TestCard

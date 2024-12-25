@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import { Lock, Mail, Phone, User } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
 
+type Language = "ar" | "en";
+
 const Page = () => {
   const [step, setStep] = useState(1); // Step state
   const [phone, setPhone] = useState("");
@@ -21,10 +23,32 @@ const Page = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Language>("ar");
   const router = useRouter();
   const [selected, setSelected] = useState<"lab" | "hospital" | "rays" | null>(
     null
   );
+    
+      useEffect(() => {
+        const storedLanguage = localStorage.getItem("language");
+        if (storedLanguage) {
+          setLanguage(storedLanguage as Language);
+        } else {
+          setLanguage("ar");
+        }
+    
+        const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === "language") {
+            setLanguage((event.newValue as Language) || "ar");
+          }
+        };
+    
+        window.addEventListener("storage", handleStorageChange);
+    
+        return () => {
+          window.removeEventListener("storage", handleStorageChange);
+        };
+      }, []);
 
   // Handle option selection
   const handleSelect = (option: "lab" | "hospital" | "rays") => {
@@ -287,6 +311,17 @@ const Page = () => {
                       type="phone"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email" className="text-end">
+                    بريد إلكتروني
+                    </Label>
+                    <InputAdmin
+                      icon={<Mail size={24} />}
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   {/* Password */}

@@ -127,14 +127,8 @@ const NavBar = () => {
             language === "en" ? "flex-row-reverse" : ""
           }`}
         >
-          {/* Loading Indicator */}
           {loading ? (
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-10 bg-gray-100 rounded animate-pulse"></div>{" "}
-              {/* Gray circle on the left */}
-              <div className="w-20 h-10 bg-gray-100 rounded animate-pulse"></div>{" "}
-              {/* Gray square on the right */}
-            </div>
+            <div className="w-20 h-10 bg-gray-100 rounded animate-pulse"></div>
           ) : (
             <div>
               <h2
@@ -154,10 +148,16 @@ const NavBar = () => {
                   {language === "ar"
                     ? "تواصـــــل أســرع"
                     : "Faster Communication"}
-                </span>{" "}
+                </span>
               </p>
             </div>
           )}
+          <img
+            src="/logos/ShortLogo.png"
+            alt="roshita logo"
+            className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
+            onClick={handleClickHome}
+          />
         </div>
 
         <div className="gap-4 lg:flex pt-2 hidden">

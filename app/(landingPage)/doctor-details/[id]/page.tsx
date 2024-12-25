@@ -8,7 +8,6 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import DoctorCardInside from "@/components/unique/DoctorCardInside";
-import { doctors } from "@/constant";
 import { Clock } from "lucide-react";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -29,6 +28,18 @@ interface Translations {
   timeFormat: string;
 }
 
+interface Doctor {
+  doctor_id: number;
+  name: string;
+  specialty: string;
+  rating: number;
+  reviewsCount: number;
+  price: string;
+  location: string;
+  imageUrl: string;
+  appointment_dates: string[]; // Array of date strings
+}
+
 const DoctorDetailsPage = () => {
   const params = useParams();
   const id = parseInt(
@@ -37,6 +48,7 @@ const DoctorDetailsPage = () => {
   );
 
   const [language, setLanguage] = useState<Language>("ar");
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
 
   const translations: Record<Language, Translations> = {
     ar: {
@@ -65,7 +77,37 @@ const DoctorDetailsPage = () => {
     },
   };
 
+  // Fetch doctors from the API
+  const fetchDoctors = async () => {
+    try {
+      const response = await fetch("https://test-roshita.net/api/doctors-list/", {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Use token from .env.local
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Find the doctor by ID
+        const fetchedDoctor = result.results.data.doctors.find(
+          (doc: any) => doc.doctor_id === id
+        );
+        setDoctor(fetchedDoctor);
+      } else {
+        console.error("Failed to fetch doctors", result);
+      }
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+    }
+  };
+
   useEffect(() => {
+    // Fetch doctor data on mount
+    fetchDoctors();
+
     // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
@@ -87,13 +129,10 @@ const DoctorDetailsPage = () => {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []); // Run only once on mount
-
-  // Find the doctor by ID
-  const doctor = doctors.find((doc) => doc.doctor_id === id);
+  }, [id]); // Re-run if 'id' changes
 
   if (!doctor) {
-    return <div>Doctor not found</div>;
+    return <div>Loading doctor details...</div>;
   }
 
   // Function to get day of the week in Arabic
@@ -166,6 +205,7 @@ const DoctorDetailsPage = () => {
     "friday",
     "saturday",
   ];
+
 
   return (
     <div className="container mx-auto p-4 max-w-[1280px]">

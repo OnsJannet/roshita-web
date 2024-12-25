@@ -10,8 +10,9 @@ import { useEffect, useState } from "react";
 type Language = "ar" | "en";
 
 const page = () => {
-
   const [language, setLanguage] = useState<Language>("ar");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -34,6 +35,43 @@ const page = () => {
     };
   }, []);
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Prepare the data for the API request
+    const data = {
+      phone: phone,
+      password: password,
+    };
+
+    try {
+      // Send POST request to API for registration
+      const response = await fetch("https://test-roshita.net/api/account/register/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE", // Replace with actual CSRF token
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Registration successful");
+        console.log("Registration Response:", result);
+        // Redirect to login or other actions after successful registration
+        window.location.href = "/login";
+      } else {
+        alert("Registration failed: " + result.message);
+        console.log("Registration Error:", result);
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      alert("An error occurred during registration.");
+    }
+  };
+
   return (
     <div className={`w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px] ${language === "ar" ? "text-right" : "text-left"}`}>
       <div className="flex items-center justify-center py-12">
@@ -46,22 +84,18 @@ const page = () => {
               {language === "ar" ? "عبئ المتطلبات الأتيه لتسجيل الدخول" : "Fill in the following details to register"}
             </p>
           </div>
-          <div className="grid gap-4">
+          <form onSubmit={handleRegister} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="name" className={language === "ar" ? "text-end" : "text-start"}>
-                {language === "ar" ? "الإسم" : "Name"}
-              </Label>
-              <Input id="name" type="text" placeholder={language === "ar" ? "جون دو" : "Jon Doe"} required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email" className={language === "ar" ? "text-end" : "text-start"}>
-                {language === "ar" ? "الإيميل" : "Email"}
+              <Label htmlFor="phone" className={language === "ar" ? "text-end" : "text-start"}>
+                {language === "ar" ? "رقم الهاتف" : "Phone Number"}
               </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder={language === "ar" ? "m@example.com" : "m@example.com"}
+                id="phone"
+                type="text"
+                placeholder={language === "ar" ? "جون دو" : "Jon Doe"}
                 required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -69,19 +103,18 @@ const page = () => {
                 <Label htmlFor="password">{language === "ar" ? "كلمة السر" : "Password"}</Label>
               </div>
 
-              <Input id="password" type="password" required />
-            </div>
-            <div className="grid gap-2">
-              <div className={`flex ${language === "ar" ? "justify-end" : "justify-start"} items-center`}>
-                <Label htmlFor="confirm-password">{language === "ar" ? "تأكيد كلمة السر" : "Confirm Password"}</Label>
-              </div>
-
-              <Input id="confirm-password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <Button type="submit" className="w-full bg-roshitaBlue">
               {language === "ar" ? "تسجيل" : "Register"}
             </Button>
-          </div>
+          </form>
           <div className="mt-4 text-center text-sm">
             {language === "ar" ? "لديك حساب بالفعل؟" : "Already have an account?"}{" "}
             <Link href="/login" className="underline">

@@ -3,13 +3,17 @@ import React, { useState, useEffect } from "react";
 
 // Define the types for Doctor and Props
 interface Doctor {
+  doctor_id: number;
   name: string;
-  specialty: string;
-  rating: number;
-  reviewsCount: number;
+  specialization: string; // Changed 'specialty' to 'specialization' to match the data
+  hospital: string;
+  city: string; // This represents the doctor's location
+  address: string | null;
+  image: string; // Matches 'imageUrl'
   price: string;
-  location: string;
-  imageUrl: string;
+  rating: number | null;
+  reviewsCount?: number; // Optional property if reviewsCount is not available in the API
+  appointment_dates: string[];
 }
 
 interface FilterDoctorProps {
@@ -64,8 +68,9 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   }, []);
 
   const prices = Array.from(new Set(doctors.map((doctor) => doctor.price || "")));
-  const countries = Array.from(new Set(doctors.map((doctor) => doctor.location || "")));
-  const specialties = Array.from(new Set(doctors.map((doctor) => doctor.specialty || "")));
+  const countries = Array.from(new Set(doctors.map((doctor) => doctor.city || "")));
+  const specialties = Array.from(new Set(doctors.map((doctor) => doctor.specialization || "")));
+
 
   const handlePriceChange = (price: string) => {
     if (price === undefined) return;

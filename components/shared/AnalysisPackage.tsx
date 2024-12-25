@@ -15,6 +15,7 @@ interface AnalysisPackageProps {
     medical_services_category_id: number;
   };
   updatedData_id: string;
+  type: string;
 }
 
 type Language = "ar" | "en";
@@ -26,6 +27,7 @@ const AnalysisPackage: React.FC<AnalysisPackageProps> = ({
   onDelete,
   packageData,
   updatedData_id,
+  type,
 }) => {
   const [language, setLanguage] = useState<Language>("ar");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,32 +47,41 @@ const AnalysisPackage: React.FC<AnalysisPackageProps> = ({
       console.log("Data received from child:", updatedData); // Debug: Log the data received
   
       // Retrieve the Bearer token from localStorage
-      const token = localStorage.getItem('access');
+      const token = localStorage.getItem("access");
       if (!token) {
-        throw new Error('No token found in localStorage');
+        throw new Error("No token found in localStorage");
       }
   
       const id = updatedData_id;
-      const response = await fetch(`/api/tests/updateTest?id=${id}`, {
-        method: 'PUT',
+  
+      // Determine the API endpoint based on test type
+      const apiEndpoint =
+        type === "rays"
+          ? `/api/radiologic/updateTest?id=${id}`
+          : `/api/tests/updateTest?id=${id}`;
+  
+      const response = await fetch(apiEndpoint, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updatedData),
       });
   
       if (!response.ok) {
-        throw new Error('Failed to save data');
+        throw new Error("Failed to save data");
       }
   
       const responseData = await response.json();
-      console.log('Saved data:', responseData);
+      console.log("Saved data:", responseData);
+      window.location.reload();
       setIsModalOpen(false); // Close modal after successful save
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error("Error saving data:", error);
     }
   };
+  
   
 
   return (

@@ -19,7 +19,7 @@ interface Doctor {
     last_name: string;
     medical_organization: {
       name: string;
-      city: { foreign_name: string };
+      city: { id: string, foreign_name: string};
       phone: string;
     }[];
     staff_avatar: string;
@@ -33,6 +33,11 @@ interface Specialty {
   foreign_name: string;
 }
 
+interface City {
+  id: number;
+  foreign_name: string;
+}
+
 export default function Page() {
   const params = useParams();
   const router = useRouter();
@@ -41,6 +46,8 @@ export default function Page() {
   const [specialtyName, setSpecialtyName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [cities, setCities] = useState<City[]>([]); // State for cities
+  const [formData, setFormData] = useState<{ Image?: File }>({});
 
   const items = [
     { label: "الرئسية", href: "/dashboard" },
@@ -85,25 +92,63 @@ export default function Page() {
       }
     };
 
+    const fetchCities = async () => {
+      try {
+        const response = await fetch("https://test-roshita.net/api/cities-list/");
+        const citiesData: City[] = await response.json();
+        if (response.ok) {
+          setCities(citiesData);
+        } else {
+          console.error("Error fetching cities");
+        }
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+
     fetchDoctorAndSpecialty();
+    fetchCities();
   }, [id]);
+
+  // Handle city change here
+  const handleCityChange = (newCityId: string) => {
+    setDoctor((prev) => {
+      if (prev) {
+        return {
+          ...prev,
+          staff: {
+            ...prev.staff,
+            medical_organization: prev.staff.medical_organization.map((org) =>
+              org.city.id === prev.staff.medical_organization[0].city.id
+                ? { ...org, city: { id: newCityId, foreign_name: org.city.foreign_name } }
+                : org
+            ),
+          },
+        };
+      }
+      return prev;
+    });
+  };
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
 
+    const updatedStaffAvatar = formData.Image || doctor.staff.staff_avatar;
+  
     const updatedDoctor = {
       ...doctor,
       staff: {
         ...doctor.staff,
-        city: doctor.staff.medical_organization[0]?.city.foreign_name || "",
+        city: doctor.staff.medical_organization[0]?.city.id || "", // Use the updated city ID
         address: "Updated Address",
+        staff_avatar: updatedStaffAvatar,
       },
       specialty: 1,
       fixed_price: doctor.fixed_price || "0",
       rating: 5,
       is_consultant: true,
     };
-
+  
     try {
       const accessToken = localStorage.getItem("access");
       const response = await fetch(`/api/doctors/updateDoctorById?id=${id}`, {
@@ -114,11 +159,11 @@ export default function Page() {
         },
         body: JSON.stringify(updatedDoctor),
       });
-
+  
       const result = await response.json();
       if (result.success) {
-        setDoctor(updatedDoctor);
-        window.location.href="/dashboard/doctors"; // Navigate on success
+        setDoctor(updatedDoctor); // Update the doctor state
+        //window.location.reload();
       } else {
         setError(result.message || "Error updating doctor information");
       }
@@ -144,11 +189,20 @@ export default function Page() {
               name={doctor?.staff.first_name + " " + (doctor?.staff.last_name ?? "") || "غير محدد"}
               fields={[
                 { label: "رقم الهاتف", value: `${doctor?.staff.medical_organization[0]?.phone ?? "غير محدد"}` },
-                { label: "مكان", value: `${doctor?.staff.medical_organization[0]?.city.foreign_name ?? "غير محدد"}` },
+                {
+                  label: "مكان",
+                  value: `${doctor?.staff.medical_organization[0]?.city.foreign_name ?? "غير محدد"}`,
+                  isDropdown: true, 
+                },
                 { label: "سعر الحجز", value: `${doctor?.fixed_price ?? "غير محدد"}` },
               ]}
               picture={doctor?.staff.staff_avatar ?? "/Images/default-doctor.jpg"}
-              photoUploadHandler={(file) => console.log("Photo uploaded:", file)}
+              photoUploadHandler={(filePath: string) => {
+                console.log("Uploaded photo path in parent:", filePath); // Log the file path
+                setDoctor((prev) =>
+                  prev && { ...prev, staff: { ...prev.staff, staff_avatar: filePath } }
+                );
+              }}
               onNameChange={(name) => setDoctor((prev) => prev && { ...prev, staff: { ...prev.staff, first_name: name } })}
               onFieldChange={(index, value) => {
                 if (index === 0) {
@@ -181,6 +235,8 @@ export default function Page() {
                   setDoctor((prev) => prev && { ...prev, fixed_price: value });
                 }
               }}
+              cities={cities} // Pass cities to InformationCard
+              onCityChange={handleCityChange} // Pass the city change handler
             />
             <Button
               variant="register"

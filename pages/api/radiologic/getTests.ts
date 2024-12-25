@@ -76,7 +76,7 @@ export default async function getTests(
     }
 
     const response = await fetch(
-      `https://test-roshita.net/api/guide-medical/by-type/2/`,
+      `https://test-roshita.net/api/guide-medical/by-type/3/`,
       {
         method: "GET",
         headers: {

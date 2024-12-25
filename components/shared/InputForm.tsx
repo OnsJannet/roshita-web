@@ -1,23 +1,110 @@
-import { Tests } from "@/constant";
-import { CircleDollarSign, CirclePlus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { CircleDollarSign } from "lucide-react";
 
 interface InputFormProps {
   type: "single" | "group";
+  testType: string;
   onAdd: (name: string, price: string) => void;
 }
 
 type Language = "ar" | "en";
 
-const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
-  const [name, setName] = useState("");
+const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
+  const [selectedService, setSelectedService] = useState<{
+    id: string;
+    name: string;
+  }>({ id: "", name: "" });
   const [groupName, setGroupName] = useState(""); // For group name
+  const [groupId, setGroupId] = useState<number>(0); // For category ID
   const [price, setPrice] = useState("");
   const [language, setLanguage] = useState<Language>("ar");
   const [medicalServices, setMedicalServices] = useState<any[]>([]); // State for medical services
   const [categories, setCategories] = useState<any[]>([]); // State for categories
   const [loadingServices, setLoadingServices] = useState(true); // Loading state for medical services
   const [loadingCategories, setLoadingCategories] = useState(true); // Loading state for categories
+  const [errorMessage, setErrorMessage] = useState(""); // State for error messages
+
+  // Fetch medical services and categories (as in the original code)
+  // ... (same as before)
+
+  const handleAdd = async () => {
+    const accessToken = localStorage.getItem("access");
+  
+    // Validation check for empty fields
+    if (!selectedService.name || !price || (type === "group" && !groupName)) {
+      setErrorMessage(
+        language === "ar"
+          ? "يرجى تعبئة جميع الحقول"
+          : "Please fill in all fields"
+      );
+      return; // Prevent further action if any field is missing
+    }
+  
+    // Reset the error message if all fields are filled
+    setErrorMessage("");
+  
+    // Proceed with your existing request logic
+    if (selectedService.name && price) {
+      const openDate = new Date();
+      const closeDate = new Date(openDate);
+      closeDate.setFullYear(openDate.getFullYear() + 1); // Add 1 year to the open date
+  
+      const requestData = {
+        price: price,
+        open_date: openDate.toISOString(),
+        close_date: closeDate.toISOString(),
+        medical_services: {
+          name: selectedService.name,
+        },
+        medical_services_category: {
+          name: groupName, // Send category name
+        },
+        medical_organization: {
+          name: "Some Medical Organization", // Modify as needed
+        },
+        medical_services_id: selectedService.id,
+        medical_services_category_id: groupId,
+      };
+  
+      // Determine the API endpoint based on testType
+      const apiEndpoint = testType === "ray" 
+        ? "/api/radiologic/addTests" 
+        : "/api/tests/addTests";
+  
+      try {
+        const response = await fetch(apiEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(requestData),
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to send data");
+        }
+  
+        const data = await response.json();
+        // Redirect based on testType
+        testType === "lab"
+          ? (window.location.href = "/dashboard/labs")
+          : (window.location.href = "/dashboard/x-rays");
+  
+        console.log("Data successfully sent:", data);
+      } catch (error) {
+        console.error("Error adding data:", error);
+      }
+  
+      setSelectedService({ id: "", name: "" });
+      setPrice("");
+      if (type === "group") {
+        setGroupName("");
+        setGroupId(0);
+      }
+    }
+  };
+  
 
   // Fetch medical services
   useEffect(() => {
@@ -61,118 +148,113 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd }) => {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
-  const handleAdd = () => {
-    if (name && price) {
-      onAdd(name, price); // Ensure onAdd is triggered with correct arguments
-      setName("");
-      setPrice("");
-      if (type === "group") {
-        setGroupName("");
-      }
-    }
-  };
-
   return (
-    <div
-      className={`flex lg:flex-row-reverse flex-col items-center gap-4 p-4 rounded ${
-        language === "ar" ? "rtl" : ""
-      }`}
-    >
-      <div className="relative w-full">
-        {/* Input for name */}
-        <select
-          className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
-          value={name} // bind to 'name' state to reflect the selected value
-          onChange={(e) => setName(e.target.value)} // Update the 'name' state on selection
+    <div>
+      {/* Error message */}
+      {errorMessage && (
+        <p
+          className={`text-red-500 text-sm mt-2 px-6 text-bold ${
+            language === "ar" ? "text-end" : "text-start"
+          }`}
         >
-          <option value="" disabled>
-            {language === "ar" ? "اختر اسم التحليل" : "Choose Test Name"}
-          </option>
-          {!loadingServices ? (
-            medicalServices.map((service) => (
-              <option key={service.id} value={service.name}>
-                {language === "ar" ? service.name : service.foreign_name}
-              </option>
-            ))
-          ) : (
-            <option>
-              {language === "ar" ? "جارٍ التحميل..." : "Loading..."}
-            </option>
-          )}
-        </select>
+          {errorMessage}
+        </p>
+      )}
 
-        {/*<span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
-          <CirclePlus className="w-5 h-5 text-[#00B3E9]" />
-        </span>*/}
-      </div>
-
-      {type === "group" && (
+      <div
+        className={`flex lg:flex-row-reverse flex-col items-center gap-4 p-4 rounded ${
+          language === "ar" ? "rtl" : ""
+        }`}
+      >
         <div className="relative w-full">
-          {/* Dropdown for test names */}
+          {/* Input for name */}
           <select
-            value={name} // Bind to 'name' state to reflect the selected value
-            onChange={(e) => setName(e.target.value)} // Update the 'name' state on selection
-            className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end appearance-none"
-            style={{
-              background: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6 text-gray-400"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>') no-repeat right 1rem center`,
-              backgroundSize: "1rem",
+            className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
+            value={selectedService.name}
+            onChange={(e) => {
+              const selectedOption = medicalServices.find(
+                (service) => service.name === e.target.value
+              );
+              if (selectedOption) {
+                setSelectedService({
+                  id: selectedOption.id,
+                  name: selectedOption.name,
+                });
+              }
             }}
           >
             <option value="" disabled>
-              {language === "ar"
-                ? "اختر فئة الخدمة الطبية"
-                : "Choose Medical Service Category"}
+              {language === "ar" ? "اختر اسم التحليل" : "Choose Test Name"}
             </option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.name}>
-                {language === "ar" ? category.name : category.foreign_name}
+            {!loadingServices ? (
+              medicalServices.map((service) => (
+                <option key={service.id} value={service.name}>
+                  {language === "ar" ? service.name : service.foreign_name}
+                </option>
+              ))
+            ) : (
+              <option>
+                {language === "ar" ? "جارٍ التحميل..." : "Loading..."}
               </option>
-            ))}
+            )}
           </select>
         </div>
-      )}
 
-      <div className="relative w-full">
-        {/* Input for price */}
-        <input
-          type="number"
-          placeholder={language === "ar" ? "السعر" : "Price"}
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
-        />
-        <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
-          <CircleDollarSign className="w-5 h-5 text-[#00B3E9]" />
-        </span>
+        {type === "group" && (
+          <div className="relative w-full">
+            {/* Dropdown for test categories */}
+            <select
+              value={groupName}
+              onChange={(e) => {
+                const selectedCategory = categories.find(
+                  (category) => category.name === e.target.value
+                );
+                if (selectedCategory) {
+                  setGroupName(selectedCategory.name);
+                  setGroupId(selectedCategory.id);
+                }
+              }}
+              className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end appearance-none"
+              style={{
+                background: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6 text-gray-400"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>') no-repeat right 1rem center`,
+                backgroundSize: "1rem",
+              }}
+            >
+              <option value="" disabled>
+                {language === "ar"
+                  ? "اختر فئة الخدمة الطبية"
+                  : "Choose Medical Service Category"}
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {language === "ar" ? category.name : category.foreign_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="relative w-full">
+          {/* Input for price */}
+          <input
+            type="number"
+            placeholder={language === "ar" ? "السعر" : "Price"}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="w-full pr-10 p-2 border rounded-[26px] focus:outline-[#00B3E9] h-[60px] text-end placeholder:text-end"
+          />
+          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
+            <CircleDollarSign className="w-5 h-5 text-[#00B3E9]" />
+          </span>
+        </div>
+
+        <button
+          onClick={handleAdd}
+          className="px-4 py-4 text-white bg-[#00B3E9] rounded-[26px] hover:bg-blue-500 w-full"
+        >
+          {language === "ar" ? "إضافة" : "Add"}
+        </button>
       </div>
-
-      <button
-        onClick={handleAdd}
-        className="px-4 py-4 text-white bg-[#00B3E9] rounded-[26px] hover:bg-blue-500 w-full"
-      >
-        {language === "ar" ? "إضافة" : "Add"}
-      </button>
     </div>
   );
 };

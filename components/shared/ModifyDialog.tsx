@@ -98,7 +98,7 @@ const ModifyDialog: React.FC<ModifyDialogProps> = ({
               className="border p-2 w-full rounded mt-2"
             />
           </label>
-          <label>
+          {/*<label>
             {language === "ar" ? "تاريخ الفتح" : "Open Date"}
             <input
               type="datetime-local"
@@ -117,7 +117,7 @@ const ModifyDialog: React.FC<ModifyDialogProps> = ({
               onChange={handleChange}
               className="border p-2 w-full rounded mt-2"
             />
-          </label>
+          </label>*/}
           
           {/* Dropdown for Medical Service ID */}
           <label>
