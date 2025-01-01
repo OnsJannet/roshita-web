@@ -406,7 +406,7 @@ export default function Page() {
               picture={
                 doctor?.staff.staff_avatar ?? "/Images/default-doctor.jpg"
               }
-              photoUploadHandler={(file: File) => {
+              photoUploadHandler={(file: File | string) => {
                 console.log("file: ", file);
 
                 // Generate a URL or use the file path string if already provided
