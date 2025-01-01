@@ -342,7 +342,7 @@ export default function Page() {
                 },
               ]}
               picture={"/Images/default-doctor.jpeg"}
-              photoUploadHandler={(file: File) => {
+              photoUploadHandler={(file: File | string) => {
                 const filePath = file instanceof File ? file.name : file;
                 setImage(filePath);
 
