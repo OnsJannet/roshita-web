@@ -107,12 +107,22 @@ interface UserData {
         },
         body: JSON.stringify(loginData),
       });
+  
+      if (!response.ok) {
+        // If the status is not OK, throw an error with the status and message
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed due to server error');
+      }
+  
+      // Return the response JSON if the status is OK
       return response.json();
     } catch (error) {
       console.error("Error logging in user:", error);
       throw error;
     }
   };
+  
+  
   
   /**
    * Verifies an OTP by making a POST request.
@@ -138,7 +148,7 @@ interface UserData {
    */
   export const getMedicalGuideList = async (): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/guide-medical-list/", {
+      const response = await fetch("https://test-roshita.net/api/medical-services-list/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

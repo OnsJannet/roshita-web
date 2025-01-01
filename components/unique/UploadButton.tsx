@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X, Camera } from "lucide-react";
 
 interface UploadButtonProps {
-  onUpload?: (filePath: string) => void; // Updated to send file path
+  onUpload?: (filePath: string) => void; 
   picture: string;
 }
 

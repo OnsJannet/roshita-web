@@ -6,31 +6,54 @@ interface InformationCardProps {
   title: string;
   name: string;
   picture: string;
-  fields: { label: string; value: string }[]; 
-  photoUploadHandler?: (file: File) => void;
+  fields: { isDropdown?: boolean; label: string; value: string }[];
+  photoUploadHandler?: (file: File | string) => void ;
   onFieldChange?: (index: number, value: string) => void;
   onNameChange?: (value: string) => void;
-  cities?: { id: number; name: string; foreign_name: string }[]; // Add cities prop
-  onCityChange?: (newCityId: string) => void; // Callback for city change
+  cities?: { id: number; name?: string; foreign_name: string }[];
+  onCityChange?: (newCityId: string) => void;
   type?: string;
 }
+
+type Language = "ar" | "en";
 
 const InformationCard: React.FC<InformationCardProps> = ({
   title,
   fields,
   name,
   photoUploadHandler,
-
   picture,
   onFieldChange,
   onNameChange,
   cities,
-  onCityChange, // Receive the onCityChange callback
+  onCityChange,
   type,
 }) => {
   const [editableName, setEditableName] = useState<string>(name);
   const [editableFields, setEditableFields] = useState(fields);
-  const [isEditingName, setIsEditingName] = useState(false); 
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isEditingName) {
@@ -45,7 +68,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newName = event.target.value;
     setEditableName(newName);
-    onNameChange?.(newName); 
+    onNameChange?.(newName);
   };
 
   const handleFieldChange = (
@@ -58,47 +81,74 @@ const InformationCard: React.FC<InformationCardProps> = ({
     onFieldChange?.(index, event.target.value);
   };
 
-  // Handle city change for dropdown (if provided)
   const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCityId = event.target.value; // Get the city ID from the dropdown
-    console.log("newCityId", newCityId);
+    const newCityId = event.target.value;
     if (onCityChange) {
-      onCityChange(newCityId); // Call the parent callback to send the new city ID
+      onCityChange(newCityId);
     }
-    handleFieldChange(1, { target: { value: newCityId } } as React.ChangeEvent<HTMLInputElement>);
+    handleFieldChange(1, {
+      target: { value: newCityId },
+    } as React.ChangeEvent<HTMLInputElement>);
   };
 
   const getBorderClass = () => (type === "add" ? "border" : "border-0");
 
-  const handlePhotoUpload = (file: File) => {
-    console.log("This is the file in child:", file); // Debug log to verify the file
-    if (photoUploadHandler) {
-      const filePath = URL.createObjectURL(file); // Generate the file path
-      console.log("Generated file path in child:", filePath); // Debug log for the path
-      photoUploadHandler(filePath); // Pass the file path to the parent
-    } else {
-      console.warn("photoUploadHandler is not defined.");
-    }
+
+  const translate = (key: string) => {
+    const translations: Record<
+      "الإســــــم" | "اختر مدينة" | "مكان",
+      { ar: string; en: string }
+    > = {
+      الإســــــم: { ar: "الإســــــم", en: "Name" },
+      "اختر مدينة": { ar: "اختر مدينة", en: "Choose a city" },
+      مكان: { ar: "مكان", en: "Place" },
+    };
+    return (
+      (translations as Record<string, { ar: string; en: string }>)?.[key]?.[
+        language
+      ] || key
+    );
   };
-  
-  
 
   return (
-    <div className={`flex flex-col ${getBorderClass()} rounded-lg bg-white shadow-sm max-w-[1280px] mx-auto rtl`}>
-      <h2 className="text-lg font-semibold text-gray-700 text-end border-b p-4">
+    <div
+      className={`flex flex-col ${getBorderClass()} rounded-lg bg-white shadow-sm max-w-[1280px] mx-auto ${
+        language === "ar" ? "rtl" : "ltr"
+      } `}
+    >
+      <h2
+        className={`text-lg font-semibold text-gray-700 ${
+          language === "ar" ? "text-end" : "text-start"
+        } border-b p-4`}
+      >
         {title}
       </h2>
-      <div className="flex flex-row-reverse justify-start items-center p-4 gap-4">
-      <UploadButton onUpload={handlePhotoUpload} picture={picture} />
+      <div
+        className={`flex ${
+          language === "ar" ? "flex-row-reverse" : "flex-row"
+        } justify-start items-center p-4 gap-4`}
+      >
+          <UploadButton
+            onUpload={(file) => {
+
+              // Call the photoUploadHandler from props
+              photoUploadHandler?.(file); // eslint-disable-line
+            }}
+            picture={picture}
+          />
         <div className="flex flex-col">
-          <h4 className="text-end">الإســــــم</h4>
+          <h4 className={`${language === "ar" ? "text-end" : "text-start"}`}>
+            {translate("الإســــــم")}
+          </h4>
           <input
             type="text"
             value={editableName}
             onChange={handleNameChange}
             onFocus={() => setIsEditingName(true)}
             onBlur={() => setIsEditingName(false)}
-            className={`text-end ${getBorderClass()} p-2 rounded`}
+            className={`${
+              language === "ar" ? "text-end p-2" : "text-start"
+            } ${getBorderClass()}  rounded`}
           />
         </div>
       </div>
@@ -106,38 +156,79 @@ const InformationCard: React.FC<InformationCardProps> = ({
         <tbody>
           {editableFields.map((field, index) => (
             <tr key={index} className="border-t p-4">
-              <td className="py-3 px-2 text-gray-500 p-4 text-center">
-                <div className="flex justify-center">
-                  <MoveRight className="h-4 w-4" />
-                </div>
-              </td>
-              <td className="py-3 px-2 text-gray-700 p-4">
-                {/* Render dropdown for the "مكان" field */}
-                {index === 1 && cities ? (
-                  <select
-                    value={field.value}
-                    onChange={handleCityChange}
-                    className={`text-end ${getBorderClass()} p-2 rounded`}
-                  >
-                    <option value="" disabled>
-                      اختر مدينة
-                    </option>
-                    {cities.map((city) => (
-                      <option key={city.id} value={city.id}>
-                        {city.foreign_name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    value={field.value}
-                    onChange={(e) => handleFieldChange(index, e)}
-                    className={`text-end ${getBorderClass()} p-2 rounded`}
-                  />
-                )}
-              </td>
-              <td className="py-3 px-2 text-gray-500 p-4">{field.label}</td>
+              {language === "ar" ? (
+                <>
+                  <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                    <div className="flex justify-center">
+                      <MoveRight className="h-4 w-4" />
+                    </div>
+                  </td>
+                  <td className="py-3 px-2 text-gray-700 p-4">
+                    {index === 1 && cities ? (
+                      <select
+                        value={field.value}
+                        onChange={handleCityChange}
+                        className={`text-end ${getBorderClass()} p-2 rounded`}
+                      >
+                        <option value="" disabled>
+                          {translate("اختر مدينة")}
+                        </option>
+                        {cities.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {language === "ar" ? city.name : city.foreign_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={field.value}
+                        onChange={(e) => handleFieldChange(index, e)}
+                        className={`text-end ${getBorderClass()} p-2 rounded`}
+                      />
+                    )}
+                  </td>
+                  <td className="py-3 px-2 text-gray-500 p-4">
+                    {translate(field.label)}
+                  </td>
+                </>
+              ) : (
+                <>
+                  <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                    <td className="py-3 px-2 text-gray-500 p-4">
+                      {translate(field.label)}
+                    </td>
+                  </td>
+                  <td className="py-3 px-2 text-gray-700 p-4  text-left">
+                    {index === 1 && cities ? (
+                      <select
+                        value={field.value}
+                        onChange={handleCityChange}
+                        className={`text-left ${getBorderClass()} p-2 rounded `}
+                      >
+                        <option value="" disabled>
+                          {translate("اختر مدينة")}
+                        </option>
+                        {cities.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {city.foreign_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={field.value}
+                        onChange={(e) => handleFieldChange(index, e)}
+                        className={`text-left ${getBorderClass()} p-2 rounded`}
+                      />
+                    )}
+                  </td>
+                  <div className="py-3 px-2 text-gray-500 p-4 ">
+                    <MoveRight className="h-4 w-4" />
+                  </div>
+                </>
+              )}
             </tr>
           ))}
         </tbody>

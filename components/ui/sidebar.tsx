@@ -189,23 +189,45 @@ const dataRadiologic: Data = {
   ],
 };
 
+// This is sample data.
+const dataDoctor: Data = {
+  navMain: [
+    {
+      title: "دكاترة",
+      foreginTitle: "Doctors",
+      url: "/dashboard/doctors",
+      items: [],
+      isActive: false,
+      icon: "Heart" as IconNames,
+    },
+  ],
+};
 
 const userString = localStorage.getItem("user");
 let lab = false;
 let hospital = false;
 let xRays = false;
+let doctor = false;
 
 if (userString) {
   const user = JSON.parse(userString);
   lab = user?.medical_organization_type === "Laboratory";
-  hospital = user?.medical_organization_type === "Hospital";
-  xRays = user?.medical_organization_type === "Rays";
+  hospital = user?.medical_organization_type === "hospital";
+  xRays = user?.medical_organization_type === "Radiologic";
+  doctor = user?.medical_organization_type === "doctor";
 }
 
-const dataToMap = lab ? data : dataLabs;
-console.log("dataToMap", dataToMap)
+/*const dataToMap = lab
+  ? dataLabs
+  : hospital
+  ? data
+  : xRays
+  ? dataRadiologic
+  : dataDoctor;*/
 
+  const dataToMap = data
 
+console.log("dataToMap", dataToMap);
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -366,22 +388,22 @@ const Sidebar = React.forwardRef<
     const handleLogout = () => {
       // Clear all session storage
       sessionStorage.clear();
-  
+
       // Clear all local storage
       localStorage.clear();
-  
+
       // Clear any cache (optional, this can be handled in different ways, depending on your app's cache strategy)
       caches.keys().then((cacheNames) => {
         cacheNames.forEach((cacheName) => {
           caches.delete(cacheName);
         });
       });
-  
+
       // Optionally, if you have cookies that should also be cleared:
       // document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-  
+
       // Redirect to login page
-      router.push('/dashboard/Auth/login');
+      router.push("/dashboard/Auth/login");
     };
 
     React.useEffect(() => {
@@ -496,9 +518,12 @@ const Sidebar = React.forwardRef<
                   })}
                 </div>
                 <div className="h-[10%] flex justify-between items-center px-2">
-                <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
-      <LogOut className="h-4 w-4 cursor-pointer" />
-    </div>
+                  <div
+                    onClick={handleLogout}
+                    className="h-4 w-4 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 cursor-pointer" />
+                  </div>
                   <Avatar>
                     <AvatarImage
                       src="https://github.com/shadcn.png"
@@ -614,9 +639,9 @@ const Sidebar = React.forwardRef<
                 })}
               </div>
               <div className="h-[10%] flex justify-between items-center px-2">
-              <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
-      <LogOut className="h-4 w-4 cursor-pointer" />
-    </div>
+                <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
+                  <LogOut className="h-4 w-4 cursor-pointer" />
+                </div>
                 <Avatar>
                   <AvatarImage
                     src="https://github.com/shadcn.png"

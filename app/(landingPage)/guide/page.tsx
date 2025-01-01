@@ -3,28 +3,94 @@ import React, { useEffect, useState } from "react";
 import GuideTitleSection from "@/components/unique/GuideTitleSection";
 import PaginationDemo from "@/components/shared/PaginationDemo";
 import FilterDoctor from "@/components/unique/FilterDoctor";
-import { doctors, hospitals, labs } from "@/constant";
 import HospitalCard from "@/components/unique/HospitalCard";
 import LabsCard from "@/components/unique/LabsCard";
 import DoctorCard from "@/components/unique/DorctorCard";
 
 type Language = "ar" | "en";
 
+interface MedicalServicesCategory {
+  full_path: string;
+}
+
+interface Service {
+  medical_services_category: MedicalServicesCategory;
+  price: string;
+}
+
+interface Lab {
+  name: string;
+  city: string;
+  services: Service[];
+}
+
+interface LabsData {
+  Laboratory: Lab[];
+  Radiologic: Lab[];
+}
+
+interface Doctor {
+  doctor_id: number;
+  name: string;
+  specialization: string;
+  rating: number;
+  reviewsCount: number;
+  price: string;
+  city: string;
+  imageUrl: string;
+}
+
+interface Hospital {
+  id: number;
+  name: string;
+  doctors: { city: string }[];
+  specialities: { name: string }[];
+}
+
 const translations = {
   en: {
     resetFilters: "Reset Filters",
-    noPharmacies: "No pharmacies available currently",
+    noHospitals: "No hospitals available currently",
+    noDoctors: "No doctors available currently",  // Fixed this key
+    noLabs: "No labs available currently",
   },
   ar: {
     resetFilters: "إعادة ضبط الفلاتر",
-    noPharmacies: "لا توجد صيدليات متاحة حاليًا",
+    noHospitals: "لا توجد مستشفيات متاحة حاليًا",
+    noDoctors: "لا توجد أطباء متاحين حاليًا",  // Fixed this key
+    noLabs: "لا توجد مختبرات متاحة حاليًا",
   },
 };
+
+/**
+ * This React component serves as a client-side page that displays and manages 
+ * a searchable and filterable list of medical services, including doctors, 
+ * hospitals, and labs. It allows users to filter by country, specialty, and 
+ * price, and supports pagination for navigating through results.
+ * 
+ * Key functionalities include:
+ * - Fetching data for doctors, hospitals, and labs from backend APIs.
+ * - Providing search and filter options with reset functionality.
+ * - Language support for English and Arabic, stored in localStorage.
+ * - Dynamic rendering of components such as DoctorCard, HospitalCard, and LabsCard.
+ * - Pagination for doctors, hospitals, and labs.
+ * 
+ * Dependencies: 
+ * - Custom components (GuideTitleSection, PaginationDemo, DoctorCard, etc.)
+ * - React hooks (useState, useEffect) for state management and side effects.
+ */
+
 
 const Page = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const doctorsPerPage = 5;
   const hospitalsPerPage = 5;
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [labs, setLabs] = useState<Lab[]>([]);
+  const [radiology, setRadiology] = useState<Lab[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
@@ -54,6 +120,58 @@ const Page = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Fetch hospitals from the backend
+    const fetchHospitals = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/userHospital/getHospital");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to fetch hospitals");
+        setHospitals(data.data || []);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Fetch doctors from the backend
+    const fetchDoctors = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/userDoctor/getDoctor");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to fetch doctors");
+        setDoctors(data.data || []);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Fetch labs from the backend
+    const fetchLabs = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/userLab/getLab");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to fetch labs");
+        setLabs(data.data.Laboratory || []);
+        setRadiology(data.data.Radiologic || []);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHospitals();
+    fetchDoctors();
+    fetchLabs();
+  }, []);
+
   const resetFilters = () => {
     setSelectedPrices([]);
     setSelectedCountries([]);
@@ -64,10 +182,10 @@ const Page = () => {
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
-    const countryMatch = doctor.location
+    const countryMatch = doctor.city
       .toLowerCase()
       .includes(countryTerm.toLowerCase());
-    const specialtyMatch = doctor.specialty
+    const specialtyMatch = doctor.specialization
       .toLowerCase()
       .includes(specialtyTerm.toLowerCase());
     return countryMatch && specialtyMatch;
@@ -84,10 +202,11 @@ const Page = () => {
   });
 
   const filteredLabs = labs.filter((lab) => {
-    const countryMatch = lab.city
-      .toLowerCase()
-      .includes(countryTerm.toLowerCase());
-    return countryMatch;
+    return lab.services.some((service) => {
+      return service.medical_services_category.full_path
+        .toLowerCase()
+        .includes(countryTerm.toLowerCase());
+    });
   });
 
   const totalDoctorPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
@@ -140,19 +259,25 @@ const Page = () => {
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
         {searchTerm === "doctorsSearch" ? (
           <div className="space-y-4 lg:w-full">
-            {currentDoctors.map((doctor, index) => (
-              <DoctorCard
-                key={doctor.doctor_id}
-                id={doctor.doctor_id}
-                name={doctor.name}
-                specialty={doctor.specialty}
-                rating={doctor.rating}
-                reviewsCount={doctor.reviewsCount}
-                price={doctor.price}
-                location={doctor.location}
-                imageUrl={doctor.imageUrl}
-              />
-            ))}
+            {currentDoctors.length === 0 ? (
+              <p className="text-center text-xl font-semibold mx-auto">
+                {translations[language].noDoctors}
+              </p>
+            ) : (
+              currentDoctors.map((doctor) => (
+                <DoctorCard
+                  key={doctor.doctor_id}
+                  id={doctor.doctor_id}
+                  name={doctor.name}
+                  specialty={doctor.specialization}
+                  rating={doctor.rating}
+                  reviewsCount={doctor.reviewsCount}
+                  price={doctor.price}
+                  location={doctor.city}
+                  imageUrl={doctor.imageUrl}
+                />
+              ))
+            )}
             <PaginationDemo
               currentPage={currentPage}
               totalPages={totalDoctorPages}
@@ -161,15 +286,21 @@ const Page = () => {
           </div>
         ) : searchTerm === "hospitalsSearch" ? (
           <div className="space-y-4 lg:w-full">
-            {currentHospitals.map((hospital, index) => (
-              <HospitalCard
-                key={index}
-                name={hospital.name}
-                city={hospital.doctors[1].city}
-                specialities={hospital.specialities.length}
-                doctorCount={hospital.doctors.length}
-              />
-            ))}
+            {currentHospitals.length === 0 ? (
+              <p className="text-center text-xl font-semibold mx-auto">
+                {translations[language].noHospitals}
+              </p>
+            ) : (
+              currentHospitals.map((hospital, index) => (
+                <HospitalCard
+                  key={index}
+                  name={hospital.name}
+                  city={hospital.doctors[1].city}
+                  specialities={hospital.specialities.length}
+                  doctorCount={hospital.doctors.length}
+                />
+              ))
+            )}
             <PaginationDemo
               currentPage={currentPage}
               totalPages={totalHospitalPages}
@@ -178,18 +309,24 @@ const Page = () => {
           </div>
         ) : searchTerm === "pharmaciesSearch" ? (
           <p className="text-center text-xl font-semibold mx-auto">
-            {translations[language].noPharmacies}
+            {translations[language].noLabs}
           </p>
         ) : (
           <div className="space-y-4 lg:w-full">
-            {currentLabs.map((lab, index) => (
-              <LabsCard
-                key={index}
-                name={lab.name}
-                city={lab.city}
-                tests={lab.services.length}
-              />
-            ))}
+            {currentLabs.length === 0 ? (
+              <p className="text-center text-xl font-semibold mx-auto">
+                {translations[language].noLabs}
+              </p>
+            ) : (
+              currentLabs.map((lab, index) => (
+                <LabsCard
+                  key={index}
+                  name={lab.name}
+                  city={lab.city}
+                  tests={lab.services.length}
+                />
+              ))
+            )}
             <PaginationDemo
               currentPage={currentPage}
               totalPages={totalLabPages}

@@ -12,6 +12,7 @@ interface DoctorUpdatePayload {
   fixed_price: string;
   rating: number;
   is_consultant: boolean;
+  appointments: string[]; // Ensure this field is properly typed as an array of strings
 }
 
 // Extend the ApiResponse to handle success/error states
@@ -68,8 +69,10 @@ export default async function updateDoctorById(
       fixed_price,
       rating,
       is_consultant,
-    } = req.body;
+      appointments,
+    }: DoctorUpdatePayload = req.body; // Ensure the correct typing for the request body
 
+    // Validate required fields
     if (
       !first_name ||
       !last_name ||
@@ -78,7 +81,10 @@ export default async function updateDoctorById(
       specialty === undefined ||
       fixed_price === undefined ||
       rating === undefined ||
-      is_consultant === undefined
+      is_consultant === undefined ||
+      !appointments ||
+      !Array.isArray(appointments) ||
+      appointments.length === 0
     ) {
       return res.status(400).json({ error: "Missing required fields in the request body." });
     }
@@ -104,6 +110,7 @@ export default async function updateDoctorById(
         fixed_price,
         rating,
         is_consultant,
+        appointments,
       }),
     });
 

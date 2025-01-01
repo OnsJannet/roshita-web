@@ -9,12 +9,15 @@ import {
 } from "../ui/select";
 import { Button } from "../ui/button";
 import { HeartPulse, MapPin, Search } from "lucide-react";
-import { countries, specialities } from "@/constant";
 
 const Filters = () => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(
+    null
+  );
   const [language, setLanguage] = useState<string>("");
+  const [countries, setCountries] = useState<any[]>([]);
+  const [specialties, setSpecialties] = useState<any[]>([]);
 
   useEffect(() => {
     // Synchronize the language state with the localStorage value
@@ -39,6 +42,52 @@ const Filters = () => {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
+  }, []);
+
+  useEffect(() => {
+    // Fetch the specialties data from the API
+    const fetchSpecialties = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/specialty-list/",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        setSpecialties(data);
+      } catch (error) {
+        console.error("Error fetching specialties:", error);
+      }
+    };
+
+    // Fetch the countries data from the API
+    const fetchCountries = async () => {
+      const csrfToken = process.env.NEXT_PUBLIC_CSRF_TOKEN;
+      console.log("csrfToken", csrfToken);
+
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/countries-list/",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+
+    fetchSpecialties();
+    fetchCountries();
   }, []);
 
   const handleCountryChange = (value: string | undefined) => {
@@ -85,11 +134,13 @@ const Filters = () => {
           <SelectTrigger className="h-[52px] flex-row-reverse ">
             <div className="flex flex-row-reverse gap-2 items-center">
               <MapPin className="h-[20px] w-[20px] text-roshitaDarkBlue" />
-              <SelectValue placeholder={language === "ar" ? "البلد" : "Country"} />
+              <SelectValue
+                placeholder={language === "ar" ? "البلد" : "Country"}
+              />
             </div>
           </SelectTrigger>
           <SelectContent className="z-[999999]">
-            {countries.flat().map((country) => (
+            {countries.map((country) => (
               <SelectItem key={country.id} value={country.name}>
                 {language === "ar" ? country.name : country.foreign_name}
               </SelectItem>
@@ -111,9 +162,9 @@ const Filters = () => {
             </div>
           </SelectTrigger>
           <SelectContent className="z-[999999]">
-            {specialities.flat().map((specialty) => (
+            {specialties.map((specialty) => (
               <SelectItem key={specialty.id} value={specialty.name}>
-                {specialty.name}
+                {language === "ar" ? specialty.name : specialty.foreign_name}
               </SelectItem>
             ))}
           </SelectContent>

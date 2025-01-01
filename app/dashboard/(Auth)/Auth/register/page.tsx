@@ -13,6 +13,38 @@ import InputAdmin from "@/components/admin/InputAdmin";
 
 type Language = "ar" | "en";
 
+// Translations
+const translations = {
+  ar: {
+    selectType: "أختر اي نوع مؤسسات",
+    dashboard: "في لوحة التحكم روشيتا",
+    lab: "معامل التحليل",
+    rays: "معامل تصوير",
+    hospital: "مصحة",
+    next: "التالي",
+    adminInfo: "تسجيل معلومات الأدمن",
+    adminName: "اسم الأدمن",
+    adminLastName: "لقب الأدمن",
+    phone: "رقم الهاتف",
+    errorLogin: "حدث خطأ أثناء تسجيل الدخول",
+    welcome: "أهلا بيك",
+  },
+  en: {
+    selectType: "Choose the type of institution",
+    dashboard: "In Roshetta Dashboard",
+    lab: "Laboratories",
+    rays: "Radiologies",
+    hospital: "Hospitals",
+    next: "Next",
+    adminInfo: "Admin Information Registration",
+    adminName: "Admin Name",
+    adminLastName: "Admin Last Name",
+    phone: "Phone Number",
+    errorLogin: "An error occurred during login",
+    welcome: "Welcome",
+  },
+};
+
 const Page = () => {
   const [step, setStep] = useState(1); // Step state
   const [phone, setPhone] = useState("");
@@ -28,27 +60,27 @@ const Page = () => {
   const [selected, setSelected] = useState<"lab" | "hospital" | "rays" | null>(
     null
   );
-    
-      useEffect(() => {
-        const storedLanguage = localStorage.getItem("language");
-        if (storedLanguage) {
-          setLanguage(storedLanguage as Language);
-        } else {
-          setLanguage("ar");
-        }
-    
-        const handleStorageChange = (event: StorageEvent) => {
-          if (event.key === "language") {
-            setLanguage((event.newValue as Language) || "ar");
-          }
-        };
-    
-        window.addEventListener("storage", handleStorageChange);
-    
-        return () => {
-          window.removeEventListener("storage", handleStorageChange);
-        };
-      }, []);
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   // Handle option selection
   const handleSelect = (option: "lab" | "hospital" | "rays") => {
@@ -60,7 +92,11 @@ const Page = () => {
     if (selected) {
       setStep(2); // Proceed to step 2 only if an option is selected
     } else {
-      alert("يرجى اختيار نوع المؤسسة!"); // Alert if no option is selected
+      const message =
+        language === "ar"
+          ? "يرجى اختيار نوع المؤسسة!" // Arabic message
+          : "Please select the type of institution!"; // English message
+      alert(message); // Alert based on language
     }
   };
 
@@ -140,19 +176,26 @@ const Page = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        alert("تم التسجيل بنجاح!");
+        const successMessage =
+          language === "ar" ? "تم التسجيل بنجاح!" : "Registration successful!";
+        alert(successMessage);
       } else {
         // Map and display error messages
         const translatedErrors: Record<string, string> = {
-          "This field may not be blank.": "هذا الحقل مطلوب.",
+          "This field may not be blank.":
+            language === "ar" ? "هذا الحقل مطلوب." : "This field is required.",
           "A user with that email already exists.":
-            "البريد الإلكتروني مستخدم مسبقاً.",
+            language === "ar"
+              ? "البريد الإلكتروني مستخدم مسبقاً."
+              : "Email is already in use.",
           'Expected a list of items but got type "int".':
-            "القيمة المدخلة غير صحيحة، يجب أن تكون قائمة.",
+            language === "ar"
+              ? "القيمة المدخلة غير صحيحة، يجب أن تكون قائمة."
+              : "The entered value is incorrect; it must be a list.",
         };
 
         const errors = result?.details || {};
-        const arabicErrors = Object.keys(errors)
+        const languageErrors = Object.keys(errors)
           .map((key) => {
             const fieldErrors = errors[key];
             if (Array.isArray(fieldErrors)) {
@@ -164,12 +207,28 @@ const Page = () => {
           })
           .filter(Boolean); // Remove null values
 
-        setError(arabicErrors.join(" | ") || "حدث خطأ أثناء التسجيل.");
+        setError(
+          languageErrors.join(" | ") ||
+            (language === "ar"
+              ? "حدث خطأ أثناء التسجيل."
+              : "An error occurred during registration.")
+        );
       }
     } catch (error: any) {
-      setError(`حدث خطأ أثناء إرسال البيانات: ${error.message || error}`);
+      const errorMessage =
+        language === "ar"
+          ? `حدث خطأ أثناء إرسال البيانات: ${error.message || error}`
+          : `An error occurred while submitting data: ${
+              error.message || error
+            }`;
+      setError(errorMessage);
     }
   };
+
+  // Retrieve translations based on the selected language
+  const t = translations[language];
+  const textAlignment = language === "en" ? "text-start" : "text-end";
+  const elementAlignment = language === "en" ? "text-start" : "text-end";
 
   return (
     <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
@@ -181,11 +240,11 @@ const Page = () => {
             <div className="flex items-center justify-center py-12">
               <div className="mx-auto grid w-full gap-6">
                 <div className="grid gap-2 text-center">
-                  <h1 className="text-3xl font-bold text-end">
-                    أختر اي نوع مؤسسات
+                  <h1 className="text-3xl font-bold text-center">
+                    {t.selectType}
                   </h1>
-                  <p className="text-balance text-muted-foreground text-end">
-                    في لوحة التحكم روشيتا
+                  <p className="text-balance text-muted-foreground text-center">
+                    {t.dashboard}
                   </p>
                 </div>
                 {error && (
@@ -203,12 +262,12 @@ const Page = () => {
                   >
                     <Image
                       src="/Images/FilterDoc.png"
-                      alt="Admin"
+                      alt="Lab"
                       width={60}
                       height={60}
                       className="mx-auto"
                     />
-                    <p className="mt-2 text-center mx-auto">معامل التحليل</p>
+                    <p className="mt-2 text-center mx-auto">{t.lab}</p>
                   </div>
 
                   {/* Option 2 */}
@@ -222,12 +281,12 @@ const Page = () => {
                   >
                     <Image
                       src="/Images/FilterDoc.png"
-                      alt="Admin"
+                      alt="Rays"
                       width={60}
                       height={60}
                       className="mx-auto"
                     />
-                    <p className="mt-2 text-center mx-auto">معامل تصوير</p>
+                    <p className="mt-2 text-center mx-auto">{t.rays}</p>
                   </div>
 
                   {/* Option 3 */}
@@ -241,12 +300,12 @@ const Page = () => {
                   >
                     <Image
                       src="/Images/FilterHos.png"
-                      alt="Pharmacy"
+                      alt="Hospital"
                       width={60}
                       height={60}
                       className="mx-auto"
                     />
-                    <p className="mt-2 text-center mx-auto">مصحة</p>
+                    <p className="mt-2 text-center mx-auto">{t.hospital}</p>
                   </div>
                 </div>
                 <Button
@@ -254,7 +313,7 @@ const Page = () => {
                   className="w-full bg-[#0575E6] h-[70px] rounded-[30px]"
                   onClick={handleNext}
                 >
-                  التالي
+                  {t.next}
                 </Button>
               </div>
             </div>
@@ -265,46 +324,44 @@ const Page = () => {
             <div className="flex items-center justify-center py-12">
               <div className="mx-auto grid w-[350px] gap-6">
                 <div className="grid gap-2 text-center">
-                  <h1 className="text-3xl font-bold text-end">
-                    تسجيل معلومات الأدمن
+                  <h1 className="text-3xl font-bold text-center">
+                    {t.adminInfo}
                   </h1>
                 </div>
                 {error && (
-                  <div className="text-red-500 text-center">
-                    {" "}
-                    حدث خطأ أثناء تسجيل الدخول
-                  </div>
+                  <div className="text-red-500 text-center">{t.errorLogin}</div>
                 )}
-                <form onSubmit={handleLogin} className="grid gap-4">
+                <form onSubmit={handleNext} className="grid gap-4">
                   {/* Admin Name */}
                   <div className="grid gap-2">
-                    <Label htmlFor="phone" className="text-end">
-                      اسم الأدمن
+                    <Label htmlFor="phone" className={textAlignment}>
+                      {t.adminName}
                     </Label>
                     <InputAdmin
-                      placeholder="اسم الأدمن"
+                      placeholder={t.adminName}
                       icon={<User size={24} />}
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
                   </div>
+                  {/* Admin Last Name */}
                   <div className="grid gap-2">
-                    <Label htmlFor="phone" className="text-end">
-                      لقب الأدمن
+                    <Label htmlFor="phone" className={textAlignment}>
+                      {t.adminLastName}
                     </Label>
                     <InputAdmin
-                      placeholder="لقب الأدمن"
+                      placeholder={t.adminLastName}
                       icon={<User size={24} />}
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
                   </div>
-                  {/* Email */}
+                  {/* Phone */}
                   <div className="grid gap-2">
-                    <Label htmlFor="phone" className="text-end">
-                      رقم الهاتف
+                    <Label htmlFor="phone" className={textAlignment}>
+                      {t.phone}
                     </Label>
                     <InputAdmin
                       icon={<Phone size={24} />}
@@ -313,37 +370,12 @@ const Page = () => {
                       onChange={(e) => setPhone(e.target.value)}
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email" className="text-end">
-                    بريد إلكتروني
-                    </Label>
-                    <InputAdmin
-                      icon={<Mail size={24} />}
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  {/* Password */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone" className="text-end">
-                      كلمة السر
-                    </Label>
-                    <InputAdmin
-                      placeholder="كلمة السر"
-                      icon={<Lock size={24} />}
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
                   <Button
                     type="submit"
-                    className="w-full bg-[#0575E6] h-[70px] rounded-[30px] text-white text-xl"
-                    disabled={loading}
+                    className="w-full bg-[#0575E6] h-[70px] rounded-[30px]"
                     onClick={handleSubmit}
                   >
-                    {loading ? "جاري التسجيل..." : "التالي"}
+                    {t.next}
                   </Button>
                 </form>
               </div>
@@ -351,17 +383,16 @@ const Page = () => {
           )}
         </div>
       </div>
-
       {/* Right Column */}
       <div className="hidden bg-[#0575E6B5] lg:block relative">
         <div className="h-1/2"></div>
         <div className="flex flex-col justify-center">
           <div className="gap-1 flex flex-col justify-center px-10">
-            <p className="text-end text-white text-[38px] font-semibold">
-              أهلا بيك
+            <p className="text-center text-white text-[38px] font-semibold">
+              {t.welcome}
             </p>
-            <p className="text-end text-white text-[28.4px] font-normal">
-              في لوحة التحكم روشيتا
+            <p className="text-center text-white text-[28.4px] font-normal">
+              {t.dashboard}
             </p>
           </div>
           <div className="absolute bottom-0 right-0 w-full flex justify-end">

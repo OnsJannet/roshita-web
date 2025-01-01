@@ -28,33 +28,33 @@ import { useEffect, useState } from "react";
 type Language = "ar" | "en";
 
 export default function Page() {
-    const [language, setLanguage] = useState<Language>("ar");
-  
-    useEffect(() => {
-      const storedLanguage = localStorage.getItem("language");
-      if (storedLanguage) {
-        setLanguage(storedLanguage as Language);
-      } else {
-        setLanguage("ar");
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
       }
-  
-      const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === "language") {
-          setLanguage((event.newValue as Language) || "ar");
-        }
-      };
-  
-      window.addEventListener("storage", handleStorageChange);
-  
-      return () => {
-        window.removeEventListener("storage", handleStorageChange);
-      };
-    }, []);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
   // Breadcrumb items with Arabic text
   const items = [
-    { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" }
+    { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
   ];
-  
+
   const handleUpload = (file: File) => {
     console.log("Uploaded file:", file);
     // Handle the uploaded file (e.g., send it to a server or preview it)
@@ -72,8 +72,16 @@ export default function Page() {
     <SidebarProvider>
       <SidebarInset>
         {/* Header Section */}
-        <header className="flex  justify-start h-16 shrink-0 items-center border-b px-4 gap-2 ">
-          <div className="flex flex-row-reverse gap-2 items-center">
+        <header
+          className={`flex ${
+            language === "ar" ? "justify-end" : "justify-between"
+          } h-16 shrink-0 items-center border-b px-4 gap-2`}
+        >
+          <div
+            className={`flex ${
+              language === "ar" ? "flex-row" : "flex-row-reverse"
+            } gap-2 items-center`}
+          >
             <Breadcrumb items={items} translate={(key) => key} />{" "}
             {/* Pass a no-op translate function */}
             <SidebarTrigger className="rotate-180 " />

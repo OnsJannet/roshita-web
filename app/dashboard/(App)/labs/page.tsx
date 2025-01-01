@@ -23,6 +23,49 @@ import { useState, useMemo, useEffect } from "react";
 
 type Language = "ar" | "en";
 
+/**
+ * This page displays a list of laboratory tests, with support for filtering, pagination, and deletion.
+ * It allows users to filter tests by search term and group, and paginate through the results.
+ * It also handles localization based on the selected language (Arabic or English).
+ * 
+ * The page has the following main functionalities:
+ * 
+ * 1. **Language Handling**: The language is stored in localStorage and can be changed dynamically. 
+ *    The layout and text are updated according to the selected language (Arabic or English).
+ * 
+ * 2. **Test Fetching**: Upon loading, the page fetches a list of tests from the server using an API call.
+ *    The `accessToken` is used for authentication when making requests to the backend.
+ * 
+ * 3. **Test Filtering**: Users can filter the displayed tests based on a search term and a selected group.
+ *    The search term is checked against the `medical_services` and `medical_services_category` properties of each test.
+ *    The selected group filters the tests by their `medical_services_category`.
+ * 
+ * 4. **Test Deletion**: Each test can be deleted by clicking on a delete button next to it.
+ *    The deletion is confirmed with a success or error message, and the list of tests is updated accordingly.
+ * 
+ * 5. **Pagination**: The tests are displayed in pages, with a maximum of 5 tests per page.
+ *    The page supports navigating between pages using the pagination controls.
+ * 
+ * 6. **Empty and Error States**: If there are no tests available, a message is displayed indicating this.
+ *    If an error occurs while fetching tests, an error message is shown.
+ * 
+ * 7. **Responsive Layout**: The page is designed to be responsive, with components adjusting based on screen size.
+ *    The layout includes the sidebar, breadcrumb navigation, filter inputs, and test listing.
+ * 
+ * 8. **Components Used**:
+ *    - `AppSidebar`: Sidebar component used for navigation.
+ *    - `Breadcrumb`: Displays the navigation trail.
+ *    - `AnalysisPackage`: Displays each test with its details and actions (edit/delete).
+ *    - `FilterTests`: Component for entering search terms to filter tests.
+ *    - `TestGroupSelector`: Component for selecting a test group to filter the tests.
+ *    - `Pagination`: Pagination controls for navigating through the test list.
+ *    - `ActionDropdown`: Dropdown component for performing actions on the page.
+ * 
+ * The page structure includes a header with breadcrumb navigation, a filter section for tests, and the main content area where tests are displayed.
+ * The user can also navigate between pages of tests using the pagination controls at the bottom of the page.
+ */
+
+
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [tests, setTests] = useState<any[]>([]); // Store tests data

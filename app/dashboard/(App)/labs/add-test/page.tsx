@@ -27,6 +27,48 @@ import { useState, useMemo, useEffect } from "react";
 
 type Language = "ar" | "en";
 
+/**
+ * This page represents the "Add Test" functionality within a dashboard-style layout.
+ * It is designed to allow the user to add new tests, manage test entries, and navigate between different sections.
+ * 
+ * Key Features:
+ * 1. **Language Handling**: The page supports two languages: Arabic (ar) and English (en).
+ *    - The language preference is stored in the browser's `localStorage` and can be dynamically changed.
+ *    - The page elements, including headers, breadcrumbs, and buttons, adapt based on the selected language.
+ * 
+ * 2. **Breadcrumb Navigation**: Displays the current navigation path and provides links to other sections:
+ *    - "الرئسية" / "Dashboard"
+ *    - "اختبارات المعمل" / "Tests"
+ *    - "اضافة الاختبارات" / "Add Test"
+ * 
+ * 3. **Test Management**:
+ *    - **Test Entry Form**: The user can add new tests via an `InputForm` component. Each test entry consists of a name and price.
+ *    - **Test List**: The tests are displayed using `TestCard` components, showing the test name and price, with options to delete individual entries.
+ * 
+ * 4. **State Management**:
+ *    - The `useState` hook is used for managing the current language (`language`), search filter (`search`), selected test group (`selectedGroup`), and the list of tests (`tests`).
+ *    - `useEffect` is used to listen for changes to the `language` in `localStorage` and updates the state accordingly.
+ * 
+ * 5. **Test Filtering**: 
+ *    - The page supports filtering tests by search term using the `search` state.
+ *    - The tests are filtered dynamically based on the entered search term, ensuring that only relevant tests are displayed.
+ * 
+ * 6. **Pagination**: 
+ *    - Tests are paginated, displaying a fixed number of tests per page (5 in this case).
+ *    - The pagination logic allows users to navigate between pages and see a limited number of test entries at a time.
+ *    - The pagination is implemented using the `Pagination` component and allows for page changes based on user input.
+ * 
+ * 7. **Save Button**: Once tests are added, a "Save" button is available at the bottom of the page to finalize the additions. Clicking this button redirects the user to the `/dashboard/labs` page.
+ *    - The button text adapts based on the selected language ("حفظ" for Arabic and "Save" for English).
+ * 
+ * 8. **Sidebar**: 
+ *    - The page includes a sidebar (`AppSidebar`) for additional navigation and options, positioned on the right side of the screen.
+ *    - The sidebar visibility and structure are managed using the `SidebarProvider`, `SidebarInset`, and `SidebarTrigger` components.
+ * 
+ * Overall, this page serves as an interactive and dynamic interface for adding and managing laboratory tests, with language support, test filtering, and pagination functionalities.
+ */
+
+
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
 
@@ -137,7 +179,7 @@ export default function Page() {
             </h2>
 
             <div className="mx-auto w-full ">
-              <InputForm onAdd={handleAddItem} type="single" />
+              <InputForm onAdd={handleAddItem} type="single" testType="" />
               <div className="mt-6 space-y-4">
                 {tests.map((item, index) => (
                   <TestCard

@@ -99,12 +99,12 @@ const Page = () => {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold text-end">
+            <h1 className="text-3xl font-bold text-center">
               {" "}
-              {language === "ar" ? "👋 بيك أهلا" : "👋 Welcome"}
+              {language === "ar" ? "👋  أهلا بيك" : "👋 Welcome"}
             </h1>
 
-            <p className="text-balance text-muted-foreground text-end">
+            <p className="text-balance text-muted-foreground text-center">
               {language === "ar" ? "لوحة تحكم روشيتا" : "Rocheta Dashboard"}
             </p>
           </div>
@@ -195,10 +195,10 @@ const Page = () => {
         <div className="h-1/2"></div>
         <div className="flex flex-col justify-center">
           <div className="gap-1 flex flex-col justify-center px-10">
-            <p className="text-end text-white text-[38px] font-semibold">
+            <p className="text-center text-white text-[38px] font-semibold">
             {language === "ar" ? "أهلا بيك" : "Welcome"} 
             </p>
-            <p className="text-end text-white text-[28.4px] font-normal">
+            <p className="text-center text-white text-[28.4px] font-normal">
             {language === "ar" ? "في لوحة التحكم روشيتا" : "to Rocheta Dashboard"}
             </p>
           </div>

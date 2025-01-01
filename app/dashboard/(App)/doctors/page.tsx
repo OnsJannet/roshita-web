@@ -49,10 +49,39 @@ export type Payment = {
 
 type Language = "ar" | "en";
 
+
+/**
+ * This is the main page component that displays a dashboard of doctors.
+ * 
+ * - It includes a sidebar, breadcrumbs for navigation, and a table showing doctor details such as name, rating, and join date.
+ * - The page fetches data from an API and maps it into a `Payment[]` format to be displayed in the table.
+ * - The table data is paginated, with 5 doctors per page, and it uses the `currentPage` state to track and update the displayed page.
+ * - It supports two languages (`ar` for Arabic and `en` for English), and language preferences are stored in `localStorage` and can be dynamically updated.
+ * - The component uses `useEffect` to manage side effects such as fetching data when the page or language changes.
+ * - The `fetchData` function makes a GET request to `/api/doctors/getDoctors` with a Bearer token for authentication. The fetched data is then transformed and stored in the `tableData` state.
+ * - A `StatCard` component is used to show summary statistics, and the `DataTable` component is used to display the list of doctors.
+ * - The `Breadcrumb` component dynamically adjusts its labels based on the selected language.
+ * - `SidebarProvider` and `SidebarInset` components are used to manage the sidebar layout, and the `AppSidebar` component is included on the right side of the page.
+ * 
+ * The component ensures a seamless user experience with a responsive layout and language adaptability.
+ */
+
+
 export default function Page() {
   const [tableData, setTableData] = useState<Payment[]>([]); // Now using Payment[] type
   const [language, setLanguage] = useState<Language>("ar");
+  const [lengthData, setLengthData] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const handlePageChange = (page: number) => {
+    console.log(`Current page: ${page}`);
+    setCurrentPage(page);
+    // Additional logic for handling page changes, if necessary
+  };
+
+  console.log("current page parenttt: " + currentPage)
+
+  console.log("tableData", tableData)
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
@@ -88,7 +117,7 @@ export default function Page() {
       }
 
       // Make the fetch request with the Authorization header
-      const response = await fetch("/api/doctors/getDoctors?page=1&limit=10", {
+      const response = await fetch(`/api/doctors/getDoctors?page=${currentPage}&limit=5`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`, // Send the token in the Authorization header
@@ -100,6 +129,7 @@ export default function Page() {
       const result: APIResponse = await response.json();
 
       console.log("result", result);
+      setLengthData(result.total)
 
       // Map Doctor[] to Payment[]
       const paymentData: Payment[] = result.data.map((doctor) => ({
@@ -120,7 +150,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   // Breadcrumb items
 
@@ -157,7 +187,7 @@ export default function Page() {
             {loading ? (
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
             ) : (
-              <DataTable data={tableData} />
+              <DataTable data={tableData} lengthData={lengthData} onPageChange={handlePageChange}/>
             )}
           </div>
         </div>

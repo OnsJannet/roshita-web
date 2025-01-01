@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { countries, specialities } from "@/constant";
 
 type Language = "ar" | "en";
 
@@ -30,6 +29,9 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
 
+  const [countries, setCountries] = useState<any[]>([]);
+  const [specialities, setSpecialities] = useState<any[]>([]);
+
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
@@ -45,6 +47,51 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({
     };
 
     window.addEventListener("storage", handleStorageChange);
+
+    // Fetch countries
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/countries-list/",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              "X-CSRFToken":
+                "rPJOwOXGNHEO9sA4D2NAaKGQ8T9PgxJZLAObet5sjLuW6iNMGERoFnRK5kv6IBTV",
+            },
+          }
+        );
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+
+    // Fetch specialties
+    const fetchSpecialties = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/specialty-list/",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              "X-CSRFToken":
+                "rPJOwOXGNHEO9sA4D2NAaKGQ8T9PgxJZLAObet5sjLuW6iNMGERoFnRK5kv6IBTV",
+            },
+          }
+        );
+        const data = await response.json();
+        setSpecialities(data);
+      } catch (error) {
+        console.error("Error fetching specialties:", error);
+      }
+    };
+
+    fetchCountries();
+    fetchSpecialties();
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
@@ -143,7 +190,7 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({
             />
           </SelectTrigger>
           <SelectContent className="z-[999999] bg-white">
-            {countries.flat().map((country) => (
+            {countries.map((country) => (
               <SelectItem key={country.id} value={country.name}>
                 {language === "ar" ? country.name : country.foreign_name}
               </SelectItem>
@@ -162,7 +209,7 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({
             />
           </SelectTrigger>
           <SelectContent className="z-[999999] bg-white">
-            {specialities.flat().map((specialty) => (
+            {specialities.map((specialty) => (
               <SelectItem key={specialty.id} value={specialty.name}>
                 {language === "ar" ? specialty.name : specialty.foreign_name}
               </SelectItem>

@@ -24,12 +24,30 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
   const [loadingCategories, setLoadingCategories] = useState(true); // Loading state for categories
   const [errorMessage, setErrorMessage] = useState(""); // State for error messages
 
-  // Fetch medical services and categories (as in the original code)
-  // ... (same as before)
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const handleAdd = async () => {
     const accessToken = localStorage.getItem("access");
-  
+
     // Validation check for empty fields
     if (!selectedService.name || !price || (type === "group" && !groupName)) {
       setErrorMessage(
@@ -39,16 +57,16 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
       );
       return; // Prevent further action if any field is missing
     }
-  
+
     // Reset the error message if all fields are filled
     setErrorMessage("");
-  
+
     // Proceed with your existing request logic
     if (selectedService.name && price) {
       const openDate = new Date();
       const closeDate = new Date(openDate);
       closeDate.setFullYear(openDate.getFullYear() + 1); // Add 1 year to the open date
-  
+
       const requestData = {
         price: price,
         open_date: openDate.toISOString(),
@@ -65,12 +83,11 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
         medical_services_id: selectedService.id,
         medical_services_category_id: groupId,
       };
-  
+
       // Determine the API endpoint based on testType
-      const apiEndpoint = testType === "ray" 
-        ? "/api/radiologic/addTests" 
-        : "/api/tests/addTests";
-  
+      const apiEndpoint =
+        testType === "ray" ? "/api/radiologic/addTests" : "/api/tests/addTests";
+
       try {
         const response = await fetch(apiEndpoint, {
           method: "POST",
@@ -80,22 +97,22 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
           },
           body: JSON.stringify(requestData),
         });
-  
+
         if (!response.ok) {
           throw new Error("Failed to send data");
         }
-  
+
         const data = await response.json();
         // Redirect based on testType
         testType === "lab"
           ? (window.location.href = "/dashboard/labs")
           : (window.location.href = "/dashboard/x-rays");
-  
+
         console.log("Data successfully sent:", data);
       } catch (error) {
         console.error("Error adding data:", error);
       }
-  
+
       setSelectedService({ id: "", name: "" });
       setPrice("");
       if (type === "group") {
@@ -104,7 +121,6 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
       }
     }
   };
-  
 
   // Fetch medical services
   useEffect(() => {
@@ -151,14 +167,15 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
   return (
     <div>
       {/* Error message */}
+
       {errorMessage && (
-        <p
-          className={`text-red-500 text-sm mt-2 px-6 text-bold ${
+        <div
+          className={`text-red-500 bg-red-100 p-4 rounded ${
             language === "ar" ? "text-end" : "text-start"
           }`}
         >
           {errorMessage}
-        </p>
+        </div>
       )}
 
       <div

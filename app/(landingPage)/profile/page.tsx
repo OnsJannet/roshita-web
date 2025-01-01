@@ -42,8 +42,27 @@ const translations = {
 };
 
 /**
- * Edits the user profile by making a POST request to the profile edit API.
+ * This React component serves as a client-side page for editing the user's profile. 
+ * It allows authenticated users to update their personal information, such as 
+ * name, email, and password, with support for dynamic form validation and submission.
+ * The page supports both Arabic and English languages, with language preferences 
+ * stored in localStorage and dynamically applied.
+ * 
+ * Key functionalities include:
+ * - Secure user profile update via API call using the current user's authentication token.
+ * - Form fields for editing name, email, and password, with validation for each input.
+ * - Password visibility toggle for the password field.
+ * - Language support for Arabic and English, with dynamic layout adjustments based on the selected language.
+ * - Navigation options for settings, appointments, and logout in the sidebar.
+ * - Displaying success or error messages based on the API response, with appropriate feedback to the user.
+ * 
+ * Dependencies:
+ * - Custom components (Button, Input, Label, etc.)
+ * - React hooks (useState, useEffect, useContext) for state management and side effects.
+ * - withAuth higher-order component for authentication protection.
+ * - Custom validation logic for form fields.
  */
+
 const editUserProfile = async (
   profileData: EditProfileData,
   accessToken: string

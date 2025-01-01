@@ -220,9 +220,6 @@ const doctorData: APIResponse = {
   ],
 };
 
-
-
-
 export type Payment = {
   img: string;
   id: string;
@@ -256,11 +253,19 @@ interface APIResponse {
   results: Doctor[];
 }
 
-export function DataTable({ data }: { data: Payment[] }) {
-    // Log data whenever the component renders
-    React.useEffect(() => {
-      console.log("Data passed to the table:", data);
-    }, [data]);
+export function DataTable({
+  data,
+  onPageChange,
+  lengthData,
+}: {
+  data: Payment[];
+  lengthData: number;
+  onPageChange?: (page: number) => void;
+}) {
+  // Log data whenever the component renders
+  React.useEffect(() => {
+    console.log("Data passed to the table:", data);
+  }, [data]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -290,6 +295,43 @@ export function DataTable({ data }: { data: Payment[] }) {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
+
+  const [currentPage, setCurrentPage] = React.useState(0); // Tracks the current page
+  const rowsPerPage = 5; // Rows per page
+
+  // Calculate paginated data
+  const paginatedData = data.slice(
+    currentPage * rowsPerPage,
+    (currentPage + 1) * rowsPerPage
+  );
+
+  // Notify parent component of page change
+  React.useEffect(() => {
+    if (onPageChange) {
+      onPageChange(currentPage + 1); // Send 1-based index to parent
+    }
+  }, [currentPage, onPageChange]);
+
+  const pageCount = Math.ceil(lengthData / rowsPerPage);
+  console.log("data: " + lengthData);
+  console.log("pageCount: " + pageCount);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < pageCount - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePageSelect = (index: number) => {
+    setCurrentPage(index);
+  };
+  
 
   const columns: ColumnDef<Payment>[] = [
     {
@@ -413,15 +455,12 @@ export function DataTable({ data }: { data: Payment[] }) {
         const handleDelete = async (id: number) => {
           try {
             const accessToken = localStorage.getItem("access"); // Get the token from localStorage
-            const response = await fetch(
-              `/api/doctors/removeDoctor?id=${id}`,
-              {
-                method: "DELETE",
-                headers: {
-                  Authorization: `Bearer ${accessToken}`, // Add the Authorization header with the token
-                },
-              }
-            );
+            const response = await fetch(`/api/doctors/removeDoctor?id=${id}`, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${accessToken}`, // Add the Authorization header with the token
+              },
+            });
             if (response.ok) {
               console.log(`Deleted doctor with ID: ${id}`);
               // Refresh the page or update the list to reflect the changes
@@ -433,7 +472,6 @@ export function DataTable({ data }: { data: Payment[] }) {
             console.error("Error deleting doctor:", error);
           }
         };
-        
 
         const openDialog = () => {
           setIsDialogOpen(true); // Open dialog when user clicks delete
@@ -455,7 +493,7 @@ export function DataTable({ data }: { data: Payment[] }) {
                     href={`/dashboard/doctors/${payment.id}`}
                     className="flex"
                   >
-                    عرض الملف
+                    {language === "ar" ? "عرض الملف" : "View Profile"}
                     <File className="h-4 w-4 ml-2" />
                   </Link>
                 </DropdownMenuItem>
@@ -464,7 +502,7 @@ export function DataTable({ data }: { data: Payment[] }) {
                     href={`/dashboard/doctors/edit/${payment.id}`}
                     className="flex"
                   >
-                    تعديل
+                    {language === "ar" ? "تعديل" : "Edit"}
                     <PencilLine className="h-4 w-4 ml-2" />
                   </Link>
                 </DropdownMenuItem>
@@ -474,7 +512,7 @@ export function DataTable({ data }: { data: Payment[] }) {
                   onClick={openDialog} // Open dialog when user clicks delete
                   className="text-right justify-end cursor-pointer"
                 >
-                  حذف
+                  {language === "ar" ? "حذف" : "Delete"}
                   <Trash2 className="h-4 w-4 ml-2" />
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -484,25 +522,26 @@ export function DataTable({ data }: { data: Payment[] }) {
             <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-end">
-                    تأكيد الحذف
+                  <AlertDialogTitle className="text-center">
+                    {language === "ar" ? "تأكيد الحذف" : "Confirm Deletion"}
                   </AlertDialogTitle>
-                  <AlertDialogDescription className="text-end">
-                    هل أنت متأكد أنك تريد حذف هذا السجل؟ هذه العملية لا يمكن
-                    التراجع عنها.
+                  <AlertDialogDescription className="text-center">
+                    {language === "ar"
+                      ? "هل أنت متأكد أنك تريد حذف هذا السجل؟ هذه العملية لا يمكن التراجع عنها."
+                      : "Are you sure you want to delete this record? This action cannot be undone."}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
+                <AlertDialogFooter className="!justify-center">
                   <AlertDialogCancel
                     onClick={() => setIsDialogOpen(false)} // Ensure closing the dialog correctly
                   >
-                    إلغاء
+                    {language === "ar" ? "إلغاء" : "Cancel"}
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => handleDelete(Number(payment.id))}
                     className="bg-red-600 hover:bg-red-400"
                   >
-                    حذف
+                    {language === "ar" ? "حذف" : "Delete"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -647,28 +686,27 @@ export function DataTable({ data }: { data: Payment[] }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={handlePreviousPage}
+            disabled={currentPage === 0}
+            className={`pagination-btn ${currentPage === 0 ? "disabled" : ""}`}
           >
-            {language === "ar" ? "السابق" : "Previous"}
+            Previous
           </Button>
 
           {/* Page Numbers */}
-          <div className="flex items-center space-x-2 pr-2">
-            {Array.from({ length: table.getPageCount() }, (_, index) => (
-              <Button
+          <div className="flex items-center space-x-2 pr-2 gap-2">
+            {Array.from({ length: pageCount }, (_, index) => (
+              <button
                 key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => table.setPageIndex(index)}
-                className={
-                  index === table.getState().pagination.pageIndex
-                    ? "bg-blue-500 text-white"
-                    : ""
-                }
+                onClick={() => handlePageSelect(index)}
+                className={`px-3  py-1 ${
+                  currentPage === index
+                    ? "bg-[#71c9f9] text-white rounded-md"
+                    : "bg-gray-100 rounded-md"
+                }`}
               >
-                {index + 1}
-              </Button>
+                {index + 1} {/* Correctly display the page number */}
+              </button>
             ))}
           </div>
 
@@ -676,8 +714,8 @@ export function DataTable({ data }: { data: Payment[] }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={handleNextPage}
+            disabled={currentPage === pageCount - 1}
           >
             {language === "ar" ? "التالي" : "Next"}
           </Button>

@@ -14,6 +14,13 @@ import { fetchProfileDetails } from "@/lib/api";
 import { CircleCheck, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 
+type PaymentMethod = {
+  id: number;
+  name: string;
+  name_en: string;
+  image: string;
+};
+
 type DoctorCardAppointmentProps = {
   name: string;
   specialty: string;
@@ -25,7 +32,10 @@ type DoctorCardAppointmentProps = {
   id: number;
   day: string;
   time: string;
+  medical_organizations: { id: number; name: string };
+  paymentMethod: PaymentMethod;
 };
+
 
 type Language = "ar" | "en";
 
@@ -64,12 +74,15 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   imageUrl,
   day,
   time,
+  medical_organizations,
+  paymentMethod
 }) => {
   const [profileData, setProfileData] = useState({
     user: {
       first_name: "",
       last_name: "",
       email: "",
+      phone:"",
     },
     gender: "",
     service_country: 0,
@@ -78,6 +91,8 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     user_type: 0,
     address: "",
   });
+
+  console.log("medical_organizations", medical_organizations)
 
   const [language, setLanguage] = useState<Language>("ar");
 
@@ -106,11 +121,13 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     const loadProfileData = async () => {
       try {
         const data = await fetchProfileDetails();
+        console.log("datadata", data);
         setProfileData({
           user: {
             first_name: data.user?.first_name || "",
             last_name: data.user?.last_name || "",
             email: data.user?.email || "",
+            phone: data.user?.phone || "",
           },
           gender: data.gender || "",
           service_country: data.service_country || 0,
@@ -148,6 +165,10 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
 
   const t = translations[language]; // Choose translation based on selected language
 
+  const organizationId = Array.isArray(medical_organizations) && medical_organizations.length > 0
+  ? medical_organizations[0].id
+  : 0;
+
   const handleCreateAppointment = async () => {
     const token = localStorage.getItem("access"); // Get the access token from localStorage
   
@@ -158,6 +179,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   
     console.log("day", day);
     console.log("time", time);
+
   
     // Convert the day and time to ISO 8601 format
     const [dayPart, monthPart, yearPart] = day.split("/"); // Split day into DD/MM/YYYY
@@ -170,17 +192,27 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
         patient: {
           first_name: profileData.user.first_name,
           last_name: profileData.user.last_name,
-          phone: "123456789", // Replace with user's phone number if available
+          relative: "",
+          phone: profileData.user.phone, // Replace with user's phone number if available
           email: profileData.user.email,
           city: profileData.city || 2,
           address: profileData.address,
         },
         reservation_date: reservationDate, // Use correctly formatted ISO 8601 date
       },
-      confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
+      medical_organizations: organizationId || 0,
+      //confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
       doctor: 1, // Replace with the actual doctor ID
       price: price,
+      payment:{
+        payment_method: paymentMethod.name_en.toLowerCase(),
+        //mobile_number: profileData.user.phone,
+        mobile_number:"0913632323",
+        birth_year: 1990
+      }
     };
+
+
   
     try {
       // Send a POST request to your backend
@@ -202,7 +234,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   
       const responseData = await response.json();
       console.log("Reservation successful:", responseData);
-      alert("Appointment successfully booked!");
+      //alert("Appointment successfully booked!");
       window.location.href = "/appointments"; // Redirect to appointments page
     } catch (error) {
       console.error("Error booking the appointment:", error);

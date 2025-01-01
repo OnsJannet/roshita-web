@@ -10,6 +10,7 @@ import {
 import { useState, useEffect } from "react";
 import { MoveRight } from "lucide-react";
 import UploadButton from "@/components/unique/UploadButton";
+import DoctorSlots from "@/components/layout/doctor-slot";
 
 // The structure of the data being sent to the backend
 // The structure of the data being sent to the backend
@@ -31,7 +32,66 @@ interface Specialty {
   foreign_name: string;
 }
 
+type Slot = {
+  date: string; // Format: YYYY-MM-DD
+  startTime: string; // Format: HH:mm
+  endTime: string; // Format: HH:mm
+  backendFormat: string; // Format: YYYY-MM-DD HH:mm:00
+};
+
 type Language = "ar" | "en";
+
+/**
+ * Doctor Add Form Page
+ *
+ * This page is responsible for adding a new doctor to the system. It handles 
+ * the submission of the doctor's details, including their name, specialty, 
+ * city, address, fixed price, rating, and profile picture. The form dynamically 
+ * adjusts based on the selected language and provides a smooth user experience 
+ * with real-time validation and API integration.
+ *
+ * Features:
+ * - Displays a form with fields for the doctor's first name, last name, specialty, 
+ *   city, address, fixed price, and rating.
+ * - Allows image upload for the doctor's profile picture.
+ * - Fetches available specialties and cities dynamically from external APIs.
+ * - Handles form validation to ensure all required fields are filled before submission.
+ * - Submits the doctor's data to the backend API and handles success or error responses.
+ * - Displays error messages if the API request fails or if form validation fails.
+ * - Supports dynamic language switching between Arabic and English based on user preference.
+ * - Adjusts the layout and text direction (RTL or LTR) based on the selected language.
+ * 
+ * Fetching Flow:
+ * 1. The list of available specialties and cities is fetched from external APIs 
+ *    when the component mounts.
+ * 2. The form fields are populated with the user's input, and changes are tracked 
+ *    using controlled components.
+ * 3. On form submission, the doctor's data is sent to the backend API for storage.
+ * 4. If the submission is successful, the user is redirected to the doctors list page. 
+ *    If there is an error, an error message is displayed.
+ * 
+ * Components Used:
+ * - Breadcrumb: Displays navigation links to easily navigate between pages.
+ * - UploadButton: Provides functionality for uploading the doctor's profile picture.
+ * - Form Fields: Various input fields (text, number, select) for entering doctor details.
+ * - ErrorMessage: Displays error messages for missing or invalid fields.
+ * 
+ * Expected Props:
+ * - Language: The current language selected by the user (e.g., 'ar' or 'en').
+ * - Specialties: A list of available specialties fetched from an external API.
+ * - Cities: A list of available cities fetched from an external API.
+ * 
+ * Example:
+ * When the user fills out the form with the doctor's details and clicks the submit button, 
+ * the doctor's data will be sent to the backend, and on success, the user will be redirected 
+ * to the doctors list page.
+ * 
+ * Notes:
+ * - The form supports dynamic text direction based on the selected language.
+ * - All error messages and form labels are displayed in the selected language (Arabic or English).
+ * - The page is part of a larger admin panel used for managing doctor records.
+ */
+
 
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
@@ -71,6 +131,7 @@ export default function Page() {
 
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [cities, setCities] = useState<Specialty[]>([]);
+  const [backendSlots, setBackendSlots] = useState<Slot[]>([]);
   const [formData, setFormData] = useState<DoctorFormData>({
     firstName: "",
     lastName: "",
@@ -126,6 +187,23 @@ export default function Page() {
     return missingFields;
   };
 
+  const handleSlotsChange = (slots: Slot[]) => {
+    setBackendSlots(slots);
+    console.log("Updated slots:", slots);
+
+  };
+
+  const appointmentDates = backendSlots.map((slot) => {
+    return {
+      scheduled_date: slot.date, // Date in YYYY-MM-DD format
+      start_time: slot.startTime, // Start time in HH:mm format
+      end_time: slot.endTime,     // End time in HH:mm format
+    };
+  });
+
+  console.log("appointmentDates", appointmentDates)
+
+  
   // Handle form submission
   const handleSubmit = async () => {
     const missingFields = validateForm();
@@ -155,6 +233,7 @@ export default function Page() {
           fixed_price: formData.fixedPrice,
           rating: Number(formData.rating), // Ensure rating is sent as a number
           is_consultant: formData.isConsultant, // This will be a boolean
+          appointment_dates: appointmentDates
           //Image: formData.Image,
         }),
       });
@@ -545,6 +624,9 @@ export default function Page() {
                 </table>
               )}
             </div>
+
+              <DoctorSlots onSlotsChange={handleSlotsChange}/>
+
             <Button
               variant="register"
               className="rounded-2xl h-[52px] w-[140px]"

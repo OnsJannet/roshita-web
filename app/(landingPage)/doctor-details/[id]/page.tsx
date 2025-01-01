@@ -32,13 +32,54 @@ interface Doctor {
   doctor_id: number;
   name: string;
   specialty: string;
-  rating: number;
-  reviewsCount: number;
-  price: string;
-  location: string;
+  city: string;
+  address: string | null;
   imageUrl: string;
+  price: number | null;
+  rating: number | null;
   appointment_dates: string[]; // Array of date strings
+  medical_organizations: MedicalOrganization[]; // Array of medical organizations
+  reviewsCount: number;
 }
+
+interface MedicalOrganization {
+  id: number;
+  name: string;
+  foreign_name: string;
+  phone: string;
+  email: string;
+  city: City;
+  address: string;
+  Latitude: number;
+  Longitude: number;
+}
+
+interface City {
+  id: number;
+  country: Country;
+  name: string;
+  foreign_name: string;
+}
+
+interface Country {
+  id: number;
+  name: string;
+  foreign_name: string;
+}
+
+/**
+ * DoctorDetailsPage component:
+ *
+ * This page displays detailed information about a specific doctor. It includes:
+ * - Fetching the doctor's details from an API using the doctor's ID passed in the URL.
+ * - Displaying the doctor's information, such as name, specialty, rating, reviews, price, location, and image.
+ * - Showing a carousel of available appointment times, where each time slot can be clicked to book an appointment.
+ * - Displaying the doctor's working hours for each day of the week.
+ * - The page dynamically handles language preferences (Arabic or English) and adjusts the UI based on the selected language.
+ * - The language preference is stored and retrieved from localStorage, allowing the app to persist the user's language choice.
+ * - The page includes functions to format dates, times, and display the day of the week in the selected language.
+ * - A function is included to handle booking an appointment, which saves the appointment day and time to localStorage and redirects the user to an appointment page.
+ */
 
 const DoctorDetailsPage = () => {
   const params = useParams();
@@ -80,13 +121,17 @@ const DoctorDetailsPage = () => {
   // Fetch doctors from the API
   const fetchDoctors = async () => {
     try {
-      const response = await fetch("https://test-roshita.net/api/doctors-list/", {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Use token from .env.local
-        },
-      });
+      //const response = await fetch("https://test-roshita.net/api/doctors-list/", {
+      const response = await fetch(
+        "https://test-roshita.net/api/user-doctors",
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Use token from .env.local
+          },
+        }
+      );
 
       const result = await response.json();
 
@@ -206,21 +251,27 @@ const DoctorDetailsPage = () => {
     "saturday",
   ];
 
-
   return (
     <div className="container mx-auto p-4 max-w-[1280px]">
       {/* Doctor Details */}
       <DoctorCardInside
         key={doctor.doctor_id}
+        doctor_id={doctor.doctor_id} // Add doctor_id here
         id={doctor.doctor_id}
         name={doctor.name}
         specialty={doctor.specialty}
         rating={doctor.rating}
         reviewsCount={doctor.reviewsCount}
         price={doctor.price}
-        location={doctor.location}
+        location={doctor.city}
+        city={doctor.city}
         imageUrl={doctor.imageUrl}
+        address={doctor.address ?? ''}
+        appointment_dates={doctor.appointment_dates || []}
+        medical_organizations={doctor.medical_organizations || []}
       />
+
+
 
       {/* Appointments Carousel */}
       <div className="max-w-[1280px] flex lg:flex-row-reverse gap-10 flex-col">
@@ -232,42 +283,50 @@ const DoctorDetailsPage = () => {
           >
             {translations[language].availableTimes}
           </h2>
-          <Carousel>
-            <CarouselPrevious className="bg-gray-300" />
-            <CarouselNext className="bg-gray-300" />
-            <CarouselContent>
-              {doctor.appointment_dates.map((date, index) => (
-                <CarouselItem
-                  key={index}
-                  className="p-4 rounded-md md:basis-1/2 lg:basis-1/3"
-                >
-                  <div className="p-1">
-                    <Card className="rounded">
-                      <CardTitle className="p-4 bg-roshitaBlue rounded text-white text-center">
-                        {getDayOfWeekInLanguage(date)}
-                      </CardTitle>
-                      <CardContent className="flex flex-col items-center justify-center p-6">
-                        <span className="text-2xl font-semibold">
-                          {formatDate(date)}
-                        </span>
-                        <span className="text-xl font-medium">
-                          {formatTime(date)}
-                        </span>
-                      </CardContent>
-                      <CardFooter
-                        onClick={() =>
-                          handleBooking(formatDate(date), formatTime(date))
-                        }
-                        className="p-4 bg-roshitaBlue rounded text-white !text-center font-bold flex justify-center"
-                      >
-                        {translations[language].book}
-                      </CardFooter>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+          {doctor.appointment_dates.length !== 0 ? (
+            <Carousel>
+              <CarouselPrevious className="bg-gray-300" />
+              <CarouselNext className="bg-gray-300" />
+              <CarouselContent>
+                {doctor.appointment_dates.map((date, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="p-4 rounded-md md:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="p-1">
+                      <Card className="rounded">
+                        <CardTitle className="p-4 bg-roshitaBlue rounded text-white text-center">
+                          {getDayOfWeekInLanguage(date)}
+                        </CardTitle>
+                        <CardContent className="flex flex-col items-center justify-center p-6">
+                          <span className="text-2xl font-semibold">
+                            {formatDate(date)}
+                          </span>
+                          <span className="text-xl font-medium">
+                            {formatTime(date)}
+                          </span>
+                        </CardContent>
+                        <CardFooter
+                          onClick={() =>
+                            handleBooking(formatDate(date), formatTime(date))
+                          }
+                          className="p-4 bg-roshitaBlue rounded text-white text-center font-bold flex justify-center"
+                        >
+                          {translations[language].book}
+                        </CardFooter>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          ) : (
+            <div className="text-center font-semibold text-xl text-gray-500 my-[100px]">
+              {language === "en"
+                ? "No appointments to show"
+                : "لا توجد مواعيد لعرضها"}
+            </div>
+          )}
         </div>
 
         {/* Working Hours */}

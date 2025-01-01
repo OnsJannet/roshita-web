@@ -15,6 +15,46 @@ import { useState, useMemo, useEffect } from "react";
 
 type Language = "ar" | "en";
 
+
+/**
+ * This page is designed for adding a package analysis (lab tests) within a dashboard-like interface.
+ * It includes the following main features:
+ *
+ * 1. **Language Management**: 
+ *    - The page supports both Arabic (`ar`) and English (`en`) languages. It checks the user's language preference from `localStorage` 
+ *      and updates the page accordingly. The page listens for changes in the language setting and updates the state when it changes.
+ *
+ * 2. **Sidebar and Breadcrumb**: 
+ *    - The page includes a sidebar (`AppSidebar`) and breadcrumb navigation to allow users to navigate through the app easily. 
+ *    - The breadcrumb items adjust based on the selected language (Arabic or English), providing links like "Dashboard", "Tests", and "Add Package Analysis".
+ *
+ * 3. **Test Management**:
+ *    - Users can add lab tests to a package by filling out a form (`InputForm`) that takes the test name and price. 
+ *    - The form accepts the type of test as "group" and stores the information as a list of tests. 
+ *    - Users can delete tests from the list using a `TestCard` component that displays the test name and price, and includes a delete button.
+ *
+ * 4. **Pagination**:
+ *    - The tests are displayed in a paginated format, with a maximum of 5 tests per page. 
+ *    - The page allows users to switch between pages of tests using a pagination system. 
+ *    - The current page and total pages are calculated based on the filtered list of tests.
+ *
+ * 5. **Search and Filter**:
+ *    - There is a search functionality that allows users to filter the tests by name. The search input is dynamically applied to filter 
+ *      the list of available tests.
+ *    - Additionally, the tests can be filtered by selecting a test group. The group selection is applied to filter the list of tests accordingly.
+ *
+ * 6. **Save Button**:
+ *    - Once the user has added tests to the list, they can click a "Save" button to navigate to a different page ("/dashboard/labs") 
+ *      to save the data. The button's text changes based on the selected language.
+ *
+ * 7. **Responsive Layout**: 
+ *    - The layout adjusts for both Arabic (RTL) and English (LTR) languages. This is reflected in the direction of the header, 
+ *      breadcrumb items, and overall layout structure.
+ *
+ * The page serves as a user interface for managing and saving a collection of lab tests within a package, providing essential 
+ * functionality like adding, searching, filtering, and saving the tests.
+ */
+
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
 

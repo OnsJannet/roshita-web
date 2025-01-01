@@ -25,6 +25,41 @@ import {
 
 type Language = "ar" | "en";
 
+interface DoctorStaff {
+  first_name: string;
+  last_name: string;
+  staff_avatar: string;
+  medical_organization: string;
+  city: string;
+  address: string;
+}
+interface Doctor {
+  id: number;
+  staff: DoctorStaff;
+  specialty?: number;
+  fixed_price?: string;
+  rating?: number;
+  is_consultant: boolean;
+  create_date: Date;
+}
+
+interface APIResponse {
+  success: boolean;
+  data: Doctor[]; // The correct property is `data`, not `results`
+  total: number;
+  nextPage: string | null;
+  previousPage: string | null;
+}
+
+// Define the Payment type
+export type Payment = {
+  img: string;
+  id: string;
+  دكاترة: string;
+  "تاريخ الانضمام": Date;
+  التقييم: number;
+};
+
 // Translations object
 const translations = {
   en: {
@@ -49,6 +84,77 @@ const translations = {
 
 const AddDoctorCard = () => {
   const [language, setLanguage] = useState<Language>("ar");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [tableData, setTableData] = useState<Payment[]>([]);
+
+  // Fetch function
+  const fetchData = async () => {
+    try {
+      // Retrieve the access token from localStorage
+      const accessToken = localStorage.getItem("access");
+
+      if (!accessToken) {
+        throw new Error("Access token not found");
+      }
+
+      // Make the fetch request with the Authorization header
+      const response = await fetch("/api/doctors/getDoctors?page=1&limit=10", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Send the token in the Authorization header
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch data");
+
+      const result: APIResponse = await response.json();
+
+      console.log("result", result);
+
+      // Map Doctor[] to Payment[]
+      const paymentData: Payment[] = result.data.map((doctor) => ({
+        img: doctor.staff.staff_avatar,
+        id: doctor.id.toString(),
+        دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
+        "تاريخ الانضمام": new Date(doctor.create_date), // Adjust this field as needed
+        التقييم: doctor.rating || 0,
+      }));
+
+      setTableData(paymentData); // Set the transformed data
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    try {
+      const accessToken = localStorage.getItem("access"); // Get the token from localStorage
+      const response = await fetch(
+        `/api/doctors/removeDoctor?id=${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Add the Authorization header with the token
+          },
+        }
+      );
+      if (response.ok) {
+        console.log(`Deleted doctor with ID: ${id}`);
+        // Refresh the page or update the list to reflect the changes
+        window.location.reload();
+      } else {
+        console.error("Failed to delete doctor");
+      }
+    } catch (error) {
+      console.error("Error deleting doctor:", error);
+    }
+  };
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -80,28 +186,45 @@ const AddDoctorCard = () => {
   const cancelText = translations[language].cancel;
 
   const onConfirm = () => {
-    console.log("Delete clicked");
+    handleDelete;
   };
 
   return (
     <Card className="flex flex-col pb-[30px] h-[410px]">
       <CardHeader className=" pb-0 flex flex-col justify-start">
-      <CardTitle className={language === "ar" ? "text-end" : ""}>{lastDoctorsText}</CardTitle>
+        <CardTitle className={language === "ar" ? "text-end" : ""}>
+          {lastDoctorsText}
+        </CardTitle>
         <CardDescription
           className={`flex ${
             language === "ar" ? "flex-row-reverse" : "flex-row"
           } justify-between items-center w-full`}
         >
           {lastDoctorsText}
-          <Button>{addDoctorText}</Button>
+          <Button
+            onClick={() => (window.location.href = "/dashboard/doctors/add")}
+          >
+            {addDoctorText}
+          </Button>
         </CardDescription>
-        <CardContent className="flex flex-row-reverse justify-between items-center w-full ">
+        <CardContent
+          className={`flex ${
+            language === "ar" ? "flex-row-reverse" : "flex-row"
+          } justify-between items-center w-full`}
+        >
           <div className="w-full mt-10 ">
-            {DoctorData.slice(0, 5).map((doctor, id) => (
-              <div className="flex justify-between flex-row-reverse w-full items-center" key={id}>
+            {tableData.slice(0, 5).map((doctor, id) => (
+              <div
+                className={`flex justify-between ${
+                  language === "ar" ? "flex-row-reverse" : "flex-row"
+                } w-full items-center`}
+                key={id}
+              >
                 <div
                   key={doctor.id}
-                  className="flex flex-row-reverse items-center gap-4  mb-2"
+                  className={`flex ${
+                    language === "ar" ? "flex-row-reverse" : "flex-row"
+                  } items-center gap-4  mb-2`}
                 >
                   <Avatar>
                     <AvatarImage
@@ -109,7 +232,7 @@ const AddDoctorCard = () => {
                       alt="doctors"
                       className="w-10 h-10"
                     />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>D</AvatarFallback>
                   </Avatar>
                   <h3>{doctor.دكاترة}</h3>
                 </div>

@@ -2,15 +2,37 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type Language = "ar" | "en" | "fr"; // Added French language option
+type Language = "ar" | "en" | "fr";
+
+
+/**
+ * AccessDeniedPage is displayed when a user attempts to access a page they do not have permission for.
+ * It shows a message informing the user they shouldn't be on the page, along with a "Go Back" button 
+ * that redirects them to the login page.
+ * 
+ * Key Features:
+ * - Fetches the user's IP address, country, and browser agent using external APIs.
+ * - Displays a loading state with placeholders while the data is being fetched.
+ * - Displays dynamic text in Arabic, English, or French based on the stored language preference.
+ * - Provides a button to navigate back to the login page.
+ * - Automatically updates the language state when the language is changed in localStorage.
+ * - Uses the Next.js `useRouter` hook for navigation.
+ * 
+ * This page ensures users are redirected to the appropriate login page if they do not have access to the requested resource.
+ */
+
 
 const AccessDeniedPage = () => {
   const [ipAddress, setIpAddress] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
   const [browserAgent, setBrowserAgent] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // State to track loading
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const [language, setLanguage] = useState<Language>("ar");
+
+  console.log("ipAddress", ipAddress)
+  console.log("country", country)
+  console.log("browserAgent", browserAgent)
 
   // Sync language state with localStorage
   useEffect(() => {

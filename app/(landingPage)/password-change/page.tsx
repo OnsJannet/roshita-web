@@ -29,6 +29,28 @@ interface UploadImageProps {
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+
+/**
+ * This React component serves as a client-side page for changing the user's password. 
+ * It allows authenticated users to securely update their old and new passwords, 
+ * with support for password visibility toggles. 
+ * The page supports both Arabic and English languages, with language preferences 
+ * stored in localStorage and dynamically applied.
+ * 
+ * Key functionalities include:
+ * - Secure password change via API call using the current user's authentication token.
+ * - Inputs for the old password and new password, with visibility toggle for each field.
+ * - Language support for Arabic and English, with dynamic layout adjustments.
+ * - Navigation options for settings, appointments, and logout in the sidebar.
+ * - Displaying success or error messages based on the API response.
+ * 
+ * Dependencies:
+ * - Custom components (Button, Input, Label, etc.)
+ * - React hooks (useState, useEffect) for state management and side effects.
+ * - withAuth higher-order component for authentication protection.
+ */
+
+
 const PasswordChange = () => {
   const router = useRouter();
   const [password, setPassword] = useState<string>("");
@@ -64,7 +86,6 @@ const PasswordChange = () => {
   const changePassword = async (newPassword: string, oldPassword: string) => {
     try {
       const token = localStorage.getItem("access");
-      console.log("access", token);
 
       if (!token) {
         throw new Error("No token found. Please log in.");

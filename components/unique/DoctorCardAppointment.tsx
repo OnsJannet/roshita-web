@@ -15,7 +15,10 @@ type DoctorCardAppointmentProps = {
   id: number;
   day: string;
   time: string;
+  medical_organizations: { id: number; name: string };
 };
+
+
 
 type Language = "ar" | "en";
 
@@ -27,6 +30,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   imageUrl,
   day,
   time,
+  medical_organizations
 }) => {
   const [step, setStep] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -205,6 +209,8 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               id={1}
               day={day}
               time={time}
+              medical_organizations={medical_organizations}
+              paymentMethod={selectedId ? paiement.find((option) => option.id === selectedId) : null}
             />
           </div>
         </div>

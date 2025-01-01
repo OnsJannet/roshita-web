@@ -33,9 +33,64 @@ interface Specialty {
   foreign_name: string;
 }
 
+type Params = {
+  id: string; 
+};
+
+/**
+ * Doctor Detail Page
+ *
+ * This page is responsible for displaying detailed information about a doctor. 
+ * It retrieves and displays the doctor's data, including their name, specialty, 
+ * hospital information, location, and contact details. The page also provides 
+ * functionality for editing and uploading information related to the doctor.
+ *
+ * Features:
+ * - Displays doctor details such as name, specialty, hospital name, location, 
+ *   and phone number.
+ * - Fallback values are provided for missing data, with a default of "غير محدد" 
+ *   (meaning "not defined" in Arabic) for any missing or undefined information.
+ * - Displays the doctor's profile picture or a default image if the avatar is not available.
+ * - Includes a breadcrumb navigation with Arabic text to navigate between pages.
+ * - Supports dynamic fetching of data based on the doctor's unique ID (from the URL).
+ * - Handles loading states and errors when fetching data.
+ * - Provides buttons for editing the doctor's details.
+ * - The page is styled to fit within a sidebar layout and displays detailed content in a 
+ *   user-friendly manner.
+ * 
+ * Fetching Flow:
+ * 1. The doctor's data is fetched from the backend API based on the ID parameter from 
+ *    the URL.
+ * 2. If the data is successfully retrieved, it is displayed on the page. If any data 
+ *    is missing, fallback values are shown.
+ * 3. If there's an error or if the doctor is not found, an error message is displayed.
+ * 4. Specialties are also fetched dynamically, and the corresponding specialty name 
+ *    is displayed alongside the doctor's other information.
+ * 
+ * Components Used:
+ * - Breadcrumb: Displays the page hierarchy for easy navigation.
+ * - DoctorCard: Displays detailed information about the doctor in a visually appealing way.
+ * - EditButton: Provides the option to edit the doctor's information.
+ * 
+ * Expected Props:
+ * - Doctor: The doctor object containing the relevant information (name, specialty, etc.).
+ * - Specialty: A list of specialties used to match and display the doctor's specialty.
+ * 
+ * Example:
+ * The doctor with ID '123' will load their profile, and their specialty will be shown 
+ * as "Cardiology" if the specialty exists in the list.
+ * 
+ * Notes:
+ * - All error messages and fallback values are in Arabic, with some elements in English 
+ *   for accessibility and better user experience.
+ * - The page is optimized for mobile and desktop views and is part of a larger admin 
+ *   panel for managing doctors.
+ */
+
+
 export default function Page() {
-  const params = useParams();
-  const { id } = params;
+  const params = useParams<Params>();
+  const id = params?.id; 
 
   // Define the state types
   const [doctor, setDoctor] = useState<Doctor | null>(null);

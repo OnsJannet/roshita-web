@@ -8,12 +8,19 @@ interface Staff {
   address: string;
 }
 
+interface AppointmentDate {
+  scheduled_date: string; // Format: "YYYY-MM-DD"
+  start_time: string; // Format: "HH:mm"
+  end_time: string; // Format: "HH:mm"
+}
+
 interface CreateDoctorRequest {
   staff: Staff;
   specialty: number;
   fixed_price: string;
   rating: number;
   is_consultant: boolean;
+  appointment_dates: AppointmentDate[]; // Add appointment dates
 }
 
 // Response structure for frontend (optional, but recommended)
@@ -24,40 +31,6 @@ interface ApiResponse {
   details?: any; // Optional, for additional error details
 }
 
-/**
- * Handles the creation of a new doctor by sending a POST request
- * to an external API (Roshita backend).
- *
- * @param {NextApiRequest} req - The incoming HTTP request object.
- * @param {NextApiResponse<ApiResponse>} res - The outgoing HTTP response object.
- * 
- * Request Body Example:
- * {
- *   "staff": {
- *     "first_name": "John",
- *     "last_name": "Doe",
- *     "city": 1,
- *     "address": "123 Main Street"
- *   },
- *   "specialty": 2,
- *   "fixed_price": "100",
- *   "rating": 4.5,
- *   "is_consultant": true
- * }
- *
- * Environment Variables:
- * - CSRF_TOKEN: The CSRF token required for authentication with the external API.
- *
- * Responses:
- * - 200: Doctor created successfully.
- * - 400: Invalid input data or error from the external API.
- * - 405: Method not allowed (only POST is supported).
- * - 500: Internal Server Error (e.g., missing CSRF token or unexpected error).
- *
- * Notes:
- * - The function performs basic validation on the input data to ensure integrity.
- * - Any errors from the external API are logged and returned to the client for debugging.
- */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
@@ -67,8 +40,14 @@ export default async function handler(
   }
 
   try {
-    const { staff, specialty, fixed_price, rating, is_consultant } =
-      req.body as CreateDoctorRequest;
+    const {
+      staff,
+      specialty,
+      fixed_price,
+      rating,
+      is_consultant,
+      appointment_dates,
+    } = req.body as CreateDoctorRequest;
 
     // Basic validation to ensure data integrity
     if (
@@ -76,9 +55,26 @@ export default async function handler(
       !specialty ||
       !fixed_price ||
       rating == null ||
-      is_consultant == null
+      is_consultant == null ||
+      !appointment_dates ||
+      !Array.isArray(appointment_dates) ||
+      appointment_dates.length === 0
     ) {
       return res.status(400).json({ error: "Invalid input data" });
+    }
+
+    // Validate appointment dates format
+    for (const appointment of appointment_dates) {
+      if (
+        !appointment.scheduled_date ||
+        !appointment.start_time ||
+        !appointment.end_time
+      ) {
+        return res.status(400).json({
+          error: "Invalid appointment date format",
+          details: appointment,
+        });
+      }
     }
 
     const payload: CreateDoctorRequest = {
@@ -87,6 +83,7 @@ export default async function handler(
       fixed_price,
       rating,
       is_consultant,
+      appointment_dates,
     };
 
     // Fetch CSRF token from environment variables
@@ -98,11 +95,12 @@ export default async function handler(
     // Extract Bearer token from Authorization header
     const authorizationHeader = req.headers["authorization"];
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized: No bearer token provided" });
+      return res.status(401).json({
+        error: "Unauthorized: No bearer token provided",
+      });
     }
 
-    const authToken = req.headers.authorization?.split(" ")[1]; // Get the token from the Authorization header
-    console.log("authToken", authToken)
+    const authToken = authorizationHeader.split(" ")[1];
 
     // Send the POST request to the Swagger endpoint with the bearer token
     const response = await fetch("https://test-roshita.net/api/doctors/", {
@@ -111,29 +109,27 @@ export default async function handler(
         accept: "application/json",
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
-        "Authorization": `Bearer ${authToken}`, // Add bearer token to request headers
+        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify(payload),
     });
 
     const data = await response.json();
-    console.log("respodatanse", data);
 
     if (!response.ok) {
-      console.error("Roshita backend error:", data); // Log the error for debugging
+      console.error("Roshita backend error:", data);
       return res.status(response.status).json({
         error: "Error from Roshita backend",
-        details: data, // Forward detailed error for frontend debugging if needed
+        details: data,
       });
     }
 
-    // Return a sanitized response to the frontend
     return res.status(200).json({
       success: true,
-      message: data || "Doctor created successfully",
+      message: data || "Doctor and appointments created successfully",
     });
   } catch (error) {
-    console.error("Error creating doctor:", error); // Log the full error
+    console.error("Error creating doctor:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DeleteButton from "../layout/DeleteButton";
 import ModifyDialog from "./ModifyDialog"; // Import the ModifyDialog component
 
@@ -81,6 +81,27 @@ const AnalysisPackage: React.FC<AnalysisPackageProps> = ({
       console.error("Error saving data:", error);
     }
   };
+
+    useEffect(() => {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
+      }
+  
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
+  
+      window.addEventListener("storage", handleStorageChange);
+  
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }, []);
   
   
 
@@ -94,7 +115,7 @@ const AnalysisPackage: React.FC<AnalysisPackageProps> = ({
 
         {/* Text Section */}
         <div className=" w-[200px] mr-4">
-          <div className="text-lg font-bold text-gray-800 text-end">{title}</div>
+          <div className={`text-lg font-bold text-gray-800 ${language === "ar" ? "text-end" : "text-start"}`}>{title}</div>
           <div className={`text-sm text-gray-500 ${language === "ar" ? "text-end" : "text-start"}`}>{subtitle}</div>
         </div>
       </div>

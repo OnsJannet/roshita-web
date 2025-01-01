@@ -27,6 +27,25 @@ const translations = {
   }
 };
 
+
+/**
+ * The main user page where users can manage their appointments, change settings, 
+ * and log out from their account. The page adapts to the selected language (Arabic or English).
+ * 
+ * Key Features:
+ * - Language support: The page dynamically switches between Arabic and English based on user preference.
+ * - Appointment filtering: Users can view either upcoming or past appointments using filtering options.
+ * - Navigation: The page includes clickable options for settings, password change, appointments, and logging out.
+ * - Data handling: Appointments are fetched from `localStorage` and displayed based on the selected filter.
+ * - Appointment Cards: Each appointment is displayed using the `AppointementsCard` component, which shows details 
+ *   like doctor name, specialty, price, and appointment date/time.
+ * - User profile section: Displays the user's avatar and provides navigation links to settings and password change pages.
+ * - Local storage integration: The user's language preference and appointment data are saved in `localStorage`, and changes 
+ *   are automatically reflected in the UI.
+ * - The page is structured using a responsive layout to ensure a smooth user experience across devices.
+ */
+
+
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);

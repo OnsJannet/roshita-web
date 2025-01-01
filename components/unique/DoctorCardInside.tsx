@@ -2,16 +2,46 @@ import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button"; // Assuming you have a button component
 import { Banknote, LocateIcon, MapPin, Star, StarHalf } from "lucide-react";
 
-type DoctorCardInsideProps = {
+interface DoctorCardInsideProps {
+  doctor_id: number;
+  id: number;
   name: string;
   specialty: string;
-  rating: number;
-  reviewsCount: number;
-  price: string;
-  location: string;
+  city: string;
+  address: string | null;
   imageUrl: string;
+  price: number | null;
+  rating: number | null;
+  appointment_dates: string[]; // Array of date strings
+  medical_organizations: MedicalOrganization[]; // Array of medical organizations
+  reviewsCount: number; // Number of reviews
+  location: string | null;
+}
+
+interface MedicalOrganization {
   id: number;
-};
+  name: string;
+  foreign_name: string;
+  phone: string;
+  email: string;
+  city: City;
+  address: string;
+  Latitude: number;
+  Longitude: number;
+}
+
+interface City {
+  id: number;
+  country: Country;
+  name: string;
+  foreign_name: string;
+}
+
+interface Country {
+  id: number;
+  name: string;
+  foreign_name: string;
+}
 
 type Language = "ar" | "en";
 
@@ -26,6 +56,7 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
   id,
 }) => {
   const [language, setLanguage] = useState<Language>("ar");
+  console.log("id", id);
 
   useEffect(() => {
     // Sync the language state with the localStorage value
@@ -72,14 +103,17 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
       {/* Left Section: Rating and Button */}
       <div className="flex lg:flex-col flex-row justify-between p-4">
         <div className="flex items-center mb-2">
-          <span className="text-gray-500 text-sm ml-2">({reviewsCount})</span>
+          {/*<span className="text-gray-500 text-sm ml-2">({reviewsCount})</span>*/}
           {/* Star Rating */}
           <div className="flex text-yellow-500">
             {Array.from({ length: 5 }, (_, i) => {
+              // Ensure that rating is not null by defaulting to 0
+              const safeRating = rating ?? 0; // Default to 0 if rating is null
+
               // Check if it's a full star or a half star
-              if (i + 1 <= rating) {
+              if (i + 1 <= safeRating) {
                 return <Star key={i} className="h-5 w-5 fill-yellow-500" />;
-              } else if (i + 0.5 <= rating) {
+              } else if (i + 0.5 <= safeRating) {
                 return <StarHalf key={i} className="h-5 w-5 fill-yellow-500" />;
               } else {
                 return <Star key={i} className="h-5 w-5 text-gray-300" />;
@@ -121,8 +155,14 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
             }`}
           >
             <span>
-              {translations[language].priceLabel}: {price}
+              {translations[language].priceLabel}:{" "}
+              {price && price !== 0
+                ? price
+                : language === "en"
+                ? "No price available"
+                : "لا يوجد سعر"}
             </span>
+
             <Banknote className="text-roshitaDarkBlue" />
           </div>
 

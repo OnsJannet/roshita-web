@@ -50,28 +50,32 @@ const Page = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+  
     try {
       const data = await loginUser({ phone, password });
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
+  
+      // Save the tokens if login is successful
       localStorage.setItem('refresh', data.refresh);
       localStorage.setItem('access', data.access);
       localStorage.setItem('isLoggedIn', 'true');
-
+  
       if (redirectUrl) {
         router.push(redirectUrl); // Redirect to the intended destination
       }
-
+  
     } catch (error: any) {
-      setError(error.message || (language === 'en' ? 'An error occurred during login.' : 'حدث خطأ أثناء تسجيل الدخول.'));
+      // Determine the error message based on language
+      const errorMessage = language === 'en'
+        ? error.message || 'An error occurred during login. Please check your credentials and try again.'
+        : error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى التحقق من بيانات الاعتماد والمحاولة مرة أخرى.';
+        
+      setError(errorMessage); // Set the localized error message
     } finally {
       setLoading(false);
     }
   };
+  
+  
 
   return (
     <div className={`w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px] ${language === 'en' ? 'text-left' : 'text-right'}`}>
@@ -79,9 +83,6 @@ const Page = () => {
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">{language === 'en' ? 'Welcome' : 'مرحبـــا'}</h1>
-            <p className="text-balance text-muted-foreground">
-              {language === 'en' ? 'Fill in the following details to login' : 'عبئ المتطلبات الأتيه لتسجيل الدخول'}
-            </p>
           </div>
 
           {error && (

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import PaginationDemo from "@/components/shared/PaginationDemo";
 import DoctorCard from "@/components/unique/DorctorCard";
@@ -19,18 +19,58 @@ const translations = {
 };
 
 // Define the Doctor type
+interface MedicalOrganization {
+  id: number;
+  name: string;
+  foreign_name: string;
+  phone: string;
+  email: string;
+  city: {
+    id: number;
+    country: {
+      id: number;
+      name: string;
+      foreign_name: string;
+    };
+    name: string;
+    foreign_name: string;
+  };
+  address: string;
+  Latitude: number;
+  Longitude: number;
+}
+
 interface Doctor {
   doctor_id: number;
   name: string;
   specialization: string;
-  hospital: string;
+  hospital: string; // Assuming this comes from medical_organizations
   city: string;
   address: string | null;
   image: string;
   price: string;
   rating: number | null;
   appointment_dates: string[];
+  medical_organizations: MedicalOrganization[];
 }
+
+/**
+ * This page is responsible for displaying a list of doctors with the ability to filter them by price,
+ * country, and specialty. It also supports pagination to navigate through a large list of doctors.
+ * 
+ * Key Features:
+ * - Fetches a list of doctors from an external API.
+ * - Allows users to filter doctors by price, country, and specialty.
+ * - Implements pagination for a smoother user experience when browsing doctors.
+ * - Supports dynamic language switching (Arabic and English) for the UI.
+ * - Provides a "Reset Filters" button to clear all active filters.
+ * - Displays doctor details in a card format with essential information such as name, specialization,
+ *   rating, price, and location.
+ * 
+ * The page dynamically adjusts the doctor list based on the selected filters, and it ensures that
+ * users are able to navigate through the results easily using pagination.
+ */
+
 
 const Page = () => {
   // Pagination State
@@ -80,13 +120,17 @@ const Page = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await fetch("https://test-roshita.net/api/doctors-list/", {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Replace with actual CSRF token
-          },
-        });
+        //const response = await fetch("https://test-roshita.net/api/doctors-list/", {
+        const response = await fetch(
+          "https://test-roshita.net/api/user-doctors",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Replace with actual CSRF token
+            },
+          }
+        );
 
         const result = await response.json();
 
@@ -129,18 +173,22 @@ const Page = () => {
 
   // Filter doctors by selected prices, countries, and specialties
   const filteredDoctors = doctors.filter((doctor) => {
-    console.log("this is the doctor", doctor);
 
     // Check if doctor object and properties are defined before applying logic
-    const priceMatch = selectedPrices.length === 0 || selectedPrices.includes(doctor.price);
+    const priceMatch =
+      selectedPrices.length === 0 || selectedPrices.includes(doctor.price);
 
     // Match country if the doctor's location (city) includes the selected country (partial match)
-    const countryMatch = selectedCountries.length === 0 || selectedCountries.some((selectedCountry) =>
-      doctor.city.includes(selectedCountry)
-    );
+    const countryMatch =
+      selectedCountries.length === 0 ||
+      selectedCountries.some((selectedCountry) =>
+        doctor.medical_organizations[0]?.city?.name.includes(selectedCountry)
+      );
 
     // Match specialty if selected specialties contain the doctor's specialization
-    const specialtyMatch = selectedSpecialties.length === 0 || selectedSpecialties.includes(doctor.specialization);
+    const specialtyMatch =
+      selectedSpecialties.length === 0 ||
+      selectedSpecialties.includes(doctor.specialization);
 
     return priceMatch && countryMatch && specialtyMatch;
   });
@@ -151,7 +199,10 @@ const Page = () => {
   // Get current page doctors
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-  const currentDoctors = filteredDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
+  const currentDoctors = filteredDoctors.slice(
+    indexOfFirstDoctor,
+    indexOfLastDoctor
+  );
 
   // Handle page change
   const handlePageChange = (newPage: number) => {

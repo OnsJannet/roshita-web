@@ -11,6 +11,44 @@ import { useRouter } from "next/navigation";
 import { Lock, Mail } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
 
+
+/**
+ * This React component renders the login page for the admin panel of the application, where users can log in 
+ * by entering their phone number and password. It provides various features including error handling, 
+ * loading state, and redirection to a target page after a successful login.
+ * 
+ * Key functionalities include:
+ * - Form fields for phone number (validated as an email) and password, each with relevant icons.
+ * - Error handling to display an error message when login fails.
+ * - A loading state to indicate when the login request is in progress.
+ * - A redirect feature that sends users to their intended destination, which is retrieved from the `redirect` URL 
+ *   parameter in the query string.
+ * - A "forgot password" link and an option to register for new users.
+ * 
+ * Design considerations:
+ * - The layout is responsive, splitting into two columns on larger screens: the form on the left and an image on the right.
+ * - The form contains clear input fields with labels and an attention-grabbing button for the login action.
+ * - A visually appealing blue color scheme for the background and the login button, enhancing the user experience.
+ * - The image on the right side features a branded design and is responsive for different screen sizes.
+ * 
+ * Features:
+ * - Responsive grid layout with flexbox for proper alignment and spacing.
+ * - The `useState` hook manages various states like the phone number, password, error message, loading state, and 
+ *   redirect URL.
+ * - The `useEffect` hook ensures the component reads the `redirect` URL from the query string and sets it for post-login redirection.
+ * - The `loginUser` function makes the API call for user authentication, and on success, it stores the authentication 
+ *   tokens (`access` and `refresh`) in `localStorage` and redirects the user to the destination page.
+ * 
+ * Dependencies:
+ * - React hooks (`useState`, `useEffect`) for state management and side effects.
+ * - `Button`, `Label`, and `InputAdmin` components for rendering UI elements.
+ * - `Link` from `next/link` for navigating between pages.
+ * - `useRouter` from `next/navigation` for handling routing after login.
+ * - Icons from `lucide-react` for the email and lock visual cues in the input fields.
+ * - Tailwind CSS for styling and layout management.
+ */
+
+
 const Page = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
