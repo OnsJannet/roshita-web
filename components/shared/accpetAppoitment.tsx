@@ -33,7 +33,7 @@ type DoctorCardAppointmentProps = {
   day: string;
   time: string;
   medical_organizations: { id: number; name: string };
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | undefined | null;
 };
 
 
@@ -205,7 +205,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       doctor: 1, // Replace with the actual doctor ID
       price: price,
       payment:{
-        payment_method: paymentMethod.name_en.toLowerCase(),
+        payment_method: paymentMethod?.name_en.toLowerCase(),
         //mobile_number: profileData.user.phone,
         mobile_number:"0913632323",
         birth_year: 1990
