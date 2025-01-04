@@ -9,6 +9,7 @@ type Slot = {
   startTime: string; // Format: HH:mm
   endTime: string; // Format: HH:mm
   backendFormat: string; // Format: YYYY-MM-DD HH:mm:00
+  appointment_status: string;
 };
 
 type Language = "ar" | "en";
@@ -115,6 +116,7 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
           startTime: slotStartTime.toISOString().split("T")[1].slice(0, 5),
           endTime: slotEndTime.toISOString().split("T")[1].slice(0, 5),
           backendFormat,
+          appointment_status: "pending",
         });
       }
 

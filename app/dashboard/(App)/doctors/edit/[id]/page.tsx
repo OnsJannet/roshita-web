@@ -18,6 +18,11 @@ interface Appointment {
   scheduled_date: string;
   start_time: string;
   end_time: string;
+  appointment_status: string;
+}
+
+interface User {
+  phone: string;
 }
 interface Doctor {
   id: string;
@@ -32,6 +37,7 @@ interface Doctor {
     staff_avatar: string;
   };
   fixed_price: string;
+  user: User;
   appointments: Appointment[];
 }
 
@@ -57,6 +63,7 @@ type Slot = {
   startTime: string;
   endTime: string;
   backendFormat: string;
+  appointment_status: string;
 };
 
 /**
@@ -110,10 +117,12 @@ const translations = {
     addSlot: "Add Slot",
     currentSlots: "Current Slots",
     noSlots: "No slots added yet.",
-    remove: "Remove",
+    remove: "Cancel",
     durationError: "Duration is greater than the available time range.",
     date: "Date",
     action: "Action",
+    roshitaBook: "Roshita Book",
+    status: "Status",
   },
   ar: {
     title: "مواعيد توفر الطبيب",
@@ -124,10 +133,12 @@ const translations = {
     addSlot: "إضافة موعد",
     currentSlots: "المواعيد الحالية",
     noSlots: "لم تتم إضافة أي مواعيد بعد.",
-    remove: "حذف",
+    remove: "إلغاء",
     durationError: "المدة أكبر من نطاق الوقت المتاح.",
     date: "التاريخ",
     action: "إجراء",
+    roshitaBook: "حجز روشيتا",
+    status: "الحالة",
   },
 };
 
@@ -167,6 +178,23 @@ export default function Page() {
       });
     }
   };
+
+  const handleBooked = (index: number) => {
+    if (doctor && doctor.appointments) {
+      const updatedAppointments = doctor.appointments.map((appointment, idx) => 
+        idx === index ? { ...appointment, status: 'booked' } : appointment
+      );
+      setDoctor((prevDoctor) => {
+        return prevDoctor
+          ? {
+              ...prevDoctor,
+              appointments: updatedAppointments,
+            }
+          : null;
+      });
+    }
+  };
+  
 
 
   const appointmentDates = backendSlots.map((slot) => {
@@ -307,26 +335,46 @@ export default function Page() {
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
-
+  
     console.log("image", image);
     const updatedStaffAvatar = image || doctor.staff.staff_avatar;
-
+  
+    // Filter for new or modified appointments, considering both date, time, and status
+    const newAppointments = appointmentDates.filter((newAppointment) => {
+      return !doctor.appointments.some(
+        (existingAppointment) =>
+          existingAppointment.scheduled_date === newAppointment.scheduled_date &&
+          existingAppointment.start_time === newAppointment.start_time &&
+          existingAppointment.appointment_status === newAppointment.appointment_status // Check for status changes as well
+      );
+    });
+  
+    // Create an updated list of appointments by filtering out unchanged ones
+    const updatedAppointments = doctor.appointments.filter((existingAppointment) => {
+      return appointmentDates.some(
+        (newAppointment) =>
+          newAppointment.scheduled_date !== existingAppointment.scheduled_date ||
+          newAppointment.start_time !== existingAppointment.start_time ||
+          newAppointment.appointment_status !== existingAppointment.appointment_status // Include status in comparison
+      );
+    });
+  
+    // Prepare the updated doctor object with new or modified appointments
     const updatedDoctor = {
       ...doctor,
       staff: {
         ...doctor.staff,
         city: doctor.staff.medical_organization[0]?.city.id || "", // Use the updated city ID
-        address: "Updated Address",
+        address: "Updated Address", // Only update this if needed
         staff_avatar: updatedStaffAvatar,
       },
       specialty: 1,
       fixed_price: doctor.fixed_price || "0",
       rating: 5,
       is_consultant: true,
-      appointments: [...doctor.appointments, ...appointmentDates], // Merge old and new appointments
+      appointments: [...updatedAppointments, ...newAppointments], // Merge only updated and new appointments
     };
-    
-
+  
     try {
       const accessToken = localStorage.getItem("access");
       const response = await fetch(`/api/doctors/updateDoctorById?id=${id}`, {
@@ -337,11 +385,11 @@ export default function Page() {
         },
         body: JSON.stringify(updatedDoctor),
       });
-
+  
       const result = await response.json();
       if (result.success) {
         setDoctor(updatedDoctor); // Update the doctor state
-        //window.location.reload();
+        //window.location.reload(); // Optional: reload if needed
       } else {
         setError(result.message || "Error updating doctor information");
       }
@@ -350,6 +398,9 @@ export default function Page() {
       setError("An error occurred while updating doctor information");
     }
   };
+  
+  
+  
 
   console.log("doctor", doctor);
 
@@ -388,7 +439,7 @@ export default function Page() {
                 {
                   label: language === "ar" ? "رقم الهاتف" : "Phone Number",
                   value: `${
-                    doctor?.staff.medical_organization[0]?.phone ??
+                    doctor?.user.phone ??
                     (language === "ar" ? "غير محدد" : "Not specified")
                   }`,
                 },
@@ -490,6 +541,9 @@ export default function Page() {
                         {t.action}
                       </TableCell>
                       <TableCell className="font-bold text-gray-700 text-center">
+                        {t.status}
+                      </TableCell>
+                      <TableCell className="font-bold text-gray-700 text-center">
                         {t.endTime}
                       </TableCell>
                       <TableCell className="font-bold text-gray-700 text-center">
@@ -509,6 +563,9 @@ export default function Page() {
                       </TableCell>
                       <TableCell className="font-bold text-gray-700 text-center">
                         {t.endTime}
+                      </TableCell>
+                      <TableCell className="font-bold text-gray-700 text-center">
+                        {t.status}
                       </TableCell>
                       <TableCell className="font-bold text-gray-700 text-center">
                         {t.action}
@@ -531,6 +588,16 @@ export default function Page() {
                             >
                               {t.remove}
                             </Button>
+                            <Button
+
+                              onClick={() => handleBooked(index)}
+                              className="text-white bg-[#1685c7] ml-2"
+                            >
+                              {t.roshitaBook}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.appointment_status}
                           </TableCell>
                           <TableCell className="text-center">
                             {slot.end_time}
@@ -554,12 +621,21 @@ export default function Page() {
                             {slot.end_time}
                           </TableCell>
                           <TableCell className="text-center">
+                            {slot.appointment_status}
+                          </TableCell>
+                          <TableCell className="text-center gap-2">
                             <Button
                               variant="destructive"
                               onClick={() => handleRemoveSlot(index)}
                               className="text-white hover:text-red-800"
                             >
                               {t.remove}
+                            </Button>
+                            <Button
+                              onClick={() => handleBooked(index)}
+                              className="text-white bg-[#1685c7] ml-2"
+                            >
+                              {t.roshitaBook}
                             </Button>
                           </TableCell>
                         </>

@@ -24,6 +24,7 @@ interface DoctorFormData {
   rating: number;
   isConsultant: boolean;
   Image?: string;
+  phoneNumber?: string;
 }
 
 interface Specialty {
@@ -141,6 +142,7 @@ export default function Page() {
     address: "",
     specialty: 0,
     fixedPrice: "",
+    phoneNumber: "",
     rating: 0,
     isConsultant: false,
   });
@@ -186,6 +188,7 @@ export default function Page() {
     if (!formData.specialty) missingFields.push("التخصص");
     if (!formData.fixedPrice) missingFields.push("سعر الحجز");
     if (!formData.rating) missingFields.push("التقييم");
+    if (!formData.phoneNumber) missingFields.push("رقم التليفون");
     return missingFields;
   };
 
@@ -200,6 +203,7 @@ export default function Page() {
       scheduled_date: slot.date, // Date in YYYY-MM-DD format
       start_time: slot.startTime, // Start time in HH:mm format
       end_time: slot.endTime,     // End time in HH:mm format
+      price: formData.fixedPrice,
     };
   });
 
@@ -234,6 +238,7 @@ export default function Page() {
             address: formData.address,
             staff_avatar: formData.Image,
           },
+          doctor_phone: formData.phoneNumber,
           specialty: Number(formData.specialty), // Ensure specialty is sent as a number
           fixed_price: formData.fixedPrice,
           rating: Number(formData.rating), // Ensure rating is sent as a number
@@ -408,6 +413,22 @@ export default function Page() {
                           className="text-end border p-2 rounded"
                         />
                       </td>
+                      <td className="py-3 px-2 text-gray-500 p-4">رقم التليفون</td>
+                    </tr>
+                    <tr className="border-t p-4">
+                      <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                        <div className="flex justify-center">
+                          <MoveRight className="h-4 w-4" />
+                        </div>
+                      </td>
+                      <td className="py-3 px-2 text-gray-700 p-4">
+                        <input
+                          type="text"
+                          value={formData.phoneNumber}
+                          onChange={(e) => handleFieldChange(e, "phoneNumber")}
+                          className="text-end border p-2 rounded"
+                        />
+                      </td>
                       <td className="py-3 px-2 text-gray-500 p-4">سعر الحجز</td>
                     </tr>
                     <tr className="border-t p-4">
@@ -523,6 +544,26 @@ export default function Page() {
                           className={`border p-2 rounded text-end`}
                         />
                       </td>
+                      
+                      <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                        <div className="flex justify-center">
+                          <MoveRight className="h-4 w-4" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="border-t p-4">
+                      <td className="py-3 px-2 text-gray-500 p-4">
+                        Phone Number
+                      </td>
+                      <td className="py-3 px-2 text-gray-700 p-4">
+                        <input
+                          type="text"
+                          value={formData.phoneNumber}
+                          onChange={(e) => handleFieldChange(e, "phoneNumber")}
+                          className={`border p-2 rounded text-end`}
+                        />
+                      </td>
+                      
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
                           <MoveRight className="h-4 w-4" />

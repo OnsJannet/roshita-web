@@ -20,6 +20,7 @@ interface CreateDoctorRequest {
   fixed_price: string;
   rating: number;
   is_consultant: boolean;
+  doctor_phone: string;
   appointment_dates: AppointmentDate[]; // Add appointment dates
 }
 
@@ -47,6 +48,7 @@ export default async function handler(
       rating,
       is_consultant,
       appointment_dates,
+      doctor_phone,
     } = req.body as CreateDoctorRequest;
 
     // Basic validation to ensure data integrity
@@ -58,7 +60,8 @@ export default async function handler(
       is_consultant == null ||
       !appointment_dates ||
       !Array.isArray(appointment_dates) ||
-      appointment_dates.length === 0
+      appointment_dates.length === 0 ||
+      !doctor_phone // Ensure doctor_phone is also validated
     ) {
       return res.status(400).json({ error: "Invalid input data" });
     }
@@ -83,6 +86,7 @@ export default async function handler(
       fixed_price,
       rating,
       is_consultant,
+      doctor_phone, // Add doctor_phone to the payload
       appointment_dates,
     };
 

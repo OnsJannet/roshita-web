@@ -35,34 +35,95 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   const [step, setStep] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
+  const [processId, setProcessId] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState<string>("");
 
   const handleClick = (id: number) => {
     setSelectedId(id);
   };
 
   useEffect(() => {
-    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      setLanguage(storedLanguage as Language);
     } else {
-      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      setLanguage("ar");
     }
 
-    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        setLanguage((event.newValue as Language) || "ar");
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
+
+  const callTransactionAPI = async (service: string, action: string, payload: any) => {
+    try {
+      const response = await fetch(`/api/transaction?service=${service}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, payload }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+      return data;
+    } catch (error: any) {
+      console.error("API error:", error.message);
+      alert(error.message);
+      return null;
+    }
+  };
+
+  const handleVerifyTransaction = async () => {
+    if (!selectedId) {
+      alert(language === "en" ? "Please select a payment method" : "يرجى اختيار طريقة الدفع");
+      return;
+    }
+
+    const selectedPaymentMethod = paiement.find((option) => option.id === selectedId);
+    if (selectedPaymentMethod) {
+      const verifyPayload = {
+        payment_method: selectedPaymentMethod.name,
+        mobile_number: "0913632323", // Replace with dynamic user input
+        ...(selectedPaymentMethod.name === "sadad" && { birth_year: "1998" }), // Example for Sadad
+      };
+
+      const verifyResponse = await callTransactionAPI(selectedPaymentMethod.name, "verify", verifyPayload);
+      if (verifyResponse?.status === 200) {
+        setProcessId(verifyResponse.result.process_id);
+        alert(language === "en" ? "Verification successful! Enter OTP to confirm." : "تم التحقق بنجاح! أدخل رمز التحقق للتأكيد.");
+      }
+    }
+  };
+
+  const handleConfirmTransaction = async () => {
+    if (!processId || !otpCode) {
+      alert(language === "en" ? "Please complete verification and enter the OTP." : "يرجى إكمال التحقق وإدخال رمز التحقق.");
+      return;
+    }
+
+    const selectedPaymentMethod = paiement.find((option) => option.id === selectedId);
+    if (selectedPaymentMethod) {
+      const confirmPayload = {
+        process_id: processId,
+        code: otpCode,
+        amount: price, // Ensure this is numeric
+      };
+
+      const confirmResponse = await callTransactionAPI(selectedPaymentMethod.name, "confirm", confirmPayload);
+      if (confirmResponse?.status === 200) {
+        alert(language === "en" ? "Payment successful!" : "تم الدفع بنجاح!");
+        setStep(3); // Proceed to next step
+      }
+    }
+  };
+  
 
   return (
     <div className="shadow-lg py-10 mt-2 max-w-[1280px] rounded-2xl">

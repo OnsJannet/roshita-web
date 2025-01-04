@@ -72,22 +72,8 @@ export default async function updateDoctorById(
       appointments,
     }: DoctorUpdatePayload = req.body; // Ensure the correct typing for the request body
 
-    // Validate required fields
-    if (
-      !first_name ||
-      !last_name ||
-      !city ||
-      !address ||
-      specialty === undefined ||
-      fixed_price === undefined ||
-      rating === undefined ||
-      is_consultant === undefined ||
-      !appointments ||
-      !Array.isArray(appointments) ||
-      appointments.length === 0
-    ) {
-      return res.status(400).json({ error: "Missing required fields in the request body." });
-    }
+  
+
 
     // Fetch CSRF token from environment variables
     const csrfToken = process.env.CSRF_TOKEN;
