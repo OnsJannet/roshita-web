@@ -34,83 +34,112 @@ interface Specialty {
 }
 
 type Params = {
-  id: string; 
+  id: string;
 };
+
+type Language = "ar" | "en";
 
 /**
  * Doctor Detail Page
  *
- * This page is responsible for displaying detailed information about a doctor. 
- * It retrieves and displays the doctor's data, including their name, specialty, 
- * hospital information, location, and contact details. The page also provides 
+ * This page is responsible for displaying detailed information about a doctor.
+ * It retrieves and displays the doctor's data, including their name, specialty,
+ * hospital information, location, and contact details. The page also provides
  * functionality for editing and uploading information related to the doctor.
  *
  * Features:
- * - Displays doctor details such as name, specialty, hospital name, location, 
+ * - Displays doctor details such as name, specialty, hospital name, location,
  *   and phone number.
- * - Fallback values are provided for missing data, with a default of "غير محدد" 
+ * - Fallback values are provided for missing data, with a default of "غير محدد"
  *   (meaning "not defined" in Arabic) for any missing or undefined information.
  * - Displays the doctor's profile picture or a default image if the avatar is not available.
  * - Includes a breadcrumb navigation with Arabic text to navigate between pages.
  * - Supports dynamic fetching of data based on the doctor's unique ID (from the URL).
  * - Handles loading states and errors when fetching data.
  * - Provides buttons for editing the doctor's details.
- * - The page is styled to fit within a sidebar layout and displays detailed content in a 
+ * - The page is styled to fit within a sidebar layout and displays detailed content in a
  *   user-friendly manner.
- * 
+ *
  * Fetching Flow:
- * 1. The doctor's data is fetched from the backend API based on the ID parameter from 
+ * 1. The doctor's data is fetched from the backend API based on the ID parameter from
  *    the URL.
- * 2. If the data is successfully retrieved, it is displayed on the page. If any data 
+ * 2. If the data is successfully retrieved, it is displayed on the page. If any data
  *    is missing, fallback values are shown.
  * 3. If there's an error or if the doctor is not found, an error message is displayed.
- * 4. Specialties are also fetched dynamically, and the corresponding specialty name 
+ * 4. Specialties are also fetched dynamically, and the corresponding specialty name
  *    is displayed alongside the doctor's other information.
- * 
+ *
  * Components Used:
  * - Breadcrumb: Displays the page hierarchy for easy navigation.
  * - DoctorCard: Displays detailed information about the doctor in a visually appealing way.
  * - EditButton: Provides the option to edit the doctor's information.
- * 
+ *
  * Expected Props:
  * - Doctor: The doctor object containing the relevant information (name, specialty, etc.).
  * - Specialty: A list of specialties used to match and display the doctor's specialty.
- * 
+ *
  * Example:
- * The doctor with ID '123' will load their profile, and their specialty will be shown 
+ * The doctor with ID '123' will load their profile, and their specialty will be shown
  * as "Cardiology" if the specialty exists in the list.
- * 
+ *
  * Notes:
- * - All error messages and fallback values are in Arabic, with some elements in English 
+ * - All error messages and fallback values are in Arabic, with some elements in English
  *   for accessibility and better user experience.
- * - The page is optimized for mobile and desktop views and is part of a larger admin 
+ * - The page is optimized for mobile and desktop views and is part of a larger admin
  *   panel for managing doctors.
  */
 
-
 export default function Page() {
   const params = useParams<Params>();
-  const id = params?.id; 
+  const id = params?.id;
 
   // Define the state types
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [specialtyName, setSpecialtyName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
+      }
+
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
+  }, []);
 
   console.log("doctorId", id);
 
   // Breadcrumb items with Arabic text
   const items = [
-    { label: "الرئسية", href: "#" },
-    { label: "الأطباء", href: "/dashboard/doctors" },
-    { label: `${id}`, href: "/dashboard/doctors/1" },
+    { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
+    {
+      label: language === "ar" ? "الأطباء" : "Doctors",
+      href: "/dashboard/doctors",
+    },
+    { label: `${id}`, href: "#" },
   ];
 
   // Fetch doctor details and specialty information
   useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
-      const accessToken = localStorage.getItem("access");
+      const accessToken =
+        typeof window !== "undefined" ? localStorage.getItem("access") : null;
       try {
         // Fetch doctor data
         const response = await fetch(`/api/doctors/getDoctorById?id=${id}`, {
@@ -125,7 +154,9 @@ export default function Page() {
           setDoctor(doctorData.data);
 
           // Fetch specialties
-          const specialtiesResponse = await fetch("https://test-roshita.net/api/specialty-list/");
+          const specialtiesResponse = await fetch(
+            "https://test-roshita.net/api/specialty-list/"
+          );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
           if (specialtiesResponse.ok) {
@@ -172,9 +203,19 @@ export default function Page() {
     <SidebarProvider>
       <SidebarInset>
         {/* Header Section */}
-        <header className="flex justify-between h-16 shrink-0 items-center border-b px-4 gap-2">
-          <Breadcrumb items={items} translate={(key) => key} />
-          <SidebarTrigger className="rotate-180 " />
+        <header
+          className={`flex ${
+            language === "ar" ? "justify-end" : "justify-between"
+          } h-16 shrink-0 items-center border-b px-4 gap-2`}
+        >
+          <div
+            className={`flex ${
+              language === "ar" ? "flex-row" : "flex-row-reverse"
+            } gap-2 items-center`}
+          >
+            <Breadcrumb items={items} translate={(key) => key} />
+            <SidebarTrigger className="rotate-180 " />
+          </div>
         </header>
 
         {/* Main Content Section */}
@@ -182,24 +223,47 @@ export default function Page() {
           <div className="max-w-[1280px] w-full flex justify-start mx-auto">
             <div className="mb-4 max-w-[1280px]">
               {doctor && (
-                <EditButton href={`/dashboard/doctors/edit/${doctor.id}`} />
+                <EditButton
+                  href={`/dashboard/doctors/edit/${doctor.id}`}
+                  language={language}
+                />
               )}
             </div>
           </div>
 
           {loading ? (
-             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
           ) : error ? (
             <p>{error}</p>
           ) : (
             <div className="p-8 space-y-8">
               <DoctorCard
-                name={doctor?.staff.first_name + " " + (doctor?.staff.last_name ?? "") || "غير محدد"}
-                specialty={specialtyName ?? "غير محدد"}
-                hospital={doctor?.staff.medical_organization[0]?.name ?? "غير محدد"}
-                location={doctor?.staff.medical_organization[0]?.city.foreign_name ?? "غير محدد"}
-                phone={doctor?.staff.medical_organization[0]?.phone ?? "غير محدد"}
-                imageSrc={doctor?.staff.staff_avatar ?? "/Images/default-doctor.jpg"}
+                name={
+                  doctor?.staff.first_name +
+                    " " +
+                    (doctor?.staff.last_name ?? "") ||
+                  (language === "ar" ? "غير محدد" : "Not specified")
+                }
+                specialty={
+                  specialtyName ??
+                  (language === "ar" ? "غير محدد" : "Not specified")
+                }
+                hospital={
+                  doctor?.staff.medical_organization[0]?.name ??
+                  (language === "ar" ? "غير محدد" : "Not specified")
+                }
+                location={
+                  doctor?.staff.medical_organization[0]?.city.foreign_name ??
+                  (language === "ar" ? "غير محدد" : "Not specified")
+                }
+                phone={
+                  doctor?.staff.medical_organization[0]?.phone ??
+                  (language === "ar" ? "غير محدد" : "Not specified")
+                }
+                imageSrc={
+                  doctor?.staff.staff_avatar ?? "/Images/default-doctor.jpg"
+                }
+                language={language}
               />
             </div>
           )}

@@ -9,6 +9,7 @@ interface DoctorCardProps {
   location: string;
   phone: string;
   imageSrc: string;
+  language: string;
 }
 
 const DoctorCard: React.FC<DoctorCardProps> = ({
@@ -18,29 +19,39 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   location,
   phone,
   imageSrc,
+  language
 }) => {
   return (
-    <div className="bg-white shadow-sm py-4 flex flex-col lg:flex-row-reverse justify-between items-center max-w-[1280px] rounded-[26px] h-auto lg:h-[282px] px-4 lg:px-16 border mx-auto">
-      {/* Image and Text Section */}
-      <div className="flex flex-col lg:flex-row-reverse items-center gap-10 lg:gap-8 w-full lg:w-[60%]">
+<div
+  className={`bg-white shadow-sm py-4 flex flex-col ${
+    language !== 'en' ? 'lg:flex-row-reverse' : 'lg:flex-row'
+  } justify-between items-center max-w-[1280px] rounded-[26px] h-auto lg:h-[282px] px-4 lg:px-16 border mx-auto`}
+>
+  {/* Image and Text Section */}
+  <div
+    className={`flex flex-col ${
+      language !== 'en' ? 'lg:flex-row-reverse' : 'lg:flex-row'
+    } items-center gap-10 lg:gap-8 w-full lg:w-[60%]`}
+  >
         {/* Image Section */}
         <Avatar className="w-[120px] h-[120px] object-cover">
           <AvatarImage src={imageSrc} alt="doctor img" />
           <AvatarFallback>
-  {name
-    ? name
-        .split(' ') // Split the name by spaces
-        .map(word => word.charAt(0).toUpperCase()) // Get the first letter of each word
-        .join(' ') // Join the letters with a space
-    : "?"}
-</AvatarFallback>
-
-
-
+            {name
+              ? name
+                  .split(" ") // Split the name by spaces
+                  .map((word) => word.charAt(0).toUpperCase()) // Get the first letter of each word
+                  .join(" ") // Join the letters with a space
+              : "?"}
+          </AvatarFallback>
         </Avatar>
 
         {/* Text Section */}
-        <div className="flex flex-col gap-4 w-full text-center lg:text-right">
+        <div
+  className={`flex flex-col gap-4 w-full text-center ${
+    language !== 'en' ? 'lg:text-right' : 'lg:text-left'
+  }`}
+>
           <h2 className="text-xl font-regular text-gray-400">{name}</h2>
           <h2 className="text-xl font-semibold text-gray-800">{specialty}</h2>
           <h2 className="text-xl font-regular text-gray-400">{hospital}</h2>

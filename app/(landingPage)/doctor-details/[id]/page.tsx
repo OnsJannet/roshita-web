@@ -28,16 +28,22 @@ interface Translations {
   timeFormat: string;
 }
 
+type AppointmentDate = {
+  scheduled_date: string;
+  start_time: string;
+  end_time: string;
+};
+
 interface Doctor {
   doctor_id: number;
   name: string;
   specialty: string;
   city: string;
   address: string | null;
-  imageUrl: string;
+  image: string;
   price: number | null;
   rating: number | null;
-  appointment_dates: string[]; // Array of date strings
+  appointment_dates: AppointmentDate[];
   medical_organizations: MedicalOrganization[]; // Array of medical organizations
   reviewsCount: number;
 }
@@ -177,8 +183,21 @@ const DoctorDetailsPage = () => {
   }, [id]); // Re-run if 'id' changes
 
   if (!doctor) {
-    return <div>Loading doctor details...</div>;
+    return (
+      <div
+        className={`flex items-center justify-center min-h-screen text-center ${
+          language === "ar" ? "text-right" : "text-left"
+        }`}
+      >
+        <p className="text-lg font-semibold">
+          {language === "ar"
+            ? "جاري تحميل تفاصيل الطبيب"
+            : "Loading doctor details"}
+        </p>
+      </div>
+    );
   }
+  
 
   // Function to get day of the week in Arabic
   const getDayOfWeekInLanguage = (dateString: string) => {
@@ -209,8 +228,8 @@ const DoctorDetailsPage = () => {
   };
 
   // Function to format the date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (scheduledDate: string) => {
+    const date = new Date(scheduledDate); // Scheduled date is already in YYYY-MM-DD
     return date.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "2-digit",
@@ -219,9 +238,10 @@ const DoctorDetailsPage = () => {
   };
 
   // Function to format the time
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-GB", {
+  const formatTime = (scheduledDate: string, startTime: string) => {
+    // Combine scheduled date and start time to form a valid ISO 8601 string
+    const dateTime = new Date(`${scheduledDate}T${startTime}`);
+    return dateTime.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
@@ -256,7 +276,7 @@ const DoctorDetailsPage = () => {
       {/* Doctor Details */}
       <DoctorCardInside
         key={doctor.doctor_id}
-        doctor_id={doctor.doctor_id} // Add doctor_id here
+        doctor_id={doctor.doctor_id}
         id={doctor.doctor_id}
         name={doctor.name}
         specialty={doctor.specialty}
@@ -265,13 +285,14 @@ const DoctorDetailsPage = () => {
         price={doctor.price}
         location={doctor.city}
         city={doctor.city}
-        imageUrl={doctor.imageUrl}
-        address={doctor.address ?? ''}
-        appointment_dates={doctor.appointment_dates || []}
+        imageUrl={doctor.image}
+        address={doctor.address ?? ""}
+        appointment_dates={doctor.appointment_dates.map(
+          (appointment) =>
+            `${appointment.scheduled_date} (${appointment.start_time} - ${appointment.end_time})`
+        )}
         medical_organizations={doctor.medical_organizations || []}
       />
-
-
 
       {/* Appointments Carousel */}
       <div className="max-w-[1280px] flex lg:flex-row-reverse gap-10 flex-col">
@@ -288,7 +309,7 @@ const DoctorDetailsPage = () => {
               <CarouselPrevious className="bg-gray-300" />
               <CarouselNext className="bg-gray-300" />
               <CarouselContent>
-                {doctor.appointment_dates.map((date, index) => (
+                {doctor.appointment_dates.map((appointment, index) => (
                   <CarouselItem
                     key={index}
                     className="p-4 rounded-md md:basis-1/2 lg:basis-1/3"
@@ -296,19 +317,28 @@ const DoctorDetailsPage = () => {
                     <div className="p-1">
                       <Card className="rounded">
                         <CardTitle className="p-4 bg-roshitaBlue rounded text-white text-center">
-                          {getDayOfWeekInLanguage(date)}
+                          {getDayOfWeekInLanguage(appointment.scheduled_date)}
                         </CardTitle>
                         <CardContent className="flex flex-col items-center justify-center p-6">
                           <span className="text-2xl font-semibold">
-                            {formatDate(date)}
+                            {formatDate(appointment.scheduled_date)}
                           </span>
                           <span className="text-xl font-medium">
-                            {formatTime(date)}
+                            {formatTime(
+                              appointment.scheduled_date,
+                              appointment.start_time
+                            )}
                           </span>
                         </CardContent>
                         <CardFooter
                           onClick={() =>
-                            handleBooking(formatDate(date), formatTime(date))
+                            handleBooking(
+                              formatDate(appointment.scheduled_date),
+                              formatTime(
+                                appointment.scheduled_date,
+                                appointment.start_time
+                              )
+                            )
                           }
                           className="p-4 bg-roshitaBlue rounded text-white text-center font-bold flex justify-center"
                         >

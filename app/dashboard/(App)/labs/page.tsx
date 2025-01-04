@@ -75,29 +75,34 @@ export default function Page() {
   const [search, setSearch] = useState(""); // Search state for filter
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+    if (typeof window !== "undefined") {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
   }, []);
 
   useEffect(() => {
     const fetchTests = async () => {
-      const accessToken = localStorage.getItem("access");
+      const accessToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access")
+        : null;
       try {
         const response = await fetch("/api/tests/getTests", {
           method: "GET",
@@ -121,7 +126,10 @@ export default function Page() {
   }, []);
 
   const handleDeleteTest = async (testId: number) => {
-    const accessToken = localStorage.getItem("access");
+    const accessToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("access")
+      : null;
     try {
       const response = await fetch(`/api/tests/deleteTest?id=${testId}`, {
         method: "DELETE",

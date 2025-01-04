@@ -181,7 +181,7 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
         {/* Doctor's Image */}
         <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
           <img
-            src={imageUrl}
+            src={`https://test-roshita.net${imageUrl}`}
             alt={name}
             className="h-full w-full object-contain"
           />

@@ -12,9 +12,11 @@ type Language = "ar" | "en";
 const translations = {
   ar: {
     resetFilters: "إعادة ضبط الفلاتر",
+    noDoctors: "لا يوجد أطباء متاحون",
   },
   en: {
     resetFilters: "Reset Filters",
+    noDoctors: "No doctors available",
   },
 };
 
@@ -44,7 +46,7 @@ interface Doctor {
   doctor_id: number;
   name: string;
   specialization: string;
-  hospital: string; // Assuming this comes from medical_organizations
+  hospital: string;
   city: string;
   address: string | null;
   image: string;
@@ -54,54 +56,33 @@ interface Doctor {
   medical_organizations: MedicalOrganization[];
 }
 
-/**
- * This page is responsible for displaying a list of doctors with the ability to filter them by price,
- * country, and specialty. It also supports pagination to navigate through a large list of doctors.
- * 
- * Key Features:
- * - Fetches a list of doctors from an external API.
- * - Allows users to filter doctors by price, country, and specialty.
- * - Implements pagination for a smoother user experience when browsing doctors.
- * - Supports dynamic language switching (Arabic and English) for the UI.
- * - Provides a "Reset Filters" button to clear all active filters.
- * - Displays doctor details in a card format with essential information such as name, specialization,
- *   rating, price, and location.
- * 
- * The page dynamically adjusts the doctor list based on the selected filters, and it ensures that
- * users are able to navigate through the results easily using pagination.
- */
-
-
 const Page = () => {
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [doctors, setDoctors] = useState<Doctor[]>([]); // Explicitly define the type for doctors
-  const doctorsPerPage = 5;
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [language, setLanguage] = useState<Language>("ar");
+  const [loading, setLoading] = useState(false);
+  const [noDoctors, setNoDoctors] = useState(false); // New state for no doctors
+  const doctorsPerPage = 5;
 
   useEffect(() => {
-    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      setLanguage(storedLanguage as Language);
     } else {
-      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      setLanguage("ar");
     }
 
-    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        setLanguage((event.newValue as Language) || "ar");
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []); // Run only once on mount
+  }, []);
 
   const params = useParams();
   const country = params?.country
@@ -116,18 +97,17 @@ const Page = () => {
       : decodeURIComponent(params.specialty)
     : undefined;
 
-  // Fetch doctors data
   useEffect(() => {
     const fetchDoctors = async () => {
+      setLoading(true);
       try {
-        //const response = await fetch("https://test-roshita.net/api/doctors-list/", {
         const response = await fetch(
           "https://test-roshita.net/api/user-doctors",
           {
             method: "GET",
             headers: {
               accept: "application/json",
-              "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Replace with actual CSRF token
+              "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "",
             },
           }
         );
@@ -135,25 +115,24 @@ const Page = () => {
         const result = await response.json();
 
         if (response.ok) {
-          // Access doctors from the correct structure
           setDoctors(result.results.data.doctors);
         } else {
           console.error("Failed to fetch doctors", result);
         }
       } catch (error) {
         console.error("Error fetching doctors:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchDoctors();
   }, []);
 
-  // Filter State for Price, Country, and Specialty
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
-  // Decode URL parameters and set filter states
   useEffect(() => {
     if (country) {
       setSelectedCountries([country]);
@@ -163,29 +142,23 @@ const Page = () => {
     }
   }, [country, specialty]);
 
-  // Handle resetting all filters
   const resetFilters = () => {
-    setSelectedPrices([]); // Clear prices
-    setSelectedCountries([]); // Clear countries
-    setSelectedSpecialties([]); // Clear specialties
-    setCurrentPage(1); // Reset pagination to the first page
+    setSelectedPrices([]);
+    setSelectedCountries([]);
+    setSelectedSpecialties([]);
+    setCurrentPage(1);
   };
 
-  // Filter doctors by selected prices, countries, and specialties
   const filteredDoctors = doctors.filter((doctor) => {
-
-    // Check if doctor object and properties are defined before applying logic
     const priceMatch =
       selectedPrices.length === 0 || selectedPrices.includes(doctor.price);
 
-    // Match country if the doctor's location (city) includes the selected country (partial match)
     const countryMatch =
       selectedCountries.length === 0 ||
       selectedCountries.some((selectedCountry) =>
         doctor.medical_organizations[0]?.city?.name.includes(selectedCountry)
       );
 
-    // Match specialty if selected specialties contain the doctor's specialization
     const specialtyMatch =
       selectedSpecialties.length === 0 ||
       selectedSpecialties.includes(doctor.specialization);
@@ -193,10 +166,12 @@ const Page = () => {
     return priceMatch && countryMatch && specialtyMatch;
   });
 
-  // Calculate total pages
+  useEffect(() => {
+    setNoDoctors(filteredDoctors.length === 0);
+  }, [filteredDoctors]);
+
   const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
 
-  // Get current page doctors
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
   const currentDoctors = filteredDoctors.slice(
@@ -204,7 +179,6 @@ const Page = () => {
     indexOfLastDoctor
   );
 
-  // Handle page change
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -214,7 +188,6 @@ const Page = () => {
       <TitleSection />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
         <div className="lg:w-[20%]">
-          {/* Filter Component */}
           <FilterDoctor
             doctors={doctors}
             selectedPrices={selectedPrices}
@@ -225,7 +198,6 @@ const Page = () => {
             setSelectedSpecialties={setSelectedSpecialties}
           />
 
-          {/* Reset Filters Button */}
           <button
             className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 w-full"
             onClick={resetFilters}
@@ -235,26 +207,44 @@ const Page = () => {
         </div>
 
         <div className="space-y-4 lg:w-[80%]">
-          {currentDoctors.map((doctor) => (
-            <DoctorCard
-              key={doctor.doctor_id}
-              id={doctor.doctor_id}
-              name={doctor.name}
-              specialty={doctor.specialization}
-              rating={doctor.rating}
-              reviewsCount={0}
-              price={doctor.price}
-              location={doctor.city}
-              imageUrl={doctor.image}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className={` h-[220px] rounded-lg border border-gray-200 shadow-sm animate-pulse ${
+                  language === "ar" ? "flex-row-reverse" : "flex-row"
+                }`}
+              >
+                <div className="w-full h-full bg-gray-200 rounded-md"></div>
+              </div>
+            ))
+          ) : noDoctors ? (
+            <div className="text-center text-xl font-semibold mx-auto mt-10">
+              {translations[language].noDoctors}
+            </div>
+          ) : (
+            <>
+              {currentDoctors.map((doctor) => (
+                <DoctorCard
+                  key={doctor.doctor_id}
+                  id={doctor.doctor_id}
+                  name={doctor.name}
+                  specialty={doctor.specialization}
+                  rating={doctor.rating}
+                  reviewsCount={0}
+                  price={doctor.price}
+                  location={doctor.city}
+                  imageUrl={doctor.image}
+                />
+              ))}
 
-          {/* Pagination Component */}
-          <PaginationDemo
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+              <PaginationDemo
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

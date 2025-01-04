@@ -141,7 +141,10 @@ export default function Page() {
 
   useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
-      const accessToken = localStorage.getItem("access");
+      const accessToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access")
+        : null;
       try {
         const response = await fetch(`/api/user/getProfile/`, {
           method: "GET",
