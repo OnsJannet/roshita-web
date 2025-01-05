@@ -43,6 +43,7 @@ interface Doctor {
 interface Hospital {
   id: number;
   name: string;
+  foreign_name: string;
   doctors: { city: string }[];
   specialities: { name: string }[];
 }
@@ -51,35 +52,34 @@ const translations = {
   en: {
     resetFilters: "Reset Filters",
     noHospitals: "No hospitals available currently",
-    noDoctors: "No doctors available currently",  // Fixed this key
+    noDoctors: "No doctors available currently", // Fixed this key
     noLabs: "No labs available currently",
   },
   ar: {
     resetFilters: "إعادة ضبط الفلاتر",
     noHospitals: "لا توجد مستشفيات متاحة حاليًا",
-    noDoctors: "لا توجد أطباء متاحين حاليًا",  // Fixed this key
+    noDoctors: "لا توجد أطباء متاحين حاليًا", // Fixed this key
     noLabs: "لا توجد مختبرات متاحة حاليًا",
   },
 };
 
 /**
- * This React component serves as a client-side page that displays and manages 
- * a searchable and filterable list of medical services, including doctors, 
- * hospitals, and labs. It allows users to filter by country, specialty, and 
+ * This React component serves as a client-side page that displays and manages
+ * a searchable and filterable list of medical services, including doctors,
+ * hospitals, and labs. It allows users to filter by country, specialty, and
  * price, and supports pagination for navigating through results.
- * 
+ *
  * Key functionalities include:
  * - Fetching data for doctors, hospitals, and labs from backend APIs.
  * - Providing search and filter options with reset functionality.
  * - Language support for English and Arabic, stored in localStorage.
  * - Dynamic rendering of components such as DoctorCard, HospitalCard, and LabsCard.
  * - Pagination for doctors, hospitals, and labs.
- * 
- * Dependencies: 
+ *
+ * Dependencies:
  * - Custom components (GuideTitleSection, PaginationDemo, DoctorCard, etc.)
  * - React hooks (useState, useEffect) for state management and side effects.
  */
-
 
 const Page = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,7 +127,8 @@ const Page = () => {
         setIsLoading(true);
         const response = await fetch("/api/userHospital/getHospital");
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Failed to fetch hospitals");
+        if (!response.ok)
+          throw new Error(data.error || "Failed to fetch hospitals");
         setHospitals(data.data || []);
       } catch (err: any) {
         setError(err.message);
@@ -142,7 +143,8 @@ const Page = () => {
         setIsLoading(true);
         const response = await fetch("/api/userDoctor/getDoctor");
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Failed to fetch doctors");
+        if (!response.ok)
+          throw new Error(data.error || "Failed to fetch doctors");
         setDoctors(data.data || []);
       } catch (err: any) {
         setError(err.message);
@@ -182,8 +184,8 @@ const Page = () => {
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
-    const countryMatch = doctor.city
-      .toLowerCase()
+    const countryMatch = doctor?.city
+      ?.toLowerCase()
       .includes(countryTerm.toLowerCase());
     const specialtyMatch = doctor.specialization
       .toLowerCase()
@@ -192,7 +194,7 @@ const Page = () => {
   });
 
   const filteredHospitals = hospitals.filter((hospital) => {
-    const countryMatch = hospital.doctors[1].city
+    const countryMatch = hospital.doctors[1]?.city
       .toLowerCase()
       .includes(countryTerm.toLowerCase());
     const specialtyMatch = hospital.specialities.some((speciality) =>
@@ -274,6 +276,7 @@ const Page = () => {
                   reviewsCount={doctor.reviewsCount}
                   price={doctor.price}
                   location={doctor.city}
+                  hospital=""
                   imageUrl={doctor.imageUrl}
                 />
               ))
@@ -298,6 +301,9 @@ const Page = () => {
                   city={hospital.doctors[1].city}
                   specialities={hospital.specialities.length}
                   doctorCount={hospital.doctors.length}
+                  href={`/doctor-appointement/all/all/${encodeURIComponent(
+                    language === "ar" ? hospital.name : hospital.foreign_name
+                  )}`}
                 />
               ))
             )}

@@ -1143,37 +1143,42 @@ export const paiement = [
     name: "سداد",
     name_en: "sadad", // English name added
     image: "/Images/sadad.png",
+    word: "sadad",
   },
   {
     id: 2,
-    name: "خدمات تداول",
-    name_en: "t-lync", // English name added
-    image: "/Images/tadawal.png",
+    name: "ادفعلي",
+    name_en: "adfali", // English name added
+    image: "/Images/creditcard.png",
+    word: "adfali",
   },
   {
     id: 3,
-    name: "موبي كاش",
-    name_en: "MobiCash", // English name added
-    image: "/Images/mobicash.png",
+    name: "بطاقات البنوك المحلية",
+    name_en: "local bank card", // English name added
+    image: "/Images/creditcard.png",
+    word: "local bank card",
   },
   {
     id: 4,
     name: "الدفع بالعملات الأجنبية",
     name_en: "MPGS", // English name added
     image: "/Images/creditcard.png",
+    word: "MPGS",
   },
   {
     id: 5,
-    name: "بطاقات البنوك المحلية",
-    name_en: "local bank card", // English name added
-    image: "/Images/creditcard.png",
+    name: "خدمات تداول",
+    name_en: "t-lync", // English name added
+    image: "/Images/tadawal.png",
+    word: "t-lync",
   },
-  {
+  /*{
     id: 6,
-    name: "ادفعلي",
-    name_en: "adfali", // English name added
-    image: "/Images/creditcard.png",
-  },
+    name: "موبي كاش",
+    name_en: "MobiCash", // English name added
+    image: "/Images/mobicash.png",
+  },*/
 ];
 
 export const DoctorData: Payment[] = [

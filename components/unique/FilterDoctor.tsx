@@ -1,19 +1,49 @@
-import { Banknote, ChevronDown, Filter, Globe, HeartPulse, Star } from "lucide-react";
+import {
+  Banknote,
+  Building,
+  ChevronDown,
+  Filter,
+  Globe,
+  HeartPulse,
+  Star,
+} from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 // Define the types for Doctor and Props
+// Define the Doctor type
+interface MedicalOrganization {
+  id: number;
+  name: string;
+  foreign_name: string;
+  phone: string;
+  email: string;
+  city: {
+    id: number;
+    country: {
+      id: number;
+      name: string;
+      foreign_name: string;
+    };
+    name: string;
+    foreign_name: string;
+  };
+  address: string;
+  Latitude: number;
+  Longitude: number;
+}
+
 interface Doctor {
   doctor_id: number;
   name: string;
-  specialization: string; // Changed 'specialty' to 'specialization' to match the data
+  specialization: string;
   hospital: string;
-  city: string; // This represents the doctor's location
+  city: string;
   address: string | null;
-  image: string; // Matches 'imageUrl'
+  image: string;
   price: string;
   rating: number | null;
-  reviewsCount?: number; // Optional property if reviewsCount is not available in the API
   appointment_dates: string[];
+  medical_organizations: MedicalOrganization[];
 }
 
 interface FilterDoctorProps {
@@ -24,6 +54,8 @@ interface FilterDoctorProps {
   setSelectedCountries: React.Dispatch<React.SetStateAction<string[]>>;
   selectedSpecialties: string[];
   setSelectedSpecialties: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedHospitals: string[];
+  setSelectedHospitals: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 type Language = "ar" | "en";
@@ -36,11 +68,14 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   setSelectedCountries,
   selectedSpecialties,
   setSelectedSpecialties,
+  selectedHospitals,
+  setSelectedHospitals,
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isSpecialtyOpen, setIsSpecialtyOpen] = useState(false);
+  const [isHospitalOpen, setIsHospitalOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
 
   useEffect(() => {
@@ -67,10 +102,24 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
     };
   }, []);
 
-  const prices = Array.from(new Set(doctors.map((doctor) => doctor.price || "")));
-  const countries = Array.from(new Set(doctors.map((doctor) => doctor.city || "")));
-  const specialties = Array.from(new Set(doctors.map((doctor) => doctor.specialization || "")));
-
+  const prices = Array.from(
+    new Set(doctors.map((doctor) => doctor.price || ""))
+  );
+  const countries = Array.from(
+    new Set(doctors.map((doctor) => doctor.city || ""))
+  );
+  const specialties = Array.from(
+    new Set(doctors.map((doctor) => doctor.specialization || ""))
+  );
+  const hospitals = Array.from(
+    new Set(
+      doctors.map((doctor) =>
+        language === "ar"
+          ? doctor.medical_organizations[0]?.name
+          : doctor.medical_organizations[0]?.foreign_name || ""
+      )
+    )
+  );
 
   const handlePriceChange = (price: string) => {
     if (price === undefined) return;
@@ -93,9 +142,21 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   const handleSpecialtyChange = (specialty: string) => {
     if (specialty === undefined) return;
     if (selectedSpecialties.includes(specialty)) {
-      setSelectedSpecialties(selectedSpecialties.filter((s) => s !== specialty));
+      setSelectedSpecialties(
+        selectedSpecialties.filter((s) => s !== specialty)
+      );
     } else {
       setSelectedSpecialties([...selectedSpecialties, specialty]);
+    }
+  };
+
+  const handleHospitalChange = (hospital: string) => {
+    console.log("Hospital", hospital);
+    if (hospital === undefined) return;
+    if (selectedHospitals.includes(hospital)) {
+      setSelectedHospitals(selectedHospitals.filter((h) => h !== hospital));
+    } else {
+      setSelectedHospitals([...selectedHospitals, hospital]);
     }
   };
 
@@ -105,10 +166,16 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
         className="bg-[#71C9F9] p-8 flex flex-col rounded-2xl cursor-pointer"
         onClick={() => setIsFilterOpen(!isFilterOpen)}
       >
-        <div className={`flex justify-between items-center ${language === "en" ? "flex-row-reverse" : ""}`}>
+        <div
+          className={`flex justify-between items-center ${
+            language === "en" ? "flex-row-reverse" : ""
+          }`}
+        >
           <div className="flex gap-1">
             <Filter className="text-white" />
-            <h2 className="text-white">{language === "en" ? "Filter" : "الفلتـرة"}</h2>
+            <h2 className="text-white">
+              {language === "en" ? "Filter" : "الفلتـرة"}
+            </h2>
           </div>
           <ChevronDown
             className={`text-white ${isFilterOpen ? "rotate-180" : ""}`}
@@ -126,22 +193,29 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               onClick={() => setIsPriceOpen(!isPriceOpen)}
             >
               <ChevronDown
-                className={`text-roshitaDarkBlue ${isPriceOpen ? "rotate-180" : ""}`}
+                className={`text-roshitaDarkBlue ${
+                  isPriceOpen ? "rotate-180" : ""
+                }`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">{language === "en" ? "Price" : "السعــر"}</h3>
-                <Banknote className="text-roshitaDarkBlue" />
+                <h3 className="font-bold mb-2">
+                  {language === "en" ? "Price" : "السعــر"}
+                </h3>
+                <Banknote className="text-roshitaDarkBlue  mb-2" />
               </div>
             </div>
             {isPriceOpen && (
               <div className="flex flex-col-reverse gap-2">
                 {prices.map((price) => (
-                  <div key={price} className="flex gap-2 items-center justify-end">
+                  <div
+                    key={price}
+                    className="flex gap-2 items-center justify-end"
+                  >
                     <div className="flex flex-row-reverse gap-1">
                       <label className="text-gray-400">
-                        {price.replace("د.ل", "").trim()}
+                        {price.replace("د", "").trim()}
                       </label>
-                      <p> د.ل </p>
+                      <p>{language === "ar" ? "د.ت" : "DT"}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -162,18 +236,25 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               onClick={() => setIsCountryOpen(!isCountryOpen)}
             >
               <ChevronDown
-                className={`text-roshitaDarkBlue ${isCountryOpen ? "rotate-180" : ""}`}
+                className={`text-roshitaDarkBlue ${
+                  isCountryOpen ? "rotate-180" : ""
+                }`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">{language === "en" ? "Country" : "البلد"}</h3>
-                <Globe className="text-roshitaDarkBlue" />
+                <h3 className="font-bold mb-2">
+                  {language === "en" ? "Country" : "البلد"}
+                </h3>
+                <Globe className="text-roshitaDarkBlue  mb-2" />
               </div>
             </div>
 
             {isCountryOpen && (
               <div className="flex flex-col-reverse gap-2">
                 {countries.map((country) => (
-                  <div key={country} className="flex gap-1 items-center justify-end">
+                  <div
+                    key={country}
+                    className="flex gap-1 items-center justify-end"
+                  >
                     <label className="text-gray-400">{country}</label>
                     <input
                       type="checkbox"
@@ -194,23 +275,69 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               onClick={() => setIsSpecialtyOpen(!isSpecialtyOpen)}
             >
               <ChevronDown
-                className={`text-roshitaDarkBlue ${isSpecialtyOpen ? "rotate-180" : ""}`}
+                className={`text-roshitaDarkBlue ${
+                  isSpecialtyOpen ? "rotate-180" : ""
+                }`}
               />
               <div className="flex justify-end items-center gap-1">
-                <h3 className="font-bold mb-2">{language === "en" ? "Specialty" : "التخصص"}</h3>
-                <HeartPulse className="text-roshitaDarkBlue" />
+                <h3 className="font-bold mb-2">
+                  {language === "en" ? "Specialty" : "التخصص"}
+                </h3>
+                <HeartPulse className="text-roshitaDarkBlue  mb-2" />
               </div>
             </div>
 
             {isSpecialtyOpen && (
               <div className="flex flex-col-reverse gap-2">
                 {specialties.map((specialty) => (
-                  <div key={specialty} className="flex gap-1 items-center justify-end">
+                  <div
+                    key={specialty}
+                    className="flex gap-1 items-center justify-end"
+                  >
                     <label className="text-gray-400">{specialty}</label>
                     <input
                       type="checkbox"
                       checked={selectedSpecialties.includes(specialty)}
                       onChange={() => handleSpecialtyChange(specialty)}
+                      className="rounded-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Hospital Filter Accordion */}
+          <div className="mt-4">
+            <div
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setIsHospitalOpen(!isHospitalOpen)}
+            >
+              <ChevronDown
+                className={`text-roshitaDarkBlue ${
+                  isHospitalOpen ? "rotate-180" : ""
+                }`}
+              />
+              <div className="flex justify-end items-center gap-1">
+                <h3 className="font-bold mb-2">
+                  {language === "en" ? "Hospital" : "المستشفى"}
+                </h3>
+                <Building className="text-roshitaDarkBlue mb-2" />
+              </div>
+            </div>
+
+            {isHospitalOpen && (
+              <div className="flex flex-col-reverse gap-2">
+                {hospitals.map((hospital) => (
+                  <div
+                    key={hospital}
+                    className="flex gap-1 items-center justify-end"
+                  >
+                    <label className="text-gray-400">{hospital}</label>
+                    <input
+                      type="checkbox"
+                      checked={selectedHospitals.includes(hospital)}
+                      onChange={() => handleHospitalChange(hospital)}
                       className="rounded-full"
                     />
                   </div>

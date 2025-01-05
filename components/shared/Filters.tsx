@@ -102,7 +102,7 @@ const Filters = () => {
     if (selectedCountry && selectedSpecialty) {
       window.location.href = `/doctor-appointement/${encodeURIComponent(
         selectedCountry
-      )}/${encodeURIComponent(selectedSpecialty)}`;
+      )}/${encodeURIComponent(selectedSpecialty)}/all`;
     }
   };
 

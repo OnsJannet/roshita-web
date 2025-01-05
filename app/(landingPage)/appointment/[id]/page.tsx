@@ -17,6 +17,8 @@ interface Doctor {
   medical_organizations: { id: number; name: string };
 }
 
+type Language = "ar" | "en";
+
 /**
  * Appointment page allows users to view detailed information about a specific doctor
  * and manage their appointment preferences (day and time).
@@ -41,6 +43,28 @@ const Appointment = () => {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Language>("ar");
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   // Parse doctor id from URL params
   const id = parseInt(
@@ -73,6 +97,8 @@ const Appointment = () => {
 
     fetchDoctor();
 
+    console.log("doctor", doctors)
+
     // Fetch appointment preferences from localStorage
     const day = localStorage.getItem("appointmentDay") || "";
     const time = localStorage.getItem("appointmentTime") || "";
@@ -81,17 +107,29 @@ const Appointment = () => {
   }, [id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen text-lg font-semibold">
+        {language === "ar" ? "جاري التحميل..." : "Loading..."}
+      </div>
+    );
   }
-
+  
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="flex justify-center items-center h-screen text-lg  font-semibold">
+        {language === "ar" ? `خطأ: ${error}` : `Error: ${error}`}
+      </div>
+    );
   }
-
+  
   if (!doctor) {
-    return <div>Doctor not found</div>;
+    return (
+      <div className="flex justify-center items-center h-screen text-lg  font-semibold">
+        {language === "ar" ? "الطبيب غير موجود" : "Doctor not found"}
+      </div>
+    );
   }
-
+  
   return (
     <div className="container mx-auto p-4 max-w-[1280px]">
       {/* Doctor Details */}

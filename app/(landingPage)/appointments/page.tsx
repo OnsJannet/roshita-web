@@ -87,7 +87,40 @@ const Page = () => {
     }
   }, []);
 
-  const filterAppointments = (appointments: any[], type: 'previous' | 'next') => {
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      const token = localStorage.getItem('access');
+      try {
+        const response = await fetch('https://test-roshita.net/api/appointment-reservations/', {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("appointement data", data);
+  
+          // Use the `results` array for appointments
+          const results = data.results || [];
+          setAppointments(results);
+          filterAppointments(results, 'next'); // Set default to show next appointments
+        } else {
+          console.error('Failed to fetch appointments:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+  
+    fetchAppointments();
+  }, []);
+  
+
+  
+
+  /*const filterAppointments = (appointments: any[], type: 'previous' | 'next') => {
     const today = new Date();
 
     if (type === 'next') {
@@ -99,7 +132,24 @@ const Page = () => {
       const previousAppointments = appointments.filter(appointment => new Date(appointment.day) <= today);
       setFilteredAppointments(previousAppointments);
     }
+  };*/
+
+  const filterAppointments = (appointments: any[], type: 'previous' | 'next') => {
+    const today = new Date();
+  
+    if (type === 'next') {
+      const nextAppointments = appointments.filter(appointment => 
+        new Date(appointment.reservation.reservation_date) > today
+      );
+      setFilteredAppointments(nextAppointments);
+    } else {
+      const previousAppointments = appointments.filter(appointment => 
+        new Date(appointment.reservation.reservation_date) <= today
+      );
+      setFilteredAppointments(previousAppointments);
+    }
   };
+  
 
   const handleFilterChange = (type: 'previous' | 'next') => {
     setFilterType(type);

@@ -6,11 +6,12 @@ interface HospitalCardProps {
   city: string;
   specialities: number;
   doctorCount: number;
+  href?: string;
 }
 
 type Language = 'ar' | 'en';
 
-const HospitalCard: React.FC<HospitalCardProps> = ({ name, city, specialities, doctorCount }) => {
+const HospitalCard: React.FC<HospitalCardProps> = ({ name, city, specialities, doctorCount, href }) => {
   const [language, setLanguage] = useState<Language>('ar');
 
   useEffect(() => {
@@ -34,9 +35,16 @@ const HospitalCard: React.FC<HospitalCardProps> = ({ name, city, specialities, d
     };
   }, []);
 
+  const handleClick = () => {
+    if (href) {
+      window.location.href = href;
+    }
+  };
+
   return (
     <div
-    className={`flex justify-start ${language === 'ar' ? 'lg:flex-row-reverse flex-row-reverse' : 'lg:flex-row flex-row'} bg-white shadow-md rounded-lg p-6 max-w-4xl mx-auto`}
+    onClick={handleClick}
+    className={`cursor-pointer flex justify-start ${language === 'ar' ? 'lg:flex-row-reverse flex-row-reverse' : 'lg:flex-row flex-row'} bg-white shadow-md rounded-lg p-6 max-w-4xl mx-auto`}
   >
       <div className="ml-4 h-20 w-20 rounded-full bg-blue-500 flex justify-center lg:flex-row-reverse flex-col items-center overflow-hidden">
         <img

@@ -79,19 +79,23 @@ export default async function handler(
       }
     );
 
+    // Check response status and parse data
     const data = await apiResponse.json();
-
-    // Log the API response for debugging
     console.log("API Response Status:", apiResponse.status);
     console.log("API Response Data:", data);
 
     if (!apiResponse.ok) {
-      return res.status(apiResponse.status).json(data);
+      // If API response is not OK, return the error
+      console.error("API Error:", data);
+      return res.status(apiResponse.status).json({ error: data });
     }
 
+    // Successful response
+    console.log("Successfully received response from API:", data);
     return res.status(200).json(data);
   } catch (error) {
     console.error("Error making reservation:", error);
     return res.status(500).json({ message: "Internal Server Error", error });
   }
 }
+

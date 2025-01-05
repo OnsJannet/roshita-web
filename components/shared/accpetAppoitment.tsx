@@ -19,6 +19,7 @@ type PaymentMethod = {
   name: string;
   name_en: string;
   image: string;
+  word: string;
 };
 
 type DoctorCardAppointmentProps = {
@@ -93,8 +94,15 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   });
 
   console.log("medical_organizations", medical_organizations)
+  console.log("paymentMethod", paymentMethod)
 
   const [language, setLanguage] = useState<Language>("ar");
+  const [confirmModal, setConfirmModal] = useState(false);
+  const [processID, setProcessID] = useState("");
+  const [amount, setAmount] = useState(0);  
+  const [otpCode, setOtpCode] = useState("");
+  const [payementID, setPayementId] = useState("");
+  const [url, setUrl] = useState("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -144,25 +152,6 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     loadProfileData();
   }, []);
 
-  /*const handleCreateAppointment = () => {
-    const newAppointment = {
-      appointmentDate: new Date().toLocaleDateString(),
-      imageUrl: imageUrl,
-      doctorName: name,
-      specialty: specialty,
-      price: price,
-      time: time,
-      day: day,
-    };
-
-    const existingAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
-    existingAppointments.push(newAppointment);
-    localStorage.setItem("appointments", JSON.stringify(existingAppointments));
-    window.location.href = "/appointments";
-  };*/
-
   const t = translations[language]; // Choose translation based on selected language
 
   const organizationId = Array.isArray(medical_organizations) && medical_organizations.length > 0
@@ -179,7 +168,6 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   
     console.log("day", day);
     console.log("time", time);
-
   
     // Convert the day and time to ISO 8601 format
     const [dayPart, monthPart, yearPart] = day.split("/"); // Split day into DD/MM/YYYY
@@ -204,15 +192,12 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       //confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
       doctor: 1, // Replace with the actual doctor ID
       price: price,
-      payment:{
-        payment_method: paymentMethod?.name_en.toLowerCase(),
-        //mobile_number: profileData.user.phone,
-        mobile_number:"0913632323",
-        birth_year: 1990
-      }
+      payment: {
+        payment_method: paymentMethod?.word,
+        mobile_number: "0913632323",
+        birth_year: 1990,
+      },
     };
-
-
   
     try {
       // Send a POST request to your backend
@@ -234,8 +219,29 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   
       const responseData = await response.json();
       console.log("Reservation successful:", responseData);
-      //alert("Appointment successfully booked!");
-      window.location.href = "/appointments"; // Redirect to appointments page
+      console.log("testing url", responseData.payment_confirmation.result.redirect_url)
+      // Handle response based on the payment method
+      if (paymentMethod?.word?.toLowerCase() === "sadad" || paymentMethod?.word?.toLowerCase() === "adfali") {
+        // Assuming the 'payment_confirmation' has necessary details
+        if (responseData.payment_confirmation) {
+          console.log("Payment Confirmation:", responseData.payment_confirmation);
+
+          // You can process the payment confirmation here
+          setProcessID(responseData.payment_confirmation.result.process_id);
+          setAmount(responseData.payment_confirmation.result.amount);
+          setPayementId(responseData.reservation_invoice_detail_id)
+          setConfirmModal(true);
+          setUrl(responseData.payment_confirmation.result.redirect_url)
+        }
+      } else if (paymentMethod?.word?.toLowerCase() === "local bank card") {
+        // Redirect for local bank card payment
+        console.log("url2", responseData.payment_confirmation.result.redirect_url)
+        window.location.href = responseData.payment_confirmation.result.redirect_url;
+      } else {
+        // Default redirect
+        window.location.href = "/appointments";
+      }
+  
     } catch (error) {
       console.error("Error booking the appointment:", error);
       alert("An error occurred while booking the appointment.");
@@ -243,7 +249,45 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   };
   
 
+  const handleOtpSubmit = async () => {
+    const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}`
+
+        const requestBody = {
+          process_id: `${processID}`,
+          code: `${otpCode}`,
+          //amount: `${amount}`,
+        };
+        
+    console.log("resquestBody", requestBody);
+
+    try {
+      const response = await fetch(confirmUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error confirming payment:", errorData);
+        alert("Failed to confirm payment.");
+        return;
+      }
+
+      const responseData = await response.json();
+      console.log("Payment confirmation successful:", responseData);
+      window.location.href = "/appointments";
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      alert("An error occurred while confirming the payment.");
+    }
+  };
+  
+
   return (
+    <div>
     <Dialog>
       <DialogTrigger asChild>
         <Button className="p-4 bg-roshitaBlue rounded text-white !text-center font-bold flex justify-center mt-4">
@@ -392,5 +436,39 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {/* OTP Modal */}
+    <Dialog open={confirmModal} onOpenChange={setConfirmModal}>
+    <DialogContent className="sm:max-w-[625px] h-full">
+      <DialogHeader>
+        <DialogTitle className="text-center">
+          {t.confirmBooking}
+        </DialogTitle>
+        <DialogDescription className="text-center">
+          {t.appointmentSuccess}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="p-4">
+        <div className="flex flex-col gap-4">
+          <Label htmlFor="otpCode">OTP Code</Label>
+          <Input
+            id="otpCode"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value)}
+            placeholder="Enter OTP"
+          />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button
+          variant="outline"
+          onClick={handleOtpSubmit}
+          className="p-4 bg-roshitaBlue rounded text-white font-bold"
+        >
+          {t.confirmBooking}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
+  </div>
   );
 };

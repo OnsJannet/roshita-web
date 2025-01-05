@@ -35,7 +35,7 @@ const LabsCard: React.FC<LabsCardProps> = ({ name, city, tests }) => {
 
   return (
     <div
-      className={`flex justify-start ${language === 'ar' ? 'lg:flex-row-reverse flex-row-reverse' : 'lg:flex-row flex-row'} bg-white shadow-md rounded-lg p-6 max-w-4xl mx-auto`}
+      className={`cursor-pointer flex justify-start ${language === 'ar' ? 'lg:flex-row-reverse flex-row-reverse' : 'lg:flex-row flex-row'} bg-white shadow-md rounded-lg p-6 max-w-4xl mx-auto`}
     >
       <div className="ml-4 h-20 w-20 rounded-full bg-blue-500 flex justify-center lg:flex-row-reverse flex-col items-center overflow-hidden">
         <img

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button"; // Assuming you have a button component
-import { Banknote, MapPin, Star, StarHalf } from "lucide-react";
+import { Banknote, Building, MapPin, Star, StarHalf } from "lucide-react";
 
 interface DoctorCardProps {
   id: number;
@@ -11,6 +11,7 @@ interface DoctorCardProps {
   price: string;
   location: string;
   imageUrl: string;
+  hospital: string | null;
 }
 
 
@@ -25,6 +26,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   location,
   imageUrl,
   id,
+  hospital
 }) => {
   const handleButtonClick = () => {
     console.log("click button");
@@ -62,17 +64,19 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
       bookNow: "Book Now",
       price: "Price: ",
       location: "Location: ",
+      hospital: "hospital: ",
     },
     ar: {
       bookNow: "احجز الآن",
       price: "سعر الكشف: ",
       location: "الموقع: ",
+      hospital: "مستشفى: ",
     },
   };
 
   return (
     <div
-      className={`flex flex-col  p-4 bg-white shadow-lg rounded-xl max-w-4xl mx-auto ${
+      className={`cursor-pointer flex flex-col  p-4 bg-white shadow-lg rounded-xl max-w-4xl mx-auto ${
         language === "en" ? "md:flex-row-reverse" : "md:flex-row"
       }`}
     >
@@ -117,6 +121,21 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
         <h1 className={`text-2xl font-bold text-gray-800 mb-1 w-full ${language === "en" ? "text-start" : "text-end"}`}>{name}</h1>
 
         <p className={`text-sm text-gray-500 mb-2 w-full ${language === "en" ? "text-start" : "text-end"}`}>{specialty}</p>
+
+        {hospital && (<div
+            className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
+              language === "en" ? "flex-row-reverse justify-end w-full" : "justify-start flex-row"
+            }`}
+          >
+            <span>
+              {translations[language].hospital}
+              {hospital}
+            </span>
+            <Building className="text-roshitaDarkBlue" />
+          </div>)}
+
+
+
 
           <div
             className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${

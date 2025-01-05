@@ -97,6 +97,13 @@ const Page = () => {
       : decodeURIComponent(params.specialty)
     : undefined;
 
+
+    const hospital = params?.hospital
+    ? Array.isArray(params.hospital)
+      ? decodeURIComponent(params.hospital[0])
+      : decodeURIComponent(params.hospital)
+    : undefined;  
+
   useEffect(() => {
     const fetchDoctors = async () => {
       setLoading(true);
@@ -132,6 +139,15 @@ const Page = () => {
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
+  const [selectedHospitals, setSelectedHospitals] = useState<string[]>([]);
+  
+  console.log(`These are the filters:`, {
+    selectedPrices,
+    selectedCountries,
+    selectedSpecialties,
+    selectedHospitals,
+  });
+  
 
   useEffect(() => {
     if (country) {
@@ -140,31 +156,49 @@ const Page = () => {
     if (specialty) {
       setSelectedSpecialties([specialty]);
     }
-  }, [country, specialty]);
+    if (hospital) {
+      setSelectedHospitals([hospital]);
+    }
+  }, [country, specialty, hospital]);
 
   const resetFilters = () => {
     setSelectedPrices([]);
     setSelectedCountries([]);
     setSelectedSpecialties([]);
+    setSelectedHospitals([]);
     setCurrentPage(1);
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
     const priceMatch =
-      selectedPrices.length === 0 || selectedPrices.includes(doctor.price);
-
+      selectedPrices.length === 0 || 
+      selectedPrices.includes('all') || 
+      selectedPrices.includes(doctor.price);
+  
     const countryMatch =
-      selectedCountries.length === 0 ||
+      selectedCountries.length === 0 || 
+      selectedCountries.includes('all') || 
       selectedCountries.some((selectedCountry) =>
         doctor.medical_organizations[0]?.city?.name.includes(selectedCountry)
       );
-
+  
     const specialtyMatch =
-      selectedSpecialties.length === 0 ||
+      selectedSpecialties.length === 0 || 
+      selectedSpecialties.includes('all') || 
       selectedSpecialties.includes(doctor.specialization);
-
-    return priceMatch && countryMatch && specialtyMatch;
+  
+    const hospitalMatch =
+      selectedHospitals.length === 0 || 
+      selectedHospitals.includes('all') || 
+      selectedHospitals.includes(
+        language === 'ar'
+          ? doctor.medical_organizations[0]?.name
+          : doctor.medical_organizations[0]?.foreign_name
+      );
+  
+    return priceMatch && countryMatch && specialtyMatch && hospitalMatch;
   });
+  
 
   useEffect(() => {
     setNoDoctors(filteredDoctors.length === 0);
@@ -178,6 +212,8 @@ const Page = () => {
     indexOfFirstDoctor,
     indexOfLastDoctor
   );
+
+  console.log("currentDoctors", currentDoctors)
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -196,6 +232,8 @@ const Page = () => {
             setSelectedCountries={setSelectedCountries}
             selectedSpecialties={selectedSpecialties}
             setSelectedSpecialties={setSelectedSpecialties}
+            selectedHospitals= {selectedHospitals}
+            setSelectedHospitals = {setSelectedHospitals}
           />
 
           <button
@@ -234,6 +272,7 @@ const Page = () => {
                   reviewsCount={0}
                   price={doctor.price}
                   location={doctor.city}
+                  hospital={language === 'ar' ? doctor.medical_organizations[0]?.name : doctor.medical_organizations[0]?.foreign_name }
                   imageUrl={doctor.image}
                 />
               ))}
