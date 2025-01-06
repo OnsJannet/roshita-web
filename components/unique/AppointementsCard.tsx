@@ -1,5 +1,5 @@
-import { Banknote, Calendar, Clock, Trash } from "lucide-react";
 import React, { useState, useEffect } from "react";
+import { Banknote, Calendar, Clock, Star, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 
 type DoctorCardProps = {
@@ -11,6 +11,7 @@ type DoctorCardProps = {
   day: string;
   time: string;
   status: string;
+  doctorID: string;
 };
 
 type Language = "ar" | "en";
@@ -23,43 +24,39 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   imageUrl,
   day,
   time,
-  status: initialStatus, // renamed to avoid conflict with local state
+  doctorID,
+  status: initialStatus,
 }) => {
-  const [status, setStatus] = useState(initialStatus); // Local state for status
+  const [status, setStatus] = useState(initialStatus);
   const [language, setLanguage] = useState<Language>("ar");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
-    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      setLanguage(storedLanguage as Language);
     } else {
-      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      setLanguage("ar");
     }
 
-    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        setLanguage((event.newValue as Language) || "ar");
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
 
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
-  // Function to handle the cancellation
   const handleCancel = () => {
-    // Retrieve appointments from localStorage
-    const appointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
+    const appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
 
-    // Find the appointment and update its status to 'canceled'
     const updatedAppointments = appointments.map((appointment: any) => {
       if (appointment.doctorName === name && appointment.day === day) {
         return { ...appointment, status: "canceled" };
@@ -67,15 +64,48 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       return appointment;
     });
 
-    // Save the updated appointments back to localStorage
     localStorage.setItem("appointments", JSON.stringify(updatedAppointments));
-
-    // Update local state to trigger re-render
     setStatus("canceled");
-
-    // Confirmation alert
     alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
   };
+
+  const handleRate = async () => {
+    try {
+      // Prepare the payload
+      const payload = { rating };
+  
+      // Replace the doctor ID dynamically
+      const doctorId = doctorID; // Ensure this variable holds the correct doctor's ID
+      const url = `https://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
+  
+      // Send the POST request
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      // Parse the response
+      const data = await response.json();
+  
+      // Check if the request was successful
+      if (response.ok) {
+        alert(language === "ar" ? "شكراً لتقييمك!" : "Thank you for your feedback!");
+        console.log("Rating submitted successfully:", data);
+      } else {
+        console.error("Failed to submit rating:", data);
+        alert(language === "ar" ? "حدث خطأ ما. حاول مرة أخرى." : "Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error while submitting rating:", error);
+      alert(language === "ar" ? "حدث خطأ ما. حاول مرة أخرى." : "Something went wrong. Please try again.");
+    } finally {
+      setIsModalOpen(false);
+    }
+  };
+  
 
   return (
     <div
@@ -83,15 +113,13 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
       } flex-col p-4 bg-white shadow-lg rounded-xl w-full max-w-[80%] lg:max-w-[80%] mx-auto`}
     >
-      {/* Right Section: Doctor Info */}
       <div
         className={`flex flex-1 ${
           language === "ar"
             ? "justify-between lg:flex-row"
             : "justify-between lg:flex-row-reverse"
-        } gap-4 items-center p-4  flex-col-reverse`}
+        } gap-4 items-center p-4 flex-col-reverse`}
       >
-        {/* Doctor's Details */}
         <div
           className={`flex flex-col ${
             language === "ar" ? "items-end" : "items-start"
@@ -130,31 +158,46 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             </div>
           </div>
 
-          {/* Cancel Button or Canceled Message */}
-          <div
-            className={`w-full flex ${
-              language === "ar"
-                ? "lg:justify-start justify-start"
-                : "lg:justify-end justify-end"
-            } mt-4`}
-          >
-            {status === "canceled" ? (
-              <span className="text-red-500 text-lg">
-                {language === "ar" ? "تم الإلغاء" : "Canceled"}
-              </span>
-            ) : (
-              <Button
-                className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50"
-                onClick={handleCancel}
+          <div className="flex justify-between items-center w-full">
+            <div
+              className={`w-full flex ${
+                language === "ar"
+                  ? "lg:justify-start justify-start"
+                  : "lg:justify-end justify-end"
+              } mt-4`}
+            >
+              {status === "canceled" ? (
+                <span className="text-red-500 text-lg">
+                  {language === "ar" ? "تم الإلغاء" : "Canceled"}
+                </span>
+              ) : (
+                <Button
+                  className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50"
+                  onClick={handleCancel}
+                >
+                  {language === "ar" ? "حذف" : "Cancel"}{" "}
+                  <Trash className="text-red-500 w-6 h-6 ml-2" />
+                </Button>
+              )}
+            </div>
+            <div
+              className={`w-full flex ${
+                language === "ar"
+                  ? "lg:justify-start justify-start"
+                  : "lg:justify-end justify-end w-full"
+              } mt-4`}
+            >
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50 flex"
               >
-                {language === "ar" ? "حذف" : "Cancel"}{" "}
-                <Trash className="text-red-500 w-6 h-6 ml-2" />
-              </Button>
-            )}
+                {language === "ar" ? "قيّم" : "Rate"}
+                <Star className="text-yellow-500 w-6 h-6 ml-2" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Doctor's Image */}
         <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
           <img
             src={imageUrl}
@@ -163,6 +206,54 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
           />
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
+            <h2 className="text-lg font-bold mb-4 text-center">
+              {language === "ar" ? "قيّم الطبيب" : "Rate the Doctor"}
+            </h2>
+            <div className="flex gap-2 mb-4 justify-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className={`cursor-pointer text-xl ${
+                    star <= rating ? "text-yellow-500" : "text-gray-300"
+                  }`}
+                >
+                  <Star />
+                </span>
+              ))}
+            </div>
+            {/*<textarea
+              className="w-full p-2 border rounded mb-4"
+              rows={3}
+              placeholder={
+                language === "ar"
+                  ? "أضف تعليقك هنا"
+                  : "Add your comment here"
+              }
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            ></textarea>*/}
+            <div className="flex justify-center gap-2">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded"
+                onClick={() => setIsModalOpen(false)}
+              >
+                {language === "ar" ? "إلغاء" : "Cancel"}
+              </button>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={handleRate}
+              >
+                {language === "ar" ? "إرسال" : "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

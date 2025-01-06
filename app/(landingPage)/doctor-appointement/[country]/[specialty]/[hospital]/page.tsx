@@ -106,6 +106,7 @@ const Page = () => {
 
   useEffect(() => {
     const fetchDoctors = async () => {
+      console.log("i enterd")
       setLoading(true);
       try {
         const response = await fetch(
@@ -114,12 +115,13 @@ const Page = () => {
             method: "GET",
             headers: {
               accept: "application/json",
-              "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "",
+              
             },
           }
         );
 
         const result = await response.json();
+        console.log("all of the results returned", result)
 
         if (response.ok) {
           setDoctors(result.results.data.doctors);
@@ -170,6 +172,7 @@ const Page = () => {
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
+    console.log("doctor doctor doctor", doctor);
     const priceMatch =
       selectedPrices.length === 0 || 
       selectedPrices.includes('all') || 
@@ -178,9 +181,11 @@ const Page = () => {
     const countryMatch =
       selectedCountries.length === 0 || 
       selectedCountries.includes('all') || 
-      selectedCountries.some((selectedCountry) =>
-        doctor.medical_organizations[0]?.city?.name.includes(selectedCountry)
-      );
+      selectedCountries.some((selectedCountry) => {
+        console.log("selected country", selectedCountry);
+        return doctor.medical_organizations[0]?.city?.country?.name.includes(selectedCountry);
+      });
+      
   
     const specialtyMatch =
       selectedSpecialties.length === 0 || 
@@ -198,6 +203,8 @@ const Page = () => {
   
     return priceMatch && countryMatch && specialtyMatch && hospitalMatch;
   });
+
+  console.log("filtered docts", filteredDoctors)
   
 
   useEffect(() => {
