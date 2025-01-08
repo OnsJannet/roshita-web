@@ -83,24 +83,26 @@ export default function Page() {
 
   console.log("tableData", tableData)
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
   }, []);
 
   console.log("tableData", tableData);
@@ -109,44 +111,47 @@ export default function Page() {
   // Fetch function
   const fetchData = async () => {
     try {
-      // Retrieve the access token from localStorage
-      const accessToken = localStorage.getItem("access");
-
-      if (!accessToken) {
-        throw new Error("Access token not found");
+      // Check if window is defined (i.e., running on the client side)
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const accessToken = localStorage.getItem("access");
+  
+        if (!accessToken) {
+          throw new Error("Access token not found");
+        }
+  
+        // Make the fetch request with the Authorization header
+        const response = await fetch(`/api/doctors/getDoctors?page=${currentPage}&limit=5`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Send the token in the Authorization header
+          },
+        });
+  
+        if (!response.ok) throw new Error("Failed to fetch data");
+  
+        const result: APIResponse = await response.json();
+  
+        console.log("result", result);
+        setLengthData(result.total);
+  
+        // Map Doctor[] to Payment[]
+        const paymentData: Payment[] = result.data.map((doctor) => ({
+          img: doctor.staff.staff_avatar,
+          id: doctor.id.toString(),
+          دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
+          "تاريخ الانضمام": new Date(doctor.create_date), // Adjust this field as needed
+          التقييم: doctor.rating || 0,
+        }));
+  
+        setTableData(paymentData); // Set the transformed data
       }
-
-      // Make the fetch request with the Authorization header
-      const response = await fetch(`/api/doctors/getDoctors?page=${currentPage}&limit=5`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Send the token in the Authorization header
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch data");
-
-      const result: APIResponse = await response.json();
-
-      console.log("result", result);
-      setLengthData(result.total)
-
-      // Map Doctor[] to Payment[]
-      const paymentData: Payment[] = result.data.map((doctor) => ({
-        img: doctor.staff.staff_avatar,
-        id: doctor.id.toString(),
-        دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
-        "تاريخ الانضمام": new Date(doctor.create_date), // Adjust this field as needed
-        التقييم: doctor.rating || 0,
-      }));
-
-      setTableData(paymentData); // Set the transformed data
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchData();

@@ -1,27 +1,14 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
-import AnalysisPackage from "@/components/shared/AnalysisPackage";
 import InputForm from "@/components/shared/InputForm";
 import TestCard from "@/components/shared/testCard";
 import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import ActionDropdown from "@/components/unique/ActionDropdown";
-import FilterTests from "@/components/unique/FilterTests";
-import TestGroupSelector from "@/components/unique/TestGroupeSelector";
 import { Tests } from "@/constant";
 import { useState, useMemo, useEffect } from "react";
 
@@ -73,7 +60,7 @@ export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       const storedLanguage = localStorage.getItem("language");
       if (storedLanguage) {
         setLanguage(storedLanguage as Language);

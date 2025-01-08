@@ -35,6 +35,21 @@ const PaginationDemo: React.FC<PaginationProps> = ({ currentPage, totalPages, on
     onPageChange(pageNumber);
   };
 
+  // Calculate the range of pages to display (3 pages at a time)
+  const getDisplayedPages = () => {
+    const pages = [];
+    const startPage = Math.max(1, currentPage - 1); // Make sure the start page doesn't go below 1
+    const endPage = Math.min(totalPages, startPage + 2); // Show 3 pages, but make sure it doesn't go above totalPages
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  const displayedPages = getDisplayedPages();
+
   return (
     <Pagination>
       <PaginationContent>
@@ -46,14 +61,14 @@ const PaginationDemo: React.FC<PaginationProps> = ({ currentPage, totalPages, on
           />
         </PaginationItem>
 
-        {Array.from({ length: totalPages }, (_, index) => (
-          <PaginationItem key={index}>
+        {displayedPages.map((page) => (
+          <PaginationItem key={page}>
             <PaginationLink
               href="#"
-              onClick={(e) => handlePageClick(index + 1, e)}
-              isActive={currentPage === index + 1}
+              onClick={(e) => handlePageClick(page, e)}
+              isActive={currentPage === page}
             >
-              {index + 1}
+              {page}
             </PaginationLink>
           </PaginationItem>
         ))}

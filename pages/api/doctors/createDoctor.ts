@@ -41,6 +41,7 @@ export default async function handler(
   }
 
   try {
+    console.log("Request body:", req.body);
     const {
       staff,
       specialty,

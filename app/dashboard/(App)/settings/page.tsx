@@ -97,24 +97,27 @@ export default function Page() {
   };
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+    if(typeof window !== 'undefined') {
+      // Code that accesses `localStorage` goes here
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
   }, []);
 
   const items = [
@@ -142,10 +145,14 @@ export default function Page() {
   useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
       const accessToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("access")
-        : null;
+        typeof window !== "undefined" ? localStorage.getItem("access") : null;
+  
       try {
+        if (!accessToken) {
+          setError("Access token not found");
+          return;
+        }
+  
         const response = await fetch(`/api/user/getProfile/`, {
           method: "GET",
           headers: {
@@ -153,15 +160,15 @@ export default function Page() {
           },
         });
         const doctorData = await response.json();
-
+  
         if (doctorData.success) {
           setDoctor(doctorData.data);
-
+  
           const specialtiesResponse = await fetch(
             "https://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
-
+  
           if (specialtiesResponse.ok) {
             const specialty = specialtiesData.find(
               (item) => item.id === doctorData.data.specialty
@@ -180,7 +187,7 @@ export default function Page() {
         setLoading(false);
       }
     };
-
+  
     const fetchCities = async () => {
       try {
         const response = await fetch(
@@ -196,10 +203,11 @@ export default function Page() {
         console.error("Error fetching cities:", error);
       }
     };
-
+  
     fetchDoctorAndSpecialty();
     fetchCities();
   }, [id]);
+  
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;

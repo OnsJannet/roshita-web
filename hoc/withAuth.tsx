@@ -1,3 +1,4 @@
+"use client"
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -15,25 +16,28 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
     const [language, setLanguage] = useState<Language>("ar");
 
     useEffect(() => {
-      const storedLanguage = localStorage.getItem("language");
-      if (storedLanguage) {
-        setLanguage(storedLanguage as Language);
-      } else {
-        setLanguage("ar");
-      }
-
-      const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === "language") {
-          setLanguage((event.newValue as Language) || "ar");
+      if (typeof window !== 'undefined') {
+        const storedLanguage = localStorage.getItem("language");
+        if (storedLanguage) {
+          setLanguage(storedLanguage as Language);
+        } else {
+          setLanguage("ar");
         }
-      };
-
-      window.addEventListener("storage", handleStorageChange);
-
-      return () => {
-        window.removeEventListener("storage", handleStorageChange);
-      };
+    
+        const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === "language") {
+            setLanguage((event.newValue as Language) || "ar");
+          }
+        };
+    
+        window.addEventListener("storage", handleStorageChange);
+    
+        return () => {
+          window.removeEventListener("storage", handleStorageChange);
+        };
+      }
     }, []);
+    
 
     useEffect(() => {
       if (!isLoggedIn) {

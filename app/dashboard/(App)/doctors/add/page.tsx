@@ -97,8 +97,9 @@ type Language = "ar" | "en";
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
+ useEffect(() => {
+    // @ts-ignore
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       const storedLanguage = localStorage.getItem("language");
       if (storedLanguage) {
         setLanguage(storedLanguage as Language);
@@ -220,7 +221,7 @@ export default function Page() {
     }
     try {
       const accessToken =
-        typeof window !== "undefined"
+      (typeof window !== 'undefined' && typeof localStorage !== 'undefined')
           ? localStorage.getItem("access")
           : null;
       console.log("formData", formData)

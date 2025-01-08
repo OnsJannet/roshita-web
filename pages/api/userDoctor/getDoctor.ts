@@ -34,17 +34,26 @@ export default async function getDoctors(
       return res.status(500).json({ error: "CSRF token not configured" });
     }
 
-    //const response = await fetch("https://test-roshita.net/api/doctors-list/", {
-      const response = await fetch("https://test-roshita.net/api/user-doctors", {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        "X-CSRFToken": csrfToken,
-      },
-    });
+    // Extract the current page from query parameters, default to 1
+    const currentPage = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+
+    if (isNaN(currentPage) || currentPage < 1) {
+      return res.status(400).json({ error: "Invalid page number" });
+    }
+
+    // Fetch data from the external API
+    const response = await fetch(
+      `http://test-roshita.net/api/user-doctors/?page=${currentPage}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+      }
+    );
 
     const data = await response.json();
-    console.log("Doctors list:", data);
 
     if (!response.ok) {
       console.error("Roshita backend error:", data);
@@ -54,13 +63,14 @@ export default async function getDoctors(
       });
     }
 
-    // Extract the doctors array from the response
+    // Extract the doctors array and count from the response
     const doctors = data.results?.data?.doctors || [];
+    const count = data.count || 0;
 
     return res.status(200).json({
       success: true,
       data: doctors,
-      total: doctors.length,
+      total: count,
     });
   } catch (error) {
     console.error("Error fetching doctors:", error);

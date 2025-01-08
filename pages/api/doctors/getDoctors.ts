@@ -65,7 +65,7 @@ export default async function getDoctors(
     const page = req.query.page || 1;
 
     // Send the GET request to the API with Bearer token
-    const response = await fetch(`https://test-roshita.net/api/doctors/?page=${page}&limit=10`, {
+    const response = await fetch(`https://test-roshita.net/api/doctors/?page=${page}&limit=5`, {
       method: "GET",
       headers: {
         accept: "application/json",

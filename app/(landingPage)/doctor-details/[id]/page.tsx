@@ -1,4 +1,5 @@
 "use client";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
@@ -96,6 +97,7 @@ const DoctorDetailsPage = () => {
 
   const [language, setLanguage] = useState<Language>("ar");
   const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const translations: Record<Language, Translations> = {
     ar: {
@@ -127,7 +129,7 @@ const DoctorDetailsPage = () => {
   // Fetch doctors from the API
   const fetchDoctors = async () => {
     try {
-      //const response = await fetch("https://test-roshita.net/api/doctors-list/", {
+      setIsLoading(true); // Start loading
       const response = await fetch(
         "https://test-roshita.net/api/user-doctors",
         {
@@ -152,8 +154,33 @@ const DoctorDetailsPage = () => {
       }
     } catch (error) {
       console.error("Error fetching doctors:", error);
+    } finally {
+      setIsLoading(false); // End loading
     }
   };
+
+  useEffect(() => {
+    fetchDoctors();
+
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [id]);
 
   useEffect(() => {
     // Fetch doctor data on mount
@@ -182,6 +209,23 @@ const DoctorDetailsPage = () => {
     };
   }, [id]); // Re-run if 'id' changes
 
+  if (isLoading) {
+    return (
+      <div
+        className={`flex items-center justify-center min-h-screen text-center ${
+          language === "ar" ? "text-right" : "text-left"
+        }`}
+      >
+        {/*<p className="text-lg font-semibold">
+          {language === "ar"
+            ? "جاري تحميل تفاصيل الطبيب"
+            : "Loading doctor details..."}
+        </p>*/}
+        <LoadingDoctors/>
+      </div>
+    );
+  }
+
   if (!doctor) {
     return (
       <div
@@ -191,8 +235,8 @@ const DoctorDetailsPage = () => {
       >
         <p className="text-lg font-semibold">
           {language === "ar"
-            ? "جاري تحميل تفاصيل الطبيب"
-            : "Loading doctor details"}
+            ? "لا يمكن العثور على تفاصيل الطبيب"
+            : "Doctor details not found"}
         </p>
       </div>
     );

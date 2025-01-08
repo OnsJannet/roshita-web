@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import PaginationDemo from "@/components/shared/PaginationDemo";
 import DoctorCard from "@/components/unique/DorctorCard";
 import FilterDoctor from "@/components/unique/FilterDoctor";
@@ -61,8 +62,11 @@ const Page = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [language, setLanguage] = useState<Language>("ar");
   const [loading, setLoading] = useState(false);
-  const [noDoctors, setNoDoctors] = useState(false); // New state for no doctors
+  const [noDoctors, setNoDoctors] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const doctorsPerPage = 5;
+  const [doctorCount, setDoctorCount] = useState(0);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -97,59 +101,37 @@ const Page = () => {
       : decodeURIComponent(params.specialty)
     : undefined;
 
-
-    const hospital = params?.hospital
+  const hospital = params?.hospital
     ? Array.isArray(params.hospital)
       ? decodeURIComponent(params.hospital[0])
       : decodeURIComponent(params.hospital)
-    : undefined;  
+    : undefined;
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      console.log("i enterd")
-      setLoading(true);
+    // Fetch doctors from the backend
+    const fetchDoctors = async (page: number) => {
       try {
-        const response = await fetch(
-          "https://test-roshita.net/api/user-doctors",
-          {
-            method: "GET",
-            headers: {
-              accept: "application/json",
-              
-            },
-          }
-        );
-
-        const result = await response.json();
-        console.log("all of the results returned", result)
-
-        if (response.ok) {
-          setDoctors(result.results.data.doctors);
-        } else {
-          console.error("Failed to fetch doctors", result);
-        }
-      } catch (error) {
-        console.error("Error fetching doctors:", error);
+        setIsLoading(true);
+        const response = await fetch(`/api/userDoctor/getDoctor?page=${page}`);
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data.error || "Failed to fetch doctors");
+        setDoctors(data.data || []);
+        setDoctorCount(data.total);
+      } catch (err: any) {
+        setError(err.message);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchDoctors();
-  }, []);
+    fetchDoctors(currentPage);
+  }, [currentPage]);
 
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [selectedHospitals, setSelectedHospitals] = useState<string[]>([]);
-  
-  console.log(`These are the filters:`, {
-    selectedPrices,
-    selectedCountries,
-    selectedSpecialties,
-    selectedHospitals,
-  });
-  
 
   useEffect(() => {
     if (country) {
@@ -172,40 +154,36 @@ const Page = () => {
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
-    console.log("doctor doctor doctor", doctor);
     const priceMatch =
-      selectedPrices.length === 0 || 
-      selectedPrices.includes('all') || 
+      selectedPrices.length === 0 ||
+      selectedPrices.includes("all") ||
       selectedPrices.includes(doctor.price);
-  
+
     const countryMatch =
-      selectedCountries.length === 0 || 
-      selectedCountries.includes('all') || 
+      selectedCountries.length === 0 ||
+      selectedCountries.includes("all") ||
       selectedCountries.some((selectedCountry) => {
-        console.log("selected country", selectedCountry);
-        return doctor.medical_organizations[0]?.city?.country?.name.includes(selectedCountry);
+        return doctor.medical_organizations[0]?.city?.country?.name.includes(
+          selectedCountry
+        );
       });
-      
-  
+
     const specialtyMatch =
-      selectedSpecialties.length === 0 || 
-      selectedSpecialties.includes('all') || 
+      selectedSpecialties.length === 0 ||
+      selectedSpecialties.includes("all") ||
       selectedSpecialties.includes(doctor.specialization);
-  
+
     const hospitalMatch =
-      selectedHospitals.length === 0 || 
-      selectedHospitals.includes('all') || 
+      selectedHospitals.length === 0 ||
+      selectedHospitals.includes("all") ||
       selectedHospitals.includes(
-        language === 'ar'
+        language === "ar"
           ? doctor.medical_organizations[0]?.name
           : doctor.medical_organizations[0]?.foreign_name
       );
-  
+
     return priceMatch && countryMatch && specialtyMatch && hospitalMatch;
   });
-
-  console.log("filtered docts", filteredDoctors)
-  
 
   useEffect(() => {
     setNoDoctors(filteredDoctors.length === 0);
@@ -213,20 +191,26 @@ const Page = () => {
 
   const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
 
+  const totalDoctorPages = Math.ceil(doctorCount / doctorsPerPage);
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-  const currentDoctors = filteredDoctors.slice(
+
+  /*const currentDoctors = filteredDoctors.slice(
     indexOfFirstDoctor,
     indexOfLastDoctor
-  );
-
-  console.log("currentDoctors", currentDoctors)
+  );*/
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
   return (
+    isLoading ? (
+<div className="bg-white flex items-center justify-center min-h-screen">
+  <LoadingDoctors />
+</div>
+
+    ) : (
     <div className="bg-[#F9F9F9] pb-20">
       <TitleSection />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
@@ -239,8 +223,8 @@ const Page = () => {
             setSelectedCountries={setSelectedCountries}
             selectedSpecialties={selectedSpecialties}
             setSelectedSpecialties={setSelectedSpecialties}
-            selectedHospitals= {selectedHospitals}
-            setSelectedHospitals = {setSelectedHospitals}
+            selectedHospitals={selectedHospitals}
+            setSelectedHospitals={setSelectedHospitals}
           />
 
           <button
@@ -252,24 +236,13 @@ const Page = () => {
         </div>
 
         <div className="space-y-4 lg:w-[80%]">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className={` h-[220px] rounded-lg border border-gray-200 shadow-sm animate-pulse ${
-                  language === "ar" ? "flex-row-reverse" : "flex-row"
-                }`}
-              >
-                <div className="w-full h-full bg-gray-200 rounded-md"></div>
-              </div>
-            ))
-          ) : noDoctors ? (
+          {noDoctors ? (
             <div className="text-center text-xl font-semibold mx-auto mt-10">
               {translations[language].noDoctors}
             </div>
           ) : (
             <>
-              {currentDoctors.map((doctor) => (
+              {filteredDoctors.map((doctor) => (
                 <DoctorCard
                   key={doctor.doctor_id}
                   id={doctor.doctor_id}
@@ -279,14 +252,18 @@ const Page = () => {
                   reviewsCount={0}
                   price={doctor.price}
                   location={doctor.city}
-                  hospital={language === 'ar' ? doctor.medical_organizations[0]?.name : doctor.medical_organizations[0]?.foreign_name }
+                  hospital={
+                    language === "ar"
+                      ? doctor.medical_organizations[0]?.name
+                      : doctor.medical_organizations[0]?.foreign_name
+                  }
                   imageUrl={doctor.image}
                 />
               ))}
 
               <PaginationDemo
                 currentPage={currentPage}
-                totalPages={totalPages}
+                totalPages={totalDoctorPages}
                 onPageChange={handlePageChange}
               />
             </>
@@ -294,6 +271,7 @@ const Page = () => {
         </div>
       </div>
     </div>
+    )
   );
 };
 

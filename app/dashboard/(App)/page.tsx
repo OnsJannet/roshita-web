@@ -1,14 +1,7 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
-import StatCard from "@/components/dashboard/StatCard";
-
 import Breadcrumb from "@/components/layout/app-breadcrumb"; // Assuming your Breadcrumb component is here
-import EditButton from "@/components/layout/editButton";
-import AnalysisPackage from "@/components/shared/AnalysisPackage";
 import { AreaChartDash } from "@/components/shared/AreaChartDash";
-import InformationCard from "@/components/shared/InformationCardProps";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/dataTable";
 import {
   SidebarInset,
   SidebarProvider,
@@ -16,13 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import AddDoctorCard from "@/components/unique/AddDoctorCard";
 import { BarChartDash } from "@/components/unique/BarChartDash";
-import CustomInput from "@/components/unique/CustomeInput";
-import CustomeInput from "@/components/unique/CustomeInput";
-import DoctorCard from "@/components/unique/DoctorCardDash";
-import LabCard from "@/components/unique/LabCardDash";
 import { PieChartDash } from "@/components/unique/PieChartDash";
-import UploadButton from "@/components/unique/UploadButton";
-import { CircleDollarSign, CirclePlus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
@@ -31,42 +18,39 @@ export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        const storedLanguage = localStorage.getItem("language");
+        if (storedLanguage) {
+          setLanguage(storedLanguage as Language);
+        } else {
+          setLanguage("ar");
+        }
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
       }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+  
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
+  
+      window.addEventListener("storage", handleStorageChange);
+  
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
   }, []);
+  
+  
+
   // Breadcrumb items with Arabic text
   const items = [
     { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
   ];
 
-  const handleUpload = (file: File) => {
-    console.log("Uploaded file:", file);
-    // Handle the uploaded file (e.g., send it to a server or preview it)
-  };
-
-  const handleEdit = () => {
-    console.log("Edit clicked");
-  };
-
-  const handleDelete = () => {
-    console.log("Delete clicked");
-  };
 
   return (
     <SidebarProvider>

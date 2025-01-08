@@ -101,6 +101,7 @@ export default function Page() {
     const fetchTests = async () => {
       const accessToken =
       typeof window !== "undefined"
+      // @ts-ignore
         ? localStorage.getItem("access")
         : null;
       try {

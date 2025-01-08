@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       console.log("parsedUser", parsedUser.user_type)
 
       // If the user doesn't have the "staff" role, redirect to the access-denied page
-      if (parsedUser.user_type !== "staff" && parsedUser.user_type !== "Admin") {
+      if (parsedUser.user_type !== "staff" && parsedUser.user_type !== "Admin" && parsedUser.user_type !== "Doctor") {
         console.log("entered if (parsedUser.user_type !== staff || parsedUser.user_type !== Admin) {")
         redirect("/access-denied");
         return;

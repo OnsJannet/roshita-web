@@ -203,31 +203,33 @@ const dataDoctor: Data = {
   ],
 };
 
-const userString = localStorage.getItem("user");
 let lab = false;
 let hospital = false;
 let xRays = false;
 let doctor = false;
 
-if (userString) {
-  const user = JSON.parse(userString);
-  lab = user?.medical_organization_type === "Laboratory";
-  hospital = user?.medical_organization_type === "hospital";
-  xRays = user?.medical_organization_type === "Radiologic";
-  doctor = user?.medical_organization_type === "doctor";
+if (typeof window !== "undefined") {
+  const userString = localStorage.getItem("user");
+
+  if (userString) {
+    const user = JSON.parse(userString);
+    lab = user?.medical_organization_type === "Laboratory";
+    hospital = user?.medical_organization_type === "hospital";
+    xRays = user?.medical_organization_type === "Radiologic";
+    doctor = user?.medical_organization_type === "doctor";
+  }
 }
 
-/*const dataToMap = lab
+const dataToMap = lab
   ? dataLabs
   : hospital
   ? data
   : xRays
   ? dataRadiologic
-  : dataDoctor;*/
-
-  const dataToMap = data
+  : dataDoctor;
 
 console.log("dataToMap", dataToMap);
+
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -253,26 +255,34 @@ const SidebarProvider = React.forwardRef<
     const [openMobile, setOpenMobile] = React.useState(false);
     const [language, setLanguage] = React.useState<Language>("ar");
 
-    React.useEffect(() => {
-      const storedLanguage = localStorage.getItem("language");
-      if (storedLanguage) {
-        setLanguage(storedLanguage as Language);
-      } else {
-        setLanguage("ar");
+React.useEffect(() => {
+  // Check if localStorage is available (client-side only).
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
       }
+    };
 
-      const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === "language") {
-          setLanguage((event.newValue as Language) || "ar");
-        }
-      };
+    window.addEventListener("storage", handleStorageChange);
 
-      window.addEventListener("storage", handleStorageChange);
+    // Cleanup listener on component unmount.
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  } else {
+    // Default language if localStorage is not accessible.
+    setLanguage("ar");
+  }
+}, []);
 
-      return () => {
-        window.removeEventListener("storage", handleStorageChange);
-      };
-    }, []);
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
@@ -386,46 +396,58 @@ const Sidebar = React.forwardRef<
     const router = useRouter();
 
     const handleLogout = () => {
-      // Clear all session storage
-      sessionStorage.clear();
-
-      // Clear all local storage
-      localStorage.clear();
-
-      // Clear any cache (optional, this can be handled in different ways, depending on your app's cache strategy)
-      caches.keys().then((cacheNames) => {
-        cacheNames.forEach((cacheName) => {
-          caches.delete(cacheName);
-        });
-      });
-
-      // Optionally, if you have cookies that should also be cleared:
-      // document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-
+      // Check if sessionStorage and localStorage are available (client-side only)
+      if (typeof window !== "undefined") {
+        // Clear all session storage
+        sessionStorage.clear();
+    
+        // Clear all local storage
+        localStorage.clear();
+    
+        // Clear any cache (optional, depending on your app's cache strategy)
+        if ("caches" in window) {
+          caches.keys().then((cacheNames) => {
+            cacheNames.forEach((cacheName) => {
+              caches.delete(cacheName);
+            });
+          });
+        }
+    
+        // Optionally, if you have cookies that should also be cleared:
+        // document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      }
+    
       // Redirect to login page
       router.push("/dashboard/Auth/login");
     };
-
+    
     React.useEffect(() => {
-      const storedLanguage = localStorage.getItem("language");
-      if (storedLanguage) {
-        setLanguage(storedLanguage as Language);
+      if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+        const storedLanguage = localStorage.getItem("language");
+        if (storedLanguage) {
+          setLanguage(storedLanguage as Language);
+        } else {
+          setLanguage("ar");
+        }
+    
+        const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === "language") {
+            setLanguage((event.newValue as Language) || "ar");
+          }
+        };
+    
+        window.addEventListener("storage", handleStorageChange);
+    
+        // Cleanup listener on component unmount
+        return () => {
+          window.removeEventListener("storage", handleStorageChange);
+        };
       } else {
+        // Default language if localStorage is not accessible
         setLanguage("ar");
       }
-
-      const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === "language") {
-          setLanguage((event.newValue as Language) || "ar");
-        }
-      };
-
-      window.addEventListener("storage", handleStorageChange);
-
-      return () => {
-        window.removeEventListener("storage", handleStorageChange);
-      };
     }, []);
+    
 
     if (collapsible === "none") {
       return (

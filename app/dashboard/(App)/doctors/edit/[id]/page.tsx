@@ -13,6 +13,7 @@ import { Table, TableCell, TableRow } from "@/components/ui/table";
 import { DoctorData } from "@/constant";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { specialities } from "../../../../../../constant/index";
 
 interface Appointment {
   scheduled_date: string;
@@ -20,6 +21,7 @@ interface Appointment {
   end_time: string;
   appointment_status: string;
 }
+
 
 interface User {
   phone: string;
@@ -36,9 +38,15 @@ interface Doctor {
     }[];
     staff_avatar: string;
   };
+  specialty: Specialty[];
   fixed_price: string;
   user: User;
   appointments: Appointment[];
+}
+
+interface City {
+  id: number;
+  foreign_name: string;
 }
 
 interface Specialty {
@@ -47,9 +55,8 @@ interface Specialty {
   foreign_name: string;
 }
 
-interface City {
-  id: number;
-  foreign_name: string;
+interface Specialities {
+  specialities: Specialty[];
 }
 
 type Language = "ar" | "en";
@@ -150,10 +157,14 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [cities, setCities] = useState<City[]>([]); // State for cities
+  const [specialities, setSpecialities] = useState<Specialities | null>(null); // Allow null if no data
   const [language, setLanguage] = useState<Language>("ar");
   const [formData, setFormData] = useState<{ Image?: File }>({});
   const [image, setImage] = useState("");
   const [backendSlots, setBackendSlots] = useState<Slot[]>([]);
+  const [selectedSpecialityId, setSelectedSpecialityId] = useState<number | null>(null);
+  const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+
 
   const handleSlotsChange = (slots: Slot[]) => {
     setBackendSlots(slots);
@@ -161,7 +172,6 @@ export default function Page() {
   };
 
   const t = translations[language];
-
 
   const handleRemoveSlot = (index: number) => {
     if (doctor && doctor.appointments) {
@@ -179,10 +189,11 @@ export default function Page() {
     }
   };
 
+  console.log("specialities", specialities);
   const handleBooked = (index: number) => {
     if (doctor && doctor.appointments) {
-      const updatedAppointments = doctor.appointments.map((appointment, idx) => 
-        idx === index ? { ...appointment, status: 'booked' } : appointment
+      const updatedAppointments = doctor.appointments.map((appointment, idx) =>
+        idx === index ? { ...appointment, status: "booked" } : appointment
       );
       setDoctor((prevDoctor) => {
         return prevDoctor
@@ -194,8 +205,6 @@ export default function Page() {
       });
     }
   };
-  
-
 
   const appointmentDates = backendSlots.map((slot) => {
     return {
@@ -203,8 +212,7 @@ export default function Page() {
       start_time: slot.startTime, // Start time in HH:mm format
       end_time: slot.endTime, // End time in HH:mm format
       appointment_status: "pending",
-      price: doctor?.fixed_price
-
+      price: doctor?.fixed_price,
     };
   });
 
@@ -248,9 +256,7 @@ export default function Page() {
   useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
       const accessToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem("access")
-          : null;
+        typeof window !== "undefined" ? localStorage.getItem("access") : null;
       try {
         const response = await fetch(`/api/doctors/getDoctorById?id=${id}`, {
           method: "GET",
@@ -303,14 +309,36 @@ export default function Page() {
       }
     };
 
+    const fetchSpecialities = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/specialty-list/"
+        );
+        const data: Specialities = await response.json();
+
+        if (response.ok) {
+          setSpecialities(data); // Now setSpecialities accepts Specialities
+        } else {
+          console.error("Error fetching cities");
+        }
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+
     fetchDoctorAndSpecialty();
     fetchCities();
+    fetchSpecialities();
   }, [id]);
 
   // Handle city change here
   const handleCityChange = (newCityId: string) => {
+    const cityId = parseInt(newCityId);
+    setSelectedCityId(cityId)
+    console.log("Before change:", doctor);
+    
     setDoctor((prev) => {
-      if (prev) {
+      if (prev && prev.staff && prev.staff.medical_organization) {
         return {
           ...prev,
           staff: {
@@ -320,8 +348,8 @@ export default function Page() {
                 ? {
                     ...org,
                     city: {
+                      ...org.city,
                       id: newCityId,
-                      foreign_name: org.city.foreign_name,
                     },
                   }
                 : org
@@ -331,53 +359,81 @@ export default function Page() {
       }
       return prev;
     });
+    console.log("After change:", doctor);
   };
+
+  // If `speciality` is a string and you want to compare it with specialty.id (which is a number), convert `speciality` to a number
+  const handleSpecialityChange = (speciality: string) => {
+    const specialityId = parseInt(speciality);
+
+    setSelectedSpecialityId(specialityId);
+    console.log("speciality (input):", speciality);
+  
+    setDoctor((prev) => {
+      console.log("previous doctor state:", prev);
+  
+      if (prev && prev.specialty) {
+        console.log("entered in specialty");
+  
+        const updatedState = {
+          ...prev,
+          specialty: {
+            ...prev.specialty,
+            id: parseInt(speciality), // Update the ID of the specialty
+          },
+        };
+  
+        console.log("Updated specialty object:", updatedState);
+        return updatedState;
+      }
+  
+      console.log("no previous state or specialty, returning as-is:", prev);
+      return prev;
+    });
+  };
+  
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
   
-    console.log("image", image);
-    const updatedStaffAvatar = image || doctor.staff.staff_avatar;
+    // Filter out old and new appointments
+    const updatedAppointments =
+      doctor.appointments?.filter((existingAppointment) => {
+        return !appointmentDates.some(
+          (newAppointment) =>
+            newAppointment.scheduled_date === existingAppointment.scheduled_date &&
+            newAppointment.start_time === existingAppointment.start_time &&
+            newAppointment.appointment_status === existingAppointment.appointment_status
+        );
+      }) || [];
   
-    // Filter for new or modified appointments, considering both date, time, and status
     const newAppointments = appointmentDates.filter((newAppointment) => {
-      return !doctor.appointments.some(
+      return !doctor.appointments?.some(
         (existingAppointment) =>
           existingAppointment.scheduled_date === newAppointment.scheduled_date &&
           existingAppointment.start_time === newAppointment.start_time &&
-          existingAppointment.appointment_status === newAppointment.appointment_status // Check for status changes as well
+          existingAppointment.appointment_status === newAppointment.appointment_status
       );
     });
   
-    // Create an updated list of appointments by filtering out unchanged ones
-    const updatedAppointments = doctor.appointments.filter((existingAppointment) => {
-      return appointmentDates.some(
-        (newAppointment) =>
-          newAppointment.scheduled_date !== existingAppointment.scheduled_date ||
-          newAppointment.start_time !== existingAppointment.start_time ||
-          newAppointment.appointment_status !== existingAppointment.appointment_status // Include status in comparison
-      );
-    });
-  
-    // Prepare the updated doctor object with new or modified appointments
+    // Create an updatedDoctor object with only changes to specialty and city if necessary
     const updatedDoctor = {
       ...doctor,
+      // @ts-ignore
+      specialty: selectedSpecialityId !== doctor.specialty.id ? selectedSpecialityId : doctor.specialty.id, // Only update if the specialty ID has changed
       staff: {
         ...doctor.staff,
-        city: doctor.staff.medical_organization[0]?.city.id || "", // Use the updated city ID
-        address: "Updated Address", // Only update this if needed
-        staff_avatar: updatedStaffAvatar,
+        // @ts-ignore
+        city: selectedCityId !== doctor.staff.city ? selectedCityId : doctor.staff.city, // Only update if the city ID has changed
       },
-      specialty: 1,
-      fixed_price: doctor.fixed_price || "0",
-      rating: 5,
-      is_consultant: true,
-      appointments: [...updatedAppointments, ...newAppointments], // Merge only updated and new appointments
+      appointments: [...updatedAppointments, ...newAppointments],
     };
+  
+    console.log("Updated Doctor:", updatedDoctor);
   
     try {
       const accessToken = localStorage.getItem("access");
-      const response = await fetch(`/api/doctors/updateDoctorById?id=${id}`, {
+      const response = await fetch(`/api/doctors/updateDoctorById?id=${doctor.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -388,8 +444,7 @@ export default function Page() {
   
       const result = await response.json();
       if (result.success) {
-        setDoctor(updatedDoctor); // Update the doctor state
-        //window.location.reload(); // Optional: reload if needed
+        setDoctor(updatedDoctor);
       } else {
         setError(result.message || "Error updating doctor information");
       }
@@ -398,7 +453,6 @@ export default function Page() {
       setError("An error occurred while updating doctor information");
     }
   };
-  
   
   
 
@@ -447,6 +501,15 @@ export default function Page() {
                   label: language === "ar" ? "مكان" : "Location",
                   value: `${
                     doctor?.staff.medical_organization[0]?.city.foreign_name ??
+                    (language === "ar" ? "غير محدد" : "Not specified")
+                  }`,
+                  isDropdown: true,
+                },
+                {
+                  label: language === "ar" ? "التخصص" : "specialty",
+                  value: `${
+                    // @ts-ignore
+                    (language === "ar" ? doctor?.specialty?.name : doctor?.specialty?.foreign_name) ??
                     (language === "ar" ? "غير محدد" : "Not specified")
                   }`,
                   isDropdown: true,
@@ -525,11 +588,30 @@ export default function Page() {
                   );
                 }
                 if (index === 2) {
+                  setDoctor((prev) => {
+                    if (!prev) return prev; // Ensure prev exists
+                    return {
+                      ...prev,
+                      specialty: prev.specialty && typeof prev.specialty === "object"
+                        ? {
+                            ...prev.specialty,
+                            name: value, // Update the name with the desired value
+                          }
+                        : prev.specialty, // If specialty is not an object, keep it as is
+                    };
+                  });
+                  
+                }
+                
+                if (index === 3) {
                   setDoctor((prev) => prev && { ...prev, fixed_price: value });
                 }
               }}
               cities={cities}
               onCityChange={handleCityChange} // Pass the city change handler
+              // @ts-ignore
+              specialities={specialities}
+              onSpecialityChange={handleSpecialityChange} // Pass the city change handler
             />
 
             <Table className="w-full border border-gray-300  shadow-sm rounded-sm">
@@ -589,7 +671,6 @@ export default function Page() {
                               {t.remove}
                             </Button>
                             <Button
-
                               onClick={() => handleBooked(index)}
                               className="text-white bg-[#1685c7] ml-2"
                             >

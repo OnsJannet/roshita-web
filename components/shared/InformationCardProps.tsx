@@ -7,11 +7,13 @@ interface InformationCardProps {
   name: string;
   picture: string;
   fields: { isDropdown?: boolean; label: string; value: string }[];
-  photoUploadHandler?: (file: File | string) => void ;
+  photoUploadHandler?: (file: File | string) => void;
   onFieldChange?: (index: number, value: string) => void;
   onNameChange?: (value: string) => void;
   cities?: { id: number; name?: string; foreign_name: string }[];
   onCityChange?: (newCityId: string) => void;
+  specialities?: { id: number; name?: string; foreign_name: string }[];
+  onSpecialityChange?: (speciality: string) => void;
   type?: string;
 }
 
@@ -27,12 +29,17 @@ const InformationCard: React.FC<InformationCardProps> = ({
   onNameChange,
   cities,
   onCityChange,
+  specialities,
+  onSpecialityChange,
+
   type,
 }) => {
   const [editableName, setEditableName] = useState<string>(name);
   const [editableFields, setEditableFields] = useState(fields);
   const [isEditingName, setIsEditingName] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
+
+  console.log("specialities", specialities);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -91,8 +98,32 @@ const InformationCard: React.FC<InformationCardProps> = ({
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
-  const getBorderClass = () => (type === "add" ? "border" : "border-0");
+  const handleSpecialityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSpecialityId = event.target.value;
+  
+    // Log the event and new speciality ID
+    console.log("Event:", event);
+    console.log("New Speciality ID:", newSpecialityId);
+  
+    if (onSpecialityChange) {
+      console.log("onSpecialityChange function exists, calling it...");
+      onSpecialityChange(newSpecialityId);
+    } else {
+      console.log("onSpecialityChange function is not defined.");
+    }
+  
+    // Simulate a field change and log it
+    const simulatedEvent = {
+      target: { value: newSpecialityId },
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    console.log("Simulated Event for handleFieldChange:", simulatedEvent);
+  
+    handleFieldChange(2, simulatedEvent);
+  };
+  
 
+  const getBorderClass = () => (type === "add" ? "border" : "border-0");
 
   const translate = (key: string) => {
     const translations: Record<
@@ -128,14 +159,13 @@ const InformationCard: React.FC<InformationCardProps> = ({
           language === "ar" ? "flex-row-reverse" : "flex-row"
         } justify-start items-center p-4 gap-4`}
       >
-          <UploadButton
-            onUpload={(file) => {
-
-              // Call the photoUploadHandler from props
-              photoUploadHandler?.(file); // eslint-disable-line
-            }}
-            picture={picture}
-          />
+        <UploadButton
+          onUpload={(file) => {
+            // Call the photoUploadHandler from props
+            photoUploadHandler?.(file); // eslint-disable-line
+          }}
+          picture={picture}
+        />
         <div className="flex flex-col">
           <h4 className={`${language === "ar" ? "text-end" : "text-start"}`}>
             {translate("الإســــــم")}
@@ -179,6 +209,23 @@ const InformationCard: React.FC<InformationCardProps> = ({
                           </option>
                         ))}
                       </select>
+                    ) : index === 2 && specialities ? (
+                      <select
+                        value={field.value}
+                        onChange={handleSpecialityChange}
+                        className={`text-end ${getBorderClass()} p-2 rounded`}
+                      >
+                        <option value="" disabled>
+                          {translate("اختر تخصص")}
+                        </option>
+                        {specialities.map((speciality) => (
+                          <option key={speciality.id} value={speciality.id}>
+                            {language === "ar"
+                              ? speciality.name
+                              : speciality.foreign_name}
+                          </option>
+                        ))}
+                      </select>
                     ) : (
                       <input
                         type="text"
@@ -188,6 +235,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                       />
                     )}
                   </td>
+
                   <td className="py-3 px-2 text-gray-500 p-4">
                     {translate(field.label)}
                   </td>

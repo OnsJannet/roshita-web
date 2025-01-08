@@ -73,7 +73,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     try {
       // Prepare the payload
       const payload = { rating };
-  
+      const token = localStorage.getItem("access")
       // Replace the doctor ID dynamically
       const doctorId = doctorID; // Ensure this variable holds the correct doctor's ID
       const url = `https://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
@@ -83,6 +83,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload),
       });
@@ -92,7 +93,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   
       // Check if the request was successful
       if (response.ok) {
-        alert(language === "ar" ? "شكراً لتقييمك!" : "Thank you for your feedback!");
+        //alert(language === "ar" ? "شكراً لتقييمك!" : "Thank you for your feedback!");
+        window.location.reload();
         console.log("Rating submitted successfully:", data);
       } else {
         console.error("Failed to submit rating:", data);

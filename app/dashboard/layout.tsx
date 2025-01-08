@@ -1,23 +1,21 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import Footer from "@/components/shared/Footer";
-import NavBar from "@/components/shared/NavBar";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Sidebar, SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { cookies } from 'next/headers';
+"use client";
+import { useEffect, useState } from 'react';
+import {  SidebarProvider } from "@/components/ui/sidebar";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
 
-    const cookieStore = cookies();
-    const defaultOpen = cookieStore.get('sidebar:state')?.value === 'true';
-  return <>
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [defaultOpen, setDefaultOpen] = useState(false);
 
-      <SidebarProvider defaultOpen={defaultOpen}>
-          {children}
-      </SidebarProvider>
+  useEffect(() => {
+    // Access cookies on the client side
+    const cookieStore = document.cookie; 
+    const sidebarState = cookieStore.includes('sidebar:state=true');
+    setDefaultOpen(sidebarState);
+  }, []);
 
-  </>;
+  return (
+    <SidebarProvider defaultOpen={defaultOpen}>
+      {children}
+    </SidebarProvider>
+  );
 }

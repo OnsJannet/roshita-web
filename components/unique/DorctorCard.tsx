@@ -14,7 +14,6 @@ interface DoctorCardProps {
   hospital: string | null;
 }
 
-
 type Language = "ar" | "en";
 
 const DoctorCard: React.FC<DoctorCardProps> = ({
@@ -26,7 +25,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   location,
   imageUrl,
   id,
-  hospital
+  hospital,
 }) => {
   const handleButtonClick = () => {
     console.log("click button");
@@ -87,7 +86,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
         } flex lg:flex-col flex-row justify-between p-4`}
       >
         <div className="flex items-center mb-2">
-          <span className="text-gray-500 text-sm ml-2">({reviewsCount})</span>
+          {/*<span className="text-gray-500 text-sm ml-2">({reviewsCount})</span>*/}
           {/* Star Rating */}
           <div className="flex text-yellow-500">
             {Array.from({ length: 5 }, (_, i) => {
@@ -118,28 +117,43 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
       >
         {/* Doctor's Details */}
         <div className="flex flex-col items-end">
-        <h1 className={`text-2xl font-bold text-gray-800 mb-1 w-full ${language === "en" ? "text-start" : "text-end"}`}>{name}</h1>
-
-        <p className={`text-sm text-gray-500 mb-2 w-full ${language === "en" ? "text-start" : "text-end"}`}>{specialty}</p>
-
-        {hospital && (<div
-            className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
-              language === "en" ? "flex-row-reverse justify-end w-full" : "justify-start flex-row"
+          <h1
+            className={`text-2xl font-bold text-gray-800 mb-1 w-full ${
+              language === "en" ? "text-start" : "text-end"
             }`}
           >
-            <span>
-              {translations[language].hospital}
-              {hospital}
-            </span>
-            <Building className="text-roshitaDarkBlue" />
-          </div>)}
+            {name}
+          </h1>
 
+          <p
+            className={`text-sm text-gray-500 mb-2 w-full ${
+              language === "en" ? "text-start" : "text-end"
+            }`}
+          >
+            {specialty}
+          </p>
 
-
+          {hospital && (
+            <div
+              className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
+                language === "en"
+                  ? "flex-row-reverse justify-end w-full"
+                  : "justify-start flex-row"
+              }`}
+            >
+              <span>
+                {translations[language].hospital}
+                {hospital}
+              </span>
+              <Building className="text-roshitaDarkBlue" />
+            </div>
+          )}
 
           <div
             className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
-              language === "en" ? "flex-row-reverse justify-end w-full" : "justify-start flex-row"
+              language === "en"
+                ? "flex-row-reverse justify-end w-full"
+                : "justify-start flex-row"
             }`}
           >
             <span>
@@ -151,7 +165,9 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
 
           <div
             className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 w-full ${
-              language === "en" ? "flex-row-reverse justify-end" : "justify-start flex-row"
+              language === "en"
+                ? "flex-row-reverse justify-end"
+                : "justify-end flex-row"
             }`}
           >
             <p className="text-sm text-gray-500">
@@ -165,9 +181,13 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
         {/* Doctor's Image */}
         <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
           <img
-            src={imageUrl}
+            src={
+              imageUrl && imageUrl !== null
+                ? imageUrl
+                : "/Images/default-doctor.jpeg"
+            }
             alt={name}
-            className="h-full w-full object-contain"
+            className="h-full w-full object-cover"
           />
         </div>
       </div>

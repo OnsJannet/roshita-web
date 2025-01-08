@@ -98,6 +98,7 @@ const Page = () => {
   const [countryTerm, setCountryTerm] = useState<string>("");
   const [specialtyTerm, setSpecialtyTerm] = useState<string>("");
   const [language, setLanguage] = useState<Language>("ar");
+  const [doctorCount, setDoctorCount] = useState(0)
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -138,14 +139,15 @@ const Page = () => {
     };
 
     // Fetch doctors from the backend
-    const fetchDoctors = async () => {
+    const fetchDoctors = async (page: number) => {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/userDoctor/getDoctor");
+        const response = await fetch(`/api/userDoctor/getDoctor?page=${page}`);
         const data = await response.json();
         if (!response.ok)
           throw new Error(data.error || "Failed to fetch doctors");
         setDoctors(data.data || []);
+        setDoctorCount(data.total);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -170,9 +172,9 @@ const Page = () => {
     };
 
     fetchHospitals();
-    fetchDoctors();
+    fetchDoctors(currentPage);
     fetchLabs();
-  }, []);
+  }, [currentPage]);
 
   const resetFilters = () => {
     setSelectedPrices([]);
@@ -211,13 +213,13 @@ const Page = () => {
     });
   });
 
-  const totalDoctorPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
+  const totalDoctorPages = Math.ceil(doctorCount / doctorsPerPage);
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-  const currentDoctors = filteredDoctors.slice(
+  /*const currentDoctors = filteredDoctors.slice(
     indexOfFirstDoctor,
     indexOfLastDoctor
-  );
+  );*/
 
   const totalHospitalPages = Math.ceil(
     filteredHospitals.length / hospitalsPerPage
@@ -235,7 +237,9 @@ const Page = () => {
   const currentLabs = filteredLabs.slice(indexOfFirstLab, indexOfLastLab);
 
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
+    if (newPage > 0 && newPage <= totalDoctorPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   const handleSearchUpdate = (term: string) => {
@@ -251,6 +255,8 @@ const Page = () => {
     setSpecialtyTerm(term);
   };
 
+
+
   return (
     <div className="bg-[#F9F9F9] pb-20">
       <GuideTitleSection
@@ -261,12 +267,12 @@ const Page = () => {
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
         {searchTerm === "doctorsSearch" ? (
           <div className="space-y-4 lg:w-full">
-            {currentDoctors.length === 0 ? (
+            {doctors.length === 0 ? (
               <p className="text-center text-xl font-semibold mx-auto">
                 {translations[language].noDoctors}
               </p>
             ) : (
-              currentDoctors.map((doctor) => (
+              doctors.map((doctor) => (
                 <DoctorCard
                   key={doctor.doctor_id}
                   id={doctor.doctor_id}
