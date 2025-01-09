@@ -100,6 +100,10 @@ const NavBar = () => {
     window.location.href = "/register";
   };
 
+  const handleClickLoginProfessionally = () => {
+    window.location.href = "/dashboard/Auth/login";
+  }
+
   const handleClickHome = () => {
     window.location.href = "/";
   };
@@ -188,6 +192,13 @@ const NavBar = () => {
                     className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
                   >
                     {language === "ar" ? "تسجيل الدخول" : "Login"}
+                  </Button>
+                  <Button
+                    onClick={handleClickLoginProfessionally}
+                    variant="login"
+                    className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
+                  >
+                    {language === "ar" ? "تسجيل الدخول كمهني" : "Login as professional"}
                   </Button>
                   <Button
                     onClick={handleClickRegister}

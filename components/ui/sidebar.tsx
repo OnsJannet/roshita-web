@@ -203,33 +203,39 @@ const dataDoctor: Data = {
   ],
 };
 
-let lab = false;
+/*let lab = false;
 let hospital = false;
 let xRays = false;
 let doctor = false;
 
 if (typeof window !== "undefined") {
   const userString = localStorage.getItem("user");
+  console.log("useruseruser", userString);
 
   if (userString) {
     const user = JSON.parse(userString);
-    lab = user?.medical_organization_type === "Laboratory";
-    hospital = user?.medical_organization_type === "hospital";
-    xRays = user?.medical_organization_type === "Radiologic";
-    doctor = user?.medical_organization_type === "doctor";
+
+    lab = user?.medical_organization_type === "Laboratory" && user?.user_type === "staff";
+    hospital = user?.medical_organization_type === "hospital" && (user?.user_type === "Admin" || user?.user_type === "staff");
+    xRays = user?.medical_organization_type === "Radiologic" && user?.user_type === "staff";
+    doctor = user?.medical_organization_type === "hospital" && user?.user_type === "Doctor";
+
+    console.log("Is Laboratory staff:", lab);
+    console.log("Is Hospital Admin or staff:", hospital);
+    console.log("Is Radiologic staff:", xRays);
+    console.log("Is Hospital Doctor:", doctor);
   }
 }
 
-const dataToMap = lab
+const dataToMap = lab === true
   ? dataLabs
-  : hospital
+  : hospital === true
   ? data
-  : xRays
+  : xRays === true
   ? dataRadiologic
   : dataDoctor;
 
-console.log("dataToMap", dataToMap);
-
+console.log("dataToMap", dataToMap);*/
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -255,33 +261,37 @@ const SidebarProvider = React.forwardRef<
     const [openMobile, setOpenMobile] = React.useState(false);
     const [language, setLanguage] = React.useState<Language>("ar");
 
-React.useEffect(() => {
-  // Check if localStorage is available (client-side only).
-  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
+    React.useEffect(() => {
+      // Check if localStorage is available (client-side only).
+      if (
+        typeof window !== "undefined" &&
+        typeof localStorage !== "undefined"
+      ) {
+        const storedLanguage = localStorage.getItem("language");
+        if (storedLanguage) {
+          setLanguage(storedLanguage as Language);
+        } else {
+          setLanguage("ar");
+        }
 
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+        const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === "language") {
+            setLanguage((event.newValue as Language) || "ar");
+          }
+        };
+
+        window.addEventListener("storage", handleStorageChange);
+
+        // Cleanup listener on component unmount.
+        return () => {
+          window.removeEventListener("storage", handleStorageChange);
+        };
+      } else {
+        // Default language if localStorage is not accessible.
+        setLanguage("ar");
       }
-    };
+    }, []);
 
-    window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup listener on component unmount.
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  } else {
-    // Default language if localStorage is not accessible.
-    setLanguage("ar");
-  }
-}, []);
 
 
     // This is the internal state of the sidebar.
@@ -392,6 +402,12 @@ const Sidebar = React.forwardRef<
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
     const [language, setLanguage] = React.useState<Language>("ar");
+    const [userRoles, setUserRoles] = React.useState({
+      lab: false,
+      hospital: false,
+      xRays: false,
+      doctor: false,
+    });
 
     const router = useRouter();
 
@@ -400,10 +416,10 @@ const Sidebar = React.forwardRef<
       if (typeof window !== "undefined") {
         // Clear all session storage
         sessionStorage.clear();
-    
+
         // Clear all local storage
         localStorage.clear();
-    
+
         // Clear any cache (optional, depending on your app's cache strategy)
         if ("caches" in window) {
           caches.keys().then((cacheNames) => {
@@ -412,32 +428,35 @@ const Sidebar = React.forwardRef<
             });
           });
         }
-    
+
         // Optionally, if you have cookies that should also be cleared:
         // document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
       }
-    
+
       // Redirect to login page
       router.push("/dashboard/Auth/login");
     };
-    
+
     React.useEffect(() => {
-      if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      if (
+        typeof window !== "undefined" &&
+        typeof localStorage !== "undefined"
+      ) {
         const storedLanguage = localStorage.getItem("language");
         if (storedLanguage) {
           setLanguage(storedLanguage as Language);
         } else {
           setLanguage("ar");
         }
-    
+
         const handleStorageChange = (event: StorageEvent) => {
           if (event.key === "language") {
             setLanguage((event.newValue as Language) || "ar");
           }
         };
-    
+
         window.addEventListener("storage", handleStorageChange);
-    
+
         // Cleanup listener on component unmount
         return () => {
           window.removeEventListener("storage", handleStorageChange);
@@ -447,7 +466,6 @@ const Sidebar = React.forwardRef<
         setLanguage("ar");
       }
     }, []);
-    
 
     if (collapsible === "none") {
       return (
@@ -463,6 +481,45 @@ const Sidebar = React.forwardRef<
         </div>
       );
     }
+
+    React.useEffect(() => {
+      if (typeof window !== "undefined") {
+        const userString = localStorage.getItem("user");
+        console.log("useruseruser", userString);
+
+        if (userString) {
+          const user = JSON.parse(userString);
+
+          setUserRoles({
+            lab:
+              user?.medical_organization_type === "Laboratory",
+            hospital:
+              user?.medical_organization_type === "hospital" &&
+              (user?.user_type === "Admin" || user?.user_type === "staff"),
+            xRays:
+              user?.medical_organization_type === "Radiologic",
+            doctor:
+              user?.medical_organization_type === "hospital" &&
+              user?.user_type === "Doctor",
+          });
+
+          console.log("Is Laboratory staff:", userRoles.lab);
+          console.log("Is Hospital Admin or staff:", userRoles.hospital);
+          console.log("Is Radiologic staff:", userRoles.xRays);
+          console.log("Is Hospital Doctor:", userRoles.doctor);
+        }
+      }
+    }, []); // Runs once on mount
+
+    const dataToMap = userRoles.lab
+      ? dataLabs
+      : userRoles.hospital
+      ? data
+      : userRoles.xRays
+      ? dataRadiologic
+      : dataDoctor;
+
+    console.log("dataToMap", dataToMap);
 
     if (isMobile) {
       return (
@@ -560,6 +617,7 @@ const Sidebar = React.forwardRef<
         </Sheet>
       );
     }
+
 
     return (
       <div
