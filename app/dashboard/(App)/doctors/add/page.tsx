@@ -407,10 +407,10 @@ export default function Page() {
                         </div>
                       </td>
                       <td className="py-3 px-2 text-gray-700 p-4">
-                        <input
+                      <input
                           type="text"
-                          value={formData.fixedPrice}
-                          onChange={(e) => handleFieldChange(e, "fixedPrice")}
+                          value={formData.phoneNumber}
+                          onChange={(e) => handleFieldChange(e, "phoneNumber")}
                           className="text-end border p-2 rounded"
                         />
                       </td>
@@ -423,10 +423,10 @@ export default function Page() {
                         </div>
                       </td>
                       <td className="py-3 px-2 text-gray-700 p-4">
-                        <input
+                                                <input
                           type="text"
-                          value={formData.phoneNumber}
-                          onChange={(e) => handleFieldChange(e, "phoneNumber")}
+                          value={formData.fixedPrice}
+                          onChange={(e) => handleFieldChange(e, "fixedPrice")}
                           className="text-end border p-2 rounded"
                         />
                       </td>

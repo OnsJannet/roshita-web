@@ -12,6 +12,8 @@ type DoctorCardProps = {
   time: string;
   status: string;
   doctorID: string;
+  appointementId: string;
+  onError?: (errorMessage: string) => void;
 };
 
 type Language = "ar" | "en";
@@ -25,13 +27,18 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   day,
   time,
   doctorID,
+  appointementId,
   status: initialStatus,
+  onError
 }) => {
   const [status, setStatus] = useState(initialStatus);
   const [language, setLanguage] = useState<Language>("ar");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
+  const [error, setError] = useState("error");
   const [comment, setComment] = useState("");
+
+  console.log("onError", onError);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -54,7 +61,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     };
   }, []);
 
-  const handleCancel = () => {
+  /*const handleCancel = () => {
     const appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
 
     const updatedAppointments = appointments.map((appointment: any) => {
@@ -67,7 +74,67 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     localStorage.setItem("appointments", JSON.stringify(updatedAppointments));
     setStatus("canceled");
     alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
+  };*/
+
+
+
+  const handleCancel = async () => {
+    try {
+      const url = `https://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access")}`,
+        },
+      });
+  
+      if (!response.ok) {
+        const errorMsg =
+          language === "ar"
+            ? "حدث خطأ ما. حاول مرة أخرى."
+            : "Something went wrong. Please try again.";
+        setError(errorMsg);
+        onError?.(errorMsg); // Notify parent about the error
+        return;
+      }
+  
+      const reservationData = await response.json();
+      const updatedReservation = { ...reservationData, reservation_status: "CANCELLED" };
+  
+      const updateResponse = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access")}`,
+        },
+        body: JSON.stringify(updatedReservation),
+      });
+  
+      if (updateResponse.ok) {
+        setStatus("canceled");
+        alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
+      } else {
+        const errorMsg =
+          language === "ar"
+            ? "حدث خطأ ما. حاول مرة أخرى."
+            : "Something went wrong. Please try again.";
+        const errorData = await updateResponse.json();
+        console.error("Error canceling appointment:", errorData);
+        onError?.(errorMsg); // Notify parent
+      }
+    } catch (err) {
+      const errorMsg =
+        language === "ar"
+          ? "حدث خطأ ما. حاول مرة أخرى."
+          : "Something went wrong. Please try again.";
+      console.error("Error during cancellation:", err);
+      onError?.(errorMsg); // Notify parent
+    }
   };
+  
+
+  
 
   const handleRate = async () => {
     try {
@@ -177,7 +244,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
                   className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50"
                   onClick={handleCancel}
                 >
-                  {language === "ar" ? "حذف" : "Cancel"}{" "}
+                  {language === "ar" ? "إلغاء" : "Cancel"}{" "}
                   <Trash className="text-red-500 w-6 h-6 ml-2" />
                 </Button>
               )}

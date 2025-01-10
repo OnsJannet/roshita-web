@@ -50,6 +50,7 @@ const Page = () => {
   const [filterType, setFilterType] = useState<"previous" | "next">("next"); // New state for filtering
   const router = useRouter(); // Initialize useRouter
   const [language, setLanguage] = useState<Language>("ar");
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     // Sync the language state with the localStorage value
@@ -177,6 +178,13 @@ const Page = () => {
     router.push("/password-change");
   };
 
+  const handleError = (errorMessage: string) => {
+    console.error("Error from child:", errorMessage);
+    setErrorMessage(errorMessage);
+    // Handle the error (e.g., show a notification or update the state)
+  };
+
+
   console.log("filteredAppointments", filteredAppointments);
 
   return (
@@ -253,11 +261,21 @@ const Page = () => {
                 {translations[language].previous}
               </div>
             </div>
+            {errorMessage && (
+              <div
+                className={`text-red-500 bg-red-100 p-4 rounded lg:w-[80%] w-full mx-auto ${
+                  language === "ar" ? "text-end" : "text-start"
+                }`}
+              >
+                {errorMessage}
+              </div>
+            )}
             <div className="flex flex-col gap-4">
               {filteredAppointments.length > 0 ? (
                 filteredAppointments.map((appointment) => (
                   <AppointementsCard
                     key={appointment.id} // Using `id` as a unique key
+                    appointementId={appointment.id}
                     doctorID={appointment.doctor.id}
                     name={`${appointment.doctor.name} ${appointment.doctor.last_name}`} // Doctor's full name
                     specialty={appointment.doctor.specialty} // Doctor's specialty
@@ -273,7 +291,8 @@ const Page = () => {
                       hour: "2-digit",
                       minute: "2-digit",
                     })} // Format reservation time
-                    status={appointment.status || ""} // Status if available, empty string otherwise
+                    status={appointment.status || ""}
+                    onError={handleError}
                   />
                 ))
               ) : (
