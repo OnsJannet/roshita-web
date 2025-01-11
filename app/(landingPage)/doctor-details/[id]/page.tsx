@@ -131,26 +131,24 @@ const DoctorDetailsPage = () => {
     try {
       setIsLoading(true); // Start loading
       const response = await fetch(
-        "https://test-roshita.net/api/user-doctors",
+        `https://test-roshita.net/api/user-doctors/${id}`,
         {
           method: "GET",
           headers: {
             accept: "application/json",
-            "X-CSRFToken": process.env.NEXT_PUBLIC_CSRF_TOKEN || "", // Use token from .env.local
+            'X-CSRFToken': 'rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg', // Include CSRF token if needed
           },
+          redirect: 'follow', // Automatically follow redirects
         }
       );
-
-      const result = await response.json();
-
+  
       if (response.ok) {
-        // Find the doctor by ID
-        const fetchedDoctor = result.results.data.doctors.find(
-          (doc: any) => doc.doctor_id === id
-        );
-        setDoctor(fetchedDoctor);
+        const result = await response.json();
+        console.log("response result result", result.data.doctors[0]);
+  
+        setDoctor(result.data.doctors[0]);
       } else {
-        console.error("Failed to fetch doctors", result);
+        console.error("Failed to fetch doctors", await response.json());
       }
     } catch (error) {
       console.error("Error fetching doctors:", error);
@@ -158,6 +156,7 @@ const DoctorDetailsPage = () => {
       setIsLoading(false); // End loading
     }
   };
+  
 
   useEffect(() => {
     fetchDoctors();

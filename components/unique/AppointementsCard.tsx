@@ -13,6 +13,7 @@ type DoctorCardProps = {
   status: string;
   doctorID: string;
   appointementId: string;
+  appointementStatus: string;
   onError?: (errorMessage: string) => void;
 };
 
@@ -28,6 +29,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   time,
   doctorID,
   appointementId,
+  appointementStatus,
   status: initialStatus,
   onError
 }) => {
@@ -103,7 +105,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       const updatedReservation = { ...reservationData, reservation_status: "CANCELLED" };
   
       const updateResponse = await fetch(url, {
-        method: "PUT",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access")}`,
@@ -112,6 +114,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       });
   
       if (updateResponse.ok) {
+        window.location.reload();
         setStatus("canceled");
         alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
       } else {
@@ -133,7 +136,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     }
   };
   
-
+  console.log("appointement status", appointementStatus);
   
 
   const handleRate = async () => {
@@ -227,6 +230,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             </div>
           </div>
 
+          {}
           <div className="flex justify-between items-center w-full">
             <div
               className={`w-full flex ${
@@ -265,13 +269,20 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               </button>
             </div>
           </div>
+
         </div>
 
         <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
           <img
-            src={imageUrl}
+            src={
+              imageUrl &&
+              imageUrl !== null &&
+              !imageUrl.startsWith("/media/media/")
+                ? imageUrl
+                : "/Images/default-doctor.jpeg"
+            }
             alt={name}
-            className="h-full w-full object-contain"
+            className="h-full w-full object-cover"
           />
         </div>
       </div>
@@ -306,20 +317,22 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             ></textarea>*/}
-            <div className="flex justify-center gap-2">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => setIsModalOpen(false)}
-              >
-                {language === "ar" ? "إلغاء" : "Cancel"}
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleRate}
-              >
-                {language === "ar" ? "إرسال" : "Submit"}
-              </button>
-            </div>
+            {(appointementStatus === "confirmed" || appointementStatus === "pending payment") && (
+              <div className="flex justify-center gap-2">
+                <button
+                  className="bg-gray-300 px-4 py-2 rounded"
+                  onClick={handleCancel}
+                >
+                  {language === "ar" ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  onClick={handleRate}
+                >
+                  {language === "ar" ? "إرسال" : "Submit"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

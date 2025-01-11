@@ -91,6 +91,8 @@ const PasswordChange = () => {
         throw new Error("No token found. Please log in.");
       }
 
+      console.log("token change passowrd", token);
+
       const response = await fetch(
         "https://test-roshita.net/api/account/change-password/",
         {
@@ -124,6 +126,7 @@ const PasswordChange = () => {
             : "Password changed successfully"
         }: ${data.message}`
       );
+      window.location.reload();
     } catch (error) {
       console.error("Error changing password:", error);
     }

@@ -63,7 +63,7 @@ const page = () => {
         // Redirect to login or other actions after successful registration
         window.location.href = "/login";
       } else {
-        alert("Registration failed: " + result.message);
+        //alert("Registration failed: " + result.message);
         console.log("Registration Error:", result);
       }
     } catch (error) {

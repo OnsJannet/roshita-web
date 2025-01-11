@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { doctors } from "@/constant";
 import DoctorCardAppointment from "@/components/unique/DoctorCardAppointment";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 
 interface Doctor {
   doctor_id: number;
@@ -73,20 +74,28 @@ const Appointment = () => {
   );
 
   useEffect(() => {
-    // Fetch doctors data from API
+    // Fetch doctors data from the API using the correct endpoint
     const fetchDoctor = async () => {
       try {
-        const response = await fetch("/api/userDoctor/getDoctor");
-        const data = await response.json();
-
+        const response = await fetch(`https://test-roshita.net/api/user-doctors/${id}`, {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            'X-CSRFToken': 'rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg', // Include CSRF token if needed
+          },
+          redirect: 'follow', // Automatically follow redirects
+        });
+  
         if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch doctors");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch doctor data");
         }
-
+  
+        const data = await response.json();
+        console.log("Doctor data:", data.data.doctors[0]);
+  
         // Find the doctor by ID
-        const selectedDoctor = data.data.find(
-          (doc: Doctor) => doc.doctor_id === id
-        );
+        const selectedDoctor = data.data.doctors[0];
         setDoctor(selectedDoctor || null);
       } catch (err: any) {
         setError(err.message || "An error occurred while fetching data");
@@ -94,22 +103,21 @@ const Appointment = () => {
         setLoading(false);
       }
     };
-
+  
     fetchDoctor();
-
-    console.log("doctor", doctors)
-
+  
     // Fetch appointment preferences from localStorage
     const day = localStorage.getItem("appointmentDay") || "";
     const time = localStorage.getItem("appointmentTime") || "";
     setAppointmentDay(day);
     setAppointmentTime(time);
-  }, [id]);
+  }, [id]); // Re-run the effect whenever `id` changes
+  
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-lg font-semibold">
-        {language === "ar" ? "جاري التحميل..." : "Loading..."}
+        <LoadingDoctors/>
       </div>
     );
   }
@@ -141,7 +149,8 @@ const Appointment = () => {
         rating={doctor.rating || 0}
         reviewsCount={doctor.reviewsCount || 0}
         price={doctor.price}
-        location={doctor.location}
+        // @ts-ignore
+        location={doctor.medical_organizations[0].city.name}
         imageUrl={doctor.imageUrl}
         day={appointmentDay}
         time={appointmentTime}

@@ -76,7 +76,8 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   day,
   time,
   medical_organizations,
-  paymentMethod
+  paymentMethod,
+  id
 }) => {
   const [profileData, setProfileData] = useState({
     user: {
@@ -190,7 +191,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       },
       medical_organizations: organizationId || 0,
       //confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
-      doctor: 1, // Replace with the actual doctor ID
+      doctor: id, // Replace with the actual doctor ID
       price: price,
       payment: {
         payment_method: paymentMethod?.word,
@@ -250,8 +251,8 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   
 
   const handleOtpSubmit = async () => {
-    const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}`
-
+    const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`
+    const token = localStorage.getItem("access");
         const requestBody = {
           process_id: `${processID}`,
           code: `${otpCode}`,
@@ -265,6 +266,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestBody),
       });

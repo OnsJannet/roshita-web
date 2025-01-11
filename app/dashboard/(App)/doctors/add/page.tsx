@@ -45,14 +45,14 @@ type Language = "ar" | "en";
 /**
  * Doctor Add Form Page
  *
- * This page is responsible for adding a new doctor to the system. It handles 
- * the submission of the doctor's details, including their name, specialty, 
- * city, address, fixed price, rating, and profile picture. The form dynamically 
- * adjusts based on the selected language and provides a smooth user experience 
+ * This page is responsible for adding a new doctor to the system. It handles
+ * the submission of the doctor's details, including their name, specialty,
+ * city, address, fixed price, rating, and profile picture. The form dynamically
+ * adjusts based on the selected language and provides a smooth user experience
  * with real-time validation and API integration.
  *
  * Features:
- * - Displays a form with fields for the doctor's first name, last name, specialty, 
+ * - Displays a form with fields for the doctor's first name, last name, specialty,
  *   city, address, fixed price, and rating.
  * - Allows image upload for the doctor's profile picture.
  * - Fetches available specialties and cities dynamically from external APIs.
@@ -61,45 +61,44 @@ type Language = "ar" | "en";
  * - Displays error messages if the API request fails or if form validation fails.
  * - Supports dynamic language switching between Arabic and English based on user preference.
  * - Adjusts the layout and text direction (RTL or LTR) based on the selected language.
- * 
+ *
  * Fetching Flow:
- * 1. The list of available specialties and cities is fetched from external APIs 
+ * 1. The list of available specialties and cities is fetched from external APIs
  *    when the component mounts.
- * 2. The form fields are populated with the user's input, and changes are tracked 
+ * 2. The form fields are populated with the user's input, and changes are tracked
  *    using controlled components.
  * 3. On form submission, the doctor's data is sent to the backend API for storage.
- * 4. If the submission is successful, the user is redirected to the doctors list page. 
+ * 4. If the submission is successful, the user is redirected to the doctors list page.
  *    If there is an error, an error message is displayed.
- * 
+ *
  * Components Used:
  * - Breadcrumb: Displays navigation links to easily navigate between pages.
  * - UploadButton: Provides functionality for uploading the doctor's profile picture.
  * - Form Fields: Various input fields (text, number, select) for entering doctor details.
  * - ErrorMessage: Displays error messages for missing or invalid fields.
- * 
+ *
  * Expected Props:
  * - Language: The current language selected by the user (e.g., 'ar' or 'en').
  * - Specialties: A list of available specialties fetched from an external API.
  * - Cities: A list of available cities fetched from an external API.
- * 
+ *
  * Example:
- * When the user fills out the form with the doctor's details and clicks the submit button, 
- * the doctor's data will be sent to the backend, and on success, the user will be redirected 
+ * When the user fills out the form with the doctor's details and clicks the submit button,
+ * the doctor's data will be sent to the backend, and on success, the user will be redirected
  * to the doctors list page.
- * 
+ *
  * Notes:
  * - The form supports dynamic text direction based on the selected language.
  * - All error messages and form labels are displayed in the selected language (Arabic or English).
  * - The page is part of a larger admin panel used for managing doctor records.
  */
 
-
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
 
- useEffect(() => {
+  useEffect(() => {
     // @ts-ignore
-    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       const storedLanguage = localStorage.getItem("language");
       if (storedLanguage) {
         setLanguage(storedLanguage as Language);
@@ -196,21 +195,19 @@ export default function Page() {
   const handleSlotsChange = (slots: Slot[]) => {
     setBackendSlots(slots);
     console.log("Updated slots:", slots);
-
   };
 
   const appointmentDates = backendSlots.map((slot) => {
     return {
       scheduled_date: slot.date, // Date in YYYY-MM-DD format
       start_time: slot.startTime, // Start time in HH:mm format
-      end_time: slot.endTime,     // End time in HH:mm format
+      end_time: slot.endTime, // End time in HH:mm format
       price: formData.fixedPrice,
     };
   });
 
-  console.log("appointmentDates", appointmentDates)
+  console.log("appointmentDates", appointmentDates);
 
-  
   // Handle form submission
   const handleSubmit = async () => {
     const missingFields = validateForm();
@@ -221,10 +218,10 @@ export default function Page() {
     }
     try {
       const accessToken =
-      (typeof window !== 'undefined' && typeof localStorage !== 'undefined')
+        typeof window !== "undefined" && typeof localStorage !== "undefined"
           ? localStorage.getItem("access")
           : null;
-      console.log("formData", formData)
+      console.log("formData", formData);
       const response = await fetch("/api/doctors/createDoctor", {
         method: "POST",
         headers: {
@@ -244,7 +241,7 @@ export default function Page() {
           fixed_price: formData.fixedPrice,
           rating: Number(formData.rating), // Ensure rating is sent as a number
           is_consultant: formData.isConsultant, // This will be a boolean
-          appointment_dates: appointmentDates
+          appointment_dates: appointmentDates,
           //Image: formData.Image,
         }),
       });
@@ -317,7 +314,7 @@ export default function Page() {
             language === "ar" ? "justify-end" : "justify-between"
           } h-16 shrink-0 items-center border-b px-4 gap-2`}
         >
-                    <div
+          <div
             className={`flex ${
               language === "ar" ? "flex-row" : "flex-row-reverse"
             } gap-2 items-center`}
@@ -407,14 +404,16 @@ export default function Page() {
                         </div>
                       </td>
                       <td className="py-3 px-2 text-gray-700 p-4">
-                      <input
+                        <input
                           type="text"
                           value={formData.phoneNumber}
                           onChange={(e) => handleFieldChange(e, "phoneNumber")}
                           className="text-end border p-2 rounded"
                         />
                       </td>
-                      <td className="py-3 px-2 text-gray-500 p-4">رقم التليفون</td>
+                      <td className="py-3 px-2 text-gray-500 p-4">
+                        رقم التليفون
+                      </td>
                     </tr>
                     <tr className="border-t p-4">
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
@@ -423,7 +422,7 @@ export default function Page() {
                         </div>
                       </td>
                       <td className="py-3 px-2 text-gray-700 p-4">
-                                                <input
+                        <input
                           type="text"
                           value={formData.fixedPrice}
                           onChange={(e) => handleFieldChange(e, "fixedPrice")}
@@ -545,7 +544,7 @@ export default function Page() {
                           className={`border p-2 rounded text-end`}
                         />
                       </td>
-                      
+
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
                           <MoveRight className="h-4 w-4" />
@@ -564,7 +563,7 @@ export default function Page() {
                           className={`border p-2 rounded text-end`}
                         />
                       </td>
-                      
+
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
                           <MoveRight className="h-4 w-4" />
@@ -672,7 +671,7 @@ export default function Page() {
               )}
             </div>
 
-              <DoctorSlots onSlotsChange={handleSlotsChange}/>
+            <DoctorSlots onSlotsChange={handleSlotsChange} />
 
             <Button
               variant="register"

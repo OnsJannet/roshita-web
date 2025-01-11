@@ -111,7 +111,8 @@ interface UserData {
       if (!response.ok) {
         // If the status is not OK, throw an error with the status and message
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed due to server error');
+        console.log("Error: ", errorData)
+        throw new Error(errorData.detail || 'Login failed due to server error');
       }
   
       // Return the response JSON if the status is OK

@@ -18,11 +18,10 @@ type DoctorCardAppointmentProps = {
   medical_organizations: { id: number; name: string };
 };
 
-
-
 type Language = "ar" | "en";
 
 const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
+  id,
   name,
   specialty,
   price,
@@ -30,7 +29,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   imageUrl,
   day,
   time,
-  medical_organizations
+  medical_organizations,
 }) => {
   const [step, setStep] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -62,7 +61,11 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
     };
   }, []);
 
-  const callTransactionAPI = async (service: string, action: string, payload: any) => {
+  const callTransactionAPI = async (
+    service: string,
+    action: string,
+    payload: any
+  ) => {
     try {
       const response = await fetch(`/api/transaction?service=${service}`, {
         method: "POST",
@@ -82,11 +85,17 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
 
   const handleVerifyTransaction = async () => {
     if (!selectedId) {
-      alert(language === "en" ? "Please select a payment method" : "يرجى اختيار طريقة الدفع");
+      alert(
+        language === "en"
+          ? "Please select a payment method"
+          : "يرجى اختيار طريقة الدفع"
+      );
       return;
     }
 
-    const selectedPaymentMethod = paiement.find((option) => option.id === selectedId);
+    const selectedPaymentMethod = paiement.find(
+      (option) => option.id === selectedId
+    );
     if (selectedPaymentMethod) {
       const verifyPayload = {
         payment_method: selectedPaymentMethod.name,
@@ -94,21 +103,35 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
         ...(selectedPaymentMethod.name === "sadad" && { birth_year: "1998" }), // Example for Sadad
       };
 
-      const verifyResponse = await callTransactionAPI(selectedPaymentMethod.name, "verify", verifyPayload);
+      const verifyResponse = await callTransactionAPI(
+        selectedPaymentMethod.name,
+        "verify",
+        verifyPayload
+      );
       if (verifyResponse?.status === 200) {
         setProcessId(verifyResponse.result.process_id);
-        alert(language === "en" ? "Verification successful! Enter OTP to confirm." : "تم التحقق بنجاح! أدخل رمز التحقق للتأكيد.");
+        alert(
+          language === "en"
+            ? "Verification successful! Enter OTP to confirm."
+            : "تم التحقق بنجاح! أدخل رمز التحقق للتأكيد."
+        );
       }
     }
   };
 
   const handleConfirmTransaction = async () => {
     if (!processId || !otpCode) {
-      alert(language === "en" ? "Please complete verification and enter the OTP." : "يرجى إكمال التحقق وإدخال رمز التحقق.");
+      alert(
+        language === "en"
+          ? "Please complete verification and enter the OTP."
+          : "يرجى إكمال التحقق وإدخال رمز التحقق."
+      );
       return;
     }
 
-    const selectedPaymentMethod = paiement.find((option) => option.id === selectedId);
+    const selectedPaymentMethod = paiement.find(
+      (option) => option.id === selectedId
+    );
     if (selectedPaymentMethod) {
       const confirmPayload = {
         process_id: processId,
@@ -116,14 +139,17 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
         amount: price, // Ensure this is numeric
       };
 
-      const confirmResponse = await callTransactionAPI(selectedPaymentMethod.name, "confirm", confirmPayload);
+      const confirmResponse = await callTransactionAPI(
+        selectedPaymentMethod.name,
+        "confirm",
+        confirmPayload
+      );
       if (confirmResponse?.status === 200) {
         alert(language === "en" ? "Payment successful!" : "تم الدفع بنجاح!");
         setStep(3); // Proceed to next step
       }
     }
   };
-  
 
   return (
     <div className="shadow-lg py-10 mt-2 max-w-[1280px] rounded-2xl">
@@ -195,9 +221,15 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
             {/* Doctor's Image */}
             <div className="ml-4 h-[120px] w-[120px] rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
               <img
-                src={imageUrl}
+                src={
+                  imageUrl &&
+                  imageUrl !== null &&
+                  !imageUrl.startsWith("/media/media/")
+                    ? imageUrl
+                    : "/Images/default-doctor.jpeg"
+                }
                 alt={name}
-                className="h-full w-full object-contain"
+                className="h-full w-full object-cover"
               />
             </div>
           </div>
@@ -267,11 +299,15 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               price={price}
               location={location}
               imageUrl={imageUrl}
-              id={1}
+              id={id}
               day={day}
               time={time}
               medical_organizations={medical_organizations}
-              paymentMethod={selectedId ? paiement.find((option) => option.id === selectedId) : null}
+              paymentMethod={
+                selectedId
+                  ? paiement.find((option) => option.id === selectedId)
+                  : null
+              }
             />
           </div>
         </div>

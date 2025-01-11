@@ -253,6 +253,7 @@ const Profile = () => {
       await editUserProfile(profileData, token);
 
       setSuccessMessage("Profile updated successfully.");
+      window.location.reload();
       console.log("Profile updated successfully.");
     } catch (error: any) {
       setErrorMessage(error.message || "Error updating profile.");

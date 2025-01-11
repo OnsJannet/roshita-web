@@ -15,13 +15,13 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { specialities } from "../../../../../../constant/index";
 
-interface Appointment {
+type Appointment = {
   scheduled_date: string;
   start_time: string;
   end_time: string;
   appointment_status: string;
-}
-
+  //price: string;
+};
 
 interface User {
   phone: string;
@@ -47,6 +47,7 @@ interface Doctor {
 interface City {
   id: number;
   foreign_name: string;
+  name: string;
 }
 
 interface Specialty {
@@ -128,7 +129,7 @@ const translations = {
     durationError: "Duration is greater than the available time range.",
     date: "Date",
     action: "Action",
-    roshitaBook: "Roshita Book",
+    roshitaBook: "Book",
     status: "Status",
   },
   ar: {
@@ -144,7 +145,7 @@ const translations = {
     durationError: "المدة أكبر من نطاق الوقت المتاح.",
     date: "التاريخ",
     action: "إجراء",
-    roshitaBook: "حجز روشيتا",
+    roshitaBook: "حجز ",
     status: "الحالة",
   },
 };
@@ -162,9 +163,22 @@ export default function Page() {
   const [formData, setFormData] = useState<{ Image?: File }>({});
   const [image, setImage] = useState("");
   const [backendSlots, setBackendSlots] = useState<Slot[]>([]);
-  const [selectedSpecialityId, setSelectedSpecialityId] = useState<number | null>(null);
+  const [selectedSpecialityId, setSelectedSpecialityId] = useState<
+    number | null
+  >(null);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
-
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<Appointment | null>(
+    null
+  );
+  const [patientDetails, setPatientDetails] = useState({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+    city: "",
+    address: "",
+  });
 
   const handleSlotsChange = (slots: Slot[]) => {
     setBackendSlots(slots);
@@ -191,18 +205,55 @@ export default function Page() {
 
   console.log("specialities", specialities);
   const handleBooked = (index: number) => {
+    console.log("index", index);
     if (doctor && doctor.appointments) {
-      const updatedAppointments = doctor.appointments.map((appointment, idx) =>
-        idx === index ? { ...appointment, status: "booked" } : appointment
+      console.log("entered doctors");
+      const selectedAppointment = doctor.appointments[index];
+      setBookingDetails(selectedAppointment);
+      setPopupVisible(true);
+    }
+  };
+
+  const handleBookingSubmit = async () => {
+    const payload = {
+      reservation: {
+        patient: patientDetails,
+        //reservation_status: "pending payment",
+        reservation_date: bookingDetails?.scheduled_date,
+      },
+      confirmation_code: "12345", // Replace or generate dynamically
+      // @ts-ignore
+      price: bookingDetails?.price, // Adjust as needed
+    };
+
+    const token = localStorage.getItem("access");
+
+    try {
+      const response = await fetch(
+        "https://test-roshita.net/api/appointment-reservations/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-CSRFToken":
+              "rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg",
+          },
+          body: JSON.stringify(payload),
+        }
       );
-      setDoctor((prevDoctor) => {
-        return prevDoctor
-          ? {
-              ...prevDoctor,
-              appointments: updatedAppointments,
-            }
-          : null;
-      });
+
+      if (response.ok) {
+        alert("Booking successful!");
+        setPopupVisible(false);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Booking failed. Please try again.");
     }
   };
 
@@ -334,9 +385,9 @@ export default function Page() {
   // Handle city change here
   const handleCityChange = (newCityId: string) => {
     const cityId = parseInt(newCityId);
-    setSelectedCityId(cityId)
+    setSelectedCityId(cityId);
     console.log("Before change:", doctor);
-    
+
     setDoctor((prev) => {
       if (prev && prev.staff && prev.staff.medical_organization) {
         return {
@@ -368,13 +419,13 @@ export default function Page() {
 
     setSelectedSpecialityId(specialityId);
     console.log("speciality (input):", speciality);
-  
+
     setDoctor((prev) => {
       console.log("previous doctor state:", prev);
-  
+
       if (prev && prev.specialty) {
         console.log("entered in specialty");
-  
+
         const updatedState = {
           ...prev,
           specialty: {
@@ -382,66 +433,86 @@ export default function Page() {
             id: parseInt(speciality), // Update the ID of the specialty
           },
         };
-  
+
         console.log("Updated specialty object:", updatedState);
         return updatedState;
       }
-  
+
       console.log("no previous state or specialty, returning as-is:", prev);
       return prev;
     });
   };
-  
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
-  
+
     // Filter out old and new appointments
     const updatedAppointments =
       doctor.appointments?.filter((existingAppointment) => {
         return !appointmentDates.some(
           (newAppointment) =>
-            newAppointment.scheduled_date === existingAppointment.scheduled_date &&
+            newAppointment.scheduled_date ===
+              existingAppointment.scheduled_date &&
             newAppointment.start_time === existingAppointment.start_time &&
-            newAppointment.appointment_status === existingAppointment.appointment_status
+            newAppointment.appointment_status ===
+              existingAppointment.appointment_status
         );
       }) || [];
-  
+
     const newAppointments = appointmentDates.filter((newAppointment) => {
       return !doctor.appointments?.some(
         (existingAppointment) =>
-          existingAppointment.scheduled_date === newAppointment.scheduled_date &&
+          existingAppointment.scheduled_date ===
+            newAppointment.scheduled_date &&
           existingAppointment.start_time === newAppointment.start_time &&
-          existingAppointment.appointment_status === newAppointment.appointment_status
+          existingAppointment.appointment_status ===
+            newAppointment.appointment_status
       );
     });
-  
+    
+ // @ts-ignore
+    console.log("doctor.specialty.id", doctor.specialty.id)
+    console.log("selectedSpecialityId", selectedSpecialityId)
+
     // Create an updatedDoctor object with only changes to specialty and city if necessary
     const updatedDoctor = {
       ...doctor,
       // @ts-ignore
-      specialty: selectedSpecialityId !== doctor.specialty.id ? selectedSpecialityId : doctor.specialty.id, // Only update if the specialty ID has changed
+      specialty:
+        // @ts-ignore
+        selectedSpecialityId !== null && selectedSpecialityId !== doctor.specialty.id
+          ? selectedSpecialityId
+          : // @ts-ignore
+            doctor.specialty.id, // Only update if the specialty ID has changed
       staff: {
         ...doctor.staff,
         // @ts-ignore
-        city: selectedCityId !== doctor.staff.city ? selectedCityId : doctor.staff.city, // Only update if the city ID has changed
+        city:
+          // @ts-ignore
+          selectedCityId !== null && selectedCityId !== doctor.staff.city
+            ? selectedCityId
+            : // @ts-ignore
+              doctor.staff.city, // Only update if the city ID has changed
       },
       appointments: [...updatedAppointments, ...newAppointments],
     };
-  
+
     console.log("Updated Doctor:", updatedDoctor);
-  
+
     try {
       const accessToken = localStorage.getItem("access");
-      const response = await fetch(`/api/doctors/updateDoctorById?id=${doctor.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(updatedDoctor),
-      });
-  
+      const response = await fetch(
+        `/api/doctors/updateDoctorById?id=${doctor.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(updatedDoctor),
+        }
+      );
+
       const result = await response.json();
       if (result.success) {
         setDoctor(updatedDoctor);
@@ -453,8 +524,6 @@ export default function Page() {
       setError("An error occurred while updating doctor information");
     }
   };
-  
-  
 
   console.log("doctor", doctor);
 
@@ -479,6 +548,146 @@ export default function Page() {
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="p-8 space-y-8">
             {error && <div className="text-red-500">{error}</div>}
+            {popupVisible && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-screen">
+                <div className="bg-white p-8 rounded-lg max-w-md w-full shadow-lg">
+                  <h3
+                    className={`text-lg font-bold mb-4 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {language === "ar" ? "احجز موعدك" : "Book Your Appointment"}
+                  </h3>
+                  <form
+                    className={`space-y-4 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    <input
+                      type="text"
+                      placeholder={
+                        language === "ar" ? "الاسم الأول" : "First Name"
+                      }
+                      value={patientDetails.first_name}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          first_name: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <input
+                      type="text"
+                      placeholder={
+                        language === "ar" ? "اسم العائلة" : "Last Name"
+                      }
+                      value={patientDetails.last_name}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          last_name: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <input
+                      type="text"
+                      placeholder={language === "ar" ? "رقم الهاتف" : "Phone"}
+                      value={patientDetails.phone}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          phone: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <input
+                      type="email"
+                      placeholder={
+                        language === "ar" ? "البريد الإلكتروني" : "Email"
+                      }
+                      value={patientDetails.email}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          email: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <div className="w-full">
+                      <select
+                        value={patientDetails.city}
+                        onChange={(e) =>
+                          setPatientDetails({
+                            ...patientDetails,
+                            city: e.target.value, // Store city ID here
+                          })
+                        }
+                        className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      >
+                        <option value="" disabled>
+                          {language === "ar" ? "اختر المدينة" : "Select a city"}
+                        </option>
+                        {cities.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {city[language === "ar" ? "name" : "foreign_name"]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={language === "ar" ? "العنوان" : "Address"}
+                      value={patientDetails.address}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          address: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <div
+                      className={`flex ${
+                        language === "ar"
+                          ? "space-x-reverse gap-2 pace-x-4"
+                          : "space-x-4"
+                      } justify-between`}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleBookingSubmit}
+                        className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      >
+                        {language === "ar" ? "احجز الآن" : "Book Now"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPopupVisible(false)}
+                        className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                      >
+                        {language === "ar" ? "إلغاء" : "Cancel"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
             <InformationCard
               title={
                 language === "ar" ? "بيانات الشخصية" : "Personal Information"
@@ -509,7 +718,11 @@ export default function Page() {
                   label: language === "ar" ? "التخصص" : "specialty",
                   value: `${
                     // @ts-ignore
-                    (language === "ar" ? doctor?.specialty?.name : doctor?.specialty?.foreign_name) ??
+                    (language === "ar"
+                      ? // @ts-ignore
+                        doctor?.specialty?.name
+                      : // @ts-ignore
+                        doctor?.specialty?.foreign_name) ??
                     (language === "ar" ? "غير محدد" : "Not specified")
                   }`,
                   isDropdown: true,
@@ -592,17 +805,17 @@ export default function Page() {
                     if (!prev) return prev; // Ensure prev exists
                     return {
                       ...prev,
-                      specialty: prev.specialty && typeof prev.specialty === "object"
-                        ? {
-                            ...prev.specialty,
-                            name: value, // Update the name with the desired value
-                          }
-                        : prev.specialty, // If specialty is not an object, keep it as is
+                      specialty:
+                        prev.specialty && typeof prev.specialty === "object"
+                          ? {
+                              ...prev.specialty,
+                              name: value, // Update the name with the desired value
+                            }
+                          : prev.specialty, // If specialty is not an object, keep it as is
                     };
                   });
-                  
                 }
-                
+
                 if (index === 3) {
                   setDoctor((prev) => prev && { ...prev, fixed_price: value });
                 }
@@ -739,6 +952,7 @@ export default function Page() {
             </Table>
 
             <DoctorSlots onSlotsChange={handleSlotsChange} />
+
             <Button
               variant="register"
               className="rounded-2xl h-[52px] w-[140px]"

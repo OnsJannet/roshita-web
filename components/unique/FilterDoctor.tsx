@@ -103,11 +103,22 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   }, []);
 
   const prices = Array.from(
-    new Set(doctors.map((doctor) => doctor.price || ""))
+    new Set(
+      doctors.map((doctor) => doctor.price).filter((price) => price !== undefined && price !== null && price !== "")
+    )
   );
+  
   const countries = Array.from(
-    new Set(doctors.map((doctor) => doctor.city || ""))
+    new Set(
+      doctors.map((doctor) =>
+        language === "ar"
+          ? doctor.medical_organizations[0]?.city?.country?.name
+          : doctor.medical_organizations[0]?.city?.country?.foreign_name || ""
+      )
+    )
   );
+  
+  
   const specialties = Array.from(
     new Set(doctors.map((doctor) => doctor.specialization || ""))
   );

@@ -149,40 +149,46 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
             </div>
           )}
 
-          <div
-            className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
-              language === "en"
-                ? "flex-row-reverse justify-end w-full"
-                : "justify-start flex-row"
-            }`}
-          >
-            <span>
-              {translations[language].price}
-              {price}
-            </span>
-            <Banknote className="text-roshitaDarkBlue" />
-          </div>
+          {price && (
+            <div
+              className={`flex items-end text-sm text-gray-600 mb-1 mt-2 gap-2  ${
+                language === "en"
+                  ? "flex-row-reverse justify-end w-full"
+                  : "justify-start flex-row"
+              }`}
+            >
+              <span>
+                {translations[language].price}
+                {price}
+              </span>
+              <Banknote className="text-roshitaDarkBlue" />
+            </div>
+          )}
 
-          <div
-            className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 w-full ${
-              language === "en"
-                ? "flex-row-reverse justify-end"
-                : "justify-end flex-row"
-            }`}
-          >
-            <p className="text-sm text-gray-500">
-              {translations[language].location}
-              {location}
-            </p>
-            <MapPin className="text-roshitaDarkBlue" />
-          </div>
+          {location && (
+            <div
+              className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 w-full ${
+                language === "en"
+                  ? "flex-row-reverse justify-end"
+                  : "justify-end flex-row"
+              }`}
+            >
+              <p className="text-sm text-gray-500">
+                {translations[language].location}
+                {location}
+              </p>
+              <MapPin className="text-roshitaDarkBlue" />
+            </div>
+          )}
         </div>
 
         {/* Doctor's Image */}
         <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
           <img
             src={
-              imageUrl && imageUrl !== null
+              imageUrl &&
+              imageUrl !== null &&
+              !imageUrl.startsWith("/media/media/")
                 ? imageUrl
                 : "/Images/default-doctor.jpeg"
             }

@@ -291,7 +291,8 @@ const Page = () => {
                       hour: "2-digit",
                       minute: "2-digit",
                     })} // Format reservation time
-                    status={appointment.status || ""}
+                    appointementStatus={appointment.reservation.reservation_status}
+                    status={appointment.reservation_status || ""}
                     onError={handleError}
                   />
                 ))

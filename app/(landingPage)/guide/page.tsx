@@ -98,7 +98,7 @@ const Page = () => {
   const [countryTerm, setCountryTerm] = useState<string>("");
   const [specialtyTerm, setSpecialtyTerm] = useState<string>("");
   const [language, setLanguage] = useState<Language>("ar");
-  const [doctorCount, setDoctorCount] = useState(0)
+  const [doctorCount, setDoctorCount] = useState(0);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -213,6 +213,9 @@ const Page = () => {
     });
   });
 
+  console.log("filteredDoctors", filteredDoctors.length);
+
+  //const totalDoctorPages = Math.ceil((specialtyTerm || countryTerm ? filteredDoctors.length : doctorCount) / doctorsPerPage);
   const totalDoctorPages = Math.ceil(doctorCount / doctorsPerPage);
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
@@ -255,8 +258,6 @@ const Page = () => {
     setSpecialtyTerm(term);
   };
 
-
-
   return (
     <div className="bg-[#F9F9F9] pb-20">
       <GuideTitleSection
@@ -272,7 +273,7 @@ const Page = () => {
                 {translations[language].noDoctors}
               </p>
             ) : (
-              doctors.map((doctor) => (
+              filteredDoctors.map((doctor) => (
                 <DoctorCard
                   key={doctor.doctor_id}
                   id={doctor.doctor_id}
