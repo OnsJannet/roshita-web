@@ -137,7 +137,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   };
   
   console.log("appointement status", appointementStatus);
-  
+
 
   const handleRate = async () => {
     try {

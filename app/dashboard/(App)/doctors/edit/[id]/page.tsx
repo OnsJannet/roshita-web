@@ -185,6 +185,8 @@ export default function Page() {
     console.log("Updated slots:", slots);
   };
 
+  console.log("patientDetails", patientDetails)
+
   const t = translations[language];
 
   const handleRemoveSlot = (index: number) => {
@@ -469,7 +471,6 @@ export default function Page() {
             newAppointment.appointment_status
       );
     });
-    
  // @ts-ignore
     console.log("doctor.specialty.id", doctor.specialty.id)
     console.log("selectedSpecialityId", selectedSpecialityId)
@@ -702,7 +703,7 @@ export default function Page() {
                 {
                   label: language === "ar" ? "رقم الهاتف" : "Phone Number",
                   value: `${
-                    doctor?.user.phone ??
+                    (doctor?.user.phone ?? "") ||
                     (language === "ar" ? "غير محدد" : "Not specified")
                   }`,
                 },

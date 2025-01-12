@@ -50,7 +50,7 @@ const Page = () => {
   const [filterType, setFilterType] = useState<"previous" | "next">("next"); // New state for filtering
   const router = useRouter(); // Initialize useRouter
   const [language, setLanguage] = useState<Language>("ar");
-  const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // Sync the language state with the localStorage value
@@ -184,7 +184,6 @@ const Page = () => {
     // Handle the error (e.g., show a notification or update the state)
   };
 
-
   console.log("filteredAppointments", filteredAppointments);
 
   return (
@@ -291,7 +290,9 @@ const Page = () => {
                       hour: "2-digit",
                       minute: "2-digit",
                     })} // Format reservation time
-                    appointementStatus={appointment.reservation.reservation_status}
+                    appointementStatus={
+                      appointment.reservation.reservation_status
+                    }
                     status={appointment.reservation_status || ""}
                     onError={handleError}
                   />
