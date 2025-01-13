@@ -88,40 +88,55 @@ const InformationCard: React.FC<InformationCardProps> = ({
     onFieldChange?.(index, event.target.value);
   };
 
-  const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCityId = event.target.value;
-    if (onCityChange) {
-      onCityChange(newCityId);
-    }
-    handleFieldChange(1, {
-      target: { value: newCityId },
-    } as React.ChangeEvent<HTMLInputElement>);
+ const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const newCityId = event.target.value;
+
+  // Log the event and new speciality ID
+  console.log("Event:", event);
+  console.log("New Speciality ID:", newCityId);
+
+  if (onCityChange) {
+    console.log("onSpecialityChange function exists, calling it...");
+    onCityChange(newCityId);
+  } else {
+    console.log("onSpecialityChange function is not defined.");
+  }
+
+  // Simulate a field change and log it
+  const simulatedEvent = {
+    target: { value: newCityId },
+  } as React.ChangeEvent<HTMLInputElement>;
+
+  console.log("Simulated Event for handleFieldChange:", simulatedEvent);
+
+  handleFieldChange(1, simulatedEvent);
   };
 
-  const handleSpecialityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSpecialityChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const newSpecialityId = event.target.value;
-  
+
     // Log the event and new speciality ID
     console.log("Event:", event);
     console.log("New Speciality ID:", newSpecialityId);
-  
+
     if (onSpecialityChange) {
       console.log("onSpecialityChange function exists, calling it...");
       onSpecialityChange(newSpecialityId);
     } else {
       console.log("onSpecialityChange function is not defined.");
     }
-  
+
     // Simulate a field change and log it
     const simulatedEvent = {
       target: { value: newSpecialityId },
     } as React.ChangeEvent<HTMLInputElement>;
-    
+
     console.log("Simulated Event for handleFieldChange:", simulatedEvent);
-  
+
     handleFieldChange(2, simulatedEvent);
   };
-  
 
   const getBorderClass = () => (type === "add" ? "border" : "border-0");
 
@@ -194,87 +209,82 @@ const InformationCard: React.FC<InformationCardProps> = ({
                     </div>
                   </td>
                   <td className="py-3 px-2 text-gray-700 p-4">
-                    {index === 1 && cities ? (
-                      <select
-                        value={field.value}
-                        onChange={handleCityChange}
-                        className={`text-end ${getBorderClass()} p-2 rounded`}
-                      >
-                        <option value="" disabled>
-                          {translate("اختر مدينة")}
-                        </option>
-                        {cities.map((city) => (
-                          <option key={city.id} value={city.id}>
-                            {language === "ar" ? city.name : city.foreign_name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : index === 2 && specialities ? (
-                      <select
-                        value={field.value}
-                        onChange={handleSpecialityChange}
-                        className={`text-end ${getBorderClass()} p-2 rounded`}
-                      >
-                        <option value="" disabled>
-                          {translate("اختر تخصص")}
-                        </option>
-                        {specialities.map((speciality) => (
-                          <option key={speciality.id} value={speciality.id}>
-                            {language === "ar"
-                              ? speciality.name
-                              : speciality.foreign_name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
+                    {index === 0 ? (
+                      // Editable phone number input
                       <input
                         type="text"
                         value={field.value}
-                        onChange={(e) => handleFieldChange(index, e)}
-                        className={`text-end ${getBorderClass()} p-2 rounded`}
+                        onChange={(event) => handleFieldChange(index, event)}
+                        className={`${
+                          language === "ar" ? "text-end p-2" : "text-start"
+                        } ${getBorderClass()} rounded`}
                       />
+                    ) : field.isDropdown ? (
+                      // Dropdown for city or specialty
+                      <select
+                        value={field.value}
+                        onChange={(event) =>
+                          index === 1
+                            ? handleCityChange(event)
+                            : handleSpecialityChange(event)
+                        }
+                        className={`${
+                          language === "ar" ? "text-end" : "text-start"
+                        } p-2 rounded`}
+                      >
+                        {(index === 1 ? cities : specialities)?.map(
+                          (option) => (
+                            <option key={option.id} value={option.name}>
+                              {option.name}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    ) : (
+                      field.value
                     )}
                   </td>
-
-                  <td className="py-3 px-2 text-gray-500 p-4">
-                    {translate(field.label)}
-                  </td>
+                  <td className="py-3 px-2 text-gray-500 p-4">{field.label}</td>
                 </>
               ) : (
                 <>
-                  <td className="py-3 px-2 text-gray-500 p-4 text-center">
-                    <td className="py-3 px-2 text-gray-500 p-4">
-                      {translate(field.label)}
-                    </td>
-                  </td>
-                  <td className="py-3 px-2 text-gray-700 p-4  text-left">
-                    {index === 1 && cities ? (
-                      <select
-                        value={field.value}
-                        onChange={handleCityChange}
-                        className={`text-left ${getBorderClass()} p-2 rounded `}
-                      >
-                        <option value="" disabled>
-                          {translate("اختر مدينة")}
-                        </option>
-                        {cities.map((city) => (
-                          <option key={city.id} value={city.id}>
-                            {city.foreign_name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
+                  <td className="py-3 px-2 text-gray-500 p-4">{field.label}</td>
+                  <td className="py-3 px-2 text-gray-700 p-4">
+                    {index === 0 ? (
+                      // Editable phone number input
                       <input
                         type="text"
                         value={field.value}
-                        onChange={(e) => handleFieldChange(index, e)}
-                        className={`text-left ${getBorderClass()} p-2 rounded`}
+                        onChange={(event) => handleFieldChange(index, event)}
+                        className={`${"text-start p-2"} ${getBorderClass()} rounded`}
                       />
+                    ) : field.isDropdown ? (
+                      <select
+                        value={field.value}
+                        onChange={(event) =>
+                          index === 1
+                            ? handleCityChange(event)
+                            : handleSpecialityChange(event)
+                        }
+                        className={`${"text-end"} p-2 rounded`}
+                      >
+                        {(index === 1 ? cities : specialities)?.map(
+                          (option) => (
+                            <option key={option.id} value={option.foreign_name}>
+                              option.foreign_name
+                            </option>
+                          )
+                        )}
+                      </select>
+                    ) : (
+                      field.value
                     )}
                   </td>
-                  <div className="py-3 px-2 text-gray-500 p-4 ">
-                    <MoveRight className="h-4 w-4" />
-                  </div>
+                  <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                    <div className="flex justify-center">
+                      <MoveRight className="h-4 w-4" />
+                    </div>
+                  </td>
                 </>
               )}
             </tr>

@@ -185,7 +185,7 @@ export default function Page() {
     console.log("Updated slots:", slots);
   };
 
-  console.log("patientDetails", patientDetails)
+  console.log("patientDetails", patientDetails);
 
   const t = translations[language];
 
@@ -385,64 +385,107 @@ export default function Page() {
   }, [id]);
 
   // Handle city change here
-  const handleCityChange = (newCityId: string) => {
-    const cityId = parseInt(newCityId);
-    setSelectedCityId(cityId);
-    console.log("Before change:", doctor);
+  const handleCityChange = (cityNameOrForeignName: string) => {
+    console.log("City selected:", cityNameOrForeignName);
 
+    // Find the matching city in the cities list based on name or foreign_name
+    const matchingCity = cities?.find(
+      (city) =>
+        city.name === cityNameOrForeignName ||
+        city.foreign_name === cityNameOrForeignName
+    );
+
+    if (!matchingCity) {
+      console.log("No matching city found for:", cityNameOrForeignName);
+      return;
+    }
+
+    const cityId = matchingCity.id;
+    console.log("Matched city ID:", cityId);
+
+    // Set the selected city ID in state
+    setSelectedCityId(cityId);
+
+    // Update the doctor state
+    // @ts-ignore
     setDoctor((prev) => {
-      if (prev && prev.staff && prev.staff.medical_organization) {
-        return {
-          ...prev,
-          staff: {
-            ...prev.staff,
-            medical_organization: prev.staff.medical_organization.map((org) =>
-              org.city.id === prev.staff.medical_organization[0].city.id
+      if (!prev || !prev.staff?.medical_organization) {
+        console.log("Doctor state or medical organization not defined.");
+        return prev;
+      }
+
+      const updatedDoctor = {
+        ...prev,
+        staff: {
+          ...prev.staff,
+          medical_organization: prev.staff.medical_organization.map(
+            (org, index) =>
+              index === 0 // Assuming we're updating the first organization's city
                 ? {
                     ...org,
                     city: {
                       ...org.city,
-                      id: newCityId,
+                      id: cityId, // Update city ID
                     },
                   }
                 : org
-            ),
-          },
-        };
-      }
-      return prev;
+          ),
+        },
+      };
+
+      console.log("Updated doctor state in setDoctor:", updatedDoctor);
+      return updatedDoctor;
     });
-    console.log("After change:", doctor);
+
+    console.log("Updated doctor state after city change:", doctor);
   };
 
-  // If `speciality` is a string and you want to compare it with specialty.id (which is a number), convert `speciality` to a number
-  const handleSpecialityChange = (speciality: string) => {
-    const specialityId = parseInt(speciality);
+  const handleSpecialityChange = (specialityNameOrForeignName: string) => {
+    console.log("Specialty selected:", specialityNameOrForeignName);
 
+    // Find the matching specialty in the specialties list based on name or foreign_name
+    // @ts-ignore
+    const matchingSpeciality = specialities?.find(
+      // @ts-ignore
+      (speciality) =>
+        speciality.name === specialityNameOrForeignName ||
+        speciality.foreign_name === specialityNameOrForeignName
+    );
+
+    if (!matchingSpeciality) {
+      console.log(
+        "No matching specialty found for:",
+        specialityNameOrForeignName
+      );
+      return;
+    }
+
+    const specialityId = matchingSpeciality.id;
+    console.log("Matched specialty ID:", specialityId);
+
+    // Set the selected specialty ID in state
     setSelectedSpecialityId(specialityId);
-    console.log("speciality (input):", speciality);
 
+    // Update the doctor state
+    // @ts-ignore
     setDoctor((prev) => {
-      console.log("previous doctor state:", prev);
+      if (!prev) return prev;
 
-      if (prev && prev.specialty) {
-        console.log("entered in specialty");
+      const updatedDoctor = {
+        ...prev,
+        specialty: prev.specialty
+          ? {
+              ...prev.specialty,
+              id: specialityId, // Update specialty ID
+            }
+          : null, // Handle the case where specialty is not defined
+      };
 
-        const updatedState = {
-          ...prev,
-          specialty: {
-            ...prev.specialty,
-            id: parseInt(speciality), // Update the ID of the specialty
-          },
-        };
-
-        console.log("Updated specialty object:", updatedState);
-        return updatedState;
-      }
-
-      console.log("no previous state or specialty, returning as-is:", prev);
-      return prev;
+      console.log("Updated doctor state in setDoctor:", updatedDoctor);
+      return updatedDoctor;
     });
+
+    console.log("Updated doctor state after specialty change:", doctor);
   };
 
   const handleUpdateDoctor = async () => {
@@ -471,9 +514,9 @@ export default function Page() {
             newAppointment.appointment_status
       );
     });
- // @ts-ignore
-    console.log("doctor.specialty.id", doctor.specialty.id)
-    console.log("selectedSpecialityId", selectedSpecialityId)
+    // @ts-ignore
+    console.log("doctor.specialty.id", doctor.specialty.id);
+    console.log("selectedSpecialityId", selectedSpecialityId);
 
     // Create an updatedDoctor object with only changes to specialty and city if necessary
     const updatedDoctor = {
@@ -481,7 +524,9 @@ export default function Page() {
       // @ts-ignore
       specialty:
         // @ts-ignore
-        selectedSpecialityId !== null && selectedSpecialityId !== doctor.specialty.id
+        selectedSpecialityId !== null &&
+        // @ts-ignore
+        selectedSpecialityId !== doctor.specialty.id
           ? selectedSpecialityId
           : // @ts-ignore
             doctor.specialty.id, // Only update if the specialty ID has changed

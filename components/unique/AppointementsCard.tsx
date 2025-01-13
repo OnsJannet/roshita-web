@@ -114,9 +114,9 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       });
   
       if (updateResponse.ok) {
-        window.location.reload();
+        //window.location.reload();
         setStatus("canceled");
-        alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
+        //alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
       } else {
         const errorMsg =
           language === "ar"
