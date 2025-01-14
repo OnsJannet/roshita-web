@@ -31,6 +31,7 @@ interface Doctor {
   staff: {
     first_name: string;
     last_name: string;
+    city: { id: string; name: string; foreign_name: string };
     medical_organization: {
       name: string;
       city: { id: string; foreign_name: string };
@@ -384,6 +385,9 @@ export default function Page() {
     fetchSpecialities();
   }, [id]);
 
+
+
+
   // Handle city change here
   const handleCityChange = (cityNameOrForeignName: string) => {
     console.log("City selected:", cityNameOrForeignName);
@@ -560,7 +564,9 @@ export default function Page() {
       );
 
       const result = await response.json();
+      window.location.reload(); 
       if (result.success) {
+        // @ts-ignore
         setDoctor(updatedDoctor);
       } else {
         setError(result.message || "Error updating doctor information");
@@ -755,7 +761,12 @@ export default function Page() {
                 {
                   label: language === "ar" ? "مكان" : "Location",
                   value: `${
-                    doctor?.staff.medical_organization[0]?.city.foreign_name ??
+                    // @ts-ignore
+                    (language === "ar"
+                      ? // @ts-ignore
+                      doctor?.staff?.city.name
+                      : // @ts-ignore
+                      doctor?.staff?.city.foreign_name) ??
                     (language === "ar" ? "غير محدد" : "Not specified")
                   }`,
                   isDropdown: true,
@@ -811,40 +822,34 @@ export default function Page() {
                 )
               }
               onFieldChange={(index, value) => {
-                if (index === 0) {
+                if (index === 0) { // Phone number field
                   setDoctor(
                     (prev) =>
                       prev && {
                         ...prev,
-                        staff: {
-                          ...prev.staff,
-                          medical_organization:
-                            prev.staff.medical_organization.map((org, i) =>
-                              i === 0 ? { ...org, phone: value } : org
-                            ),
-                        },
+                        user: { ...prev.user, phone: value }, // Update `doctor.user.phone`
                       }
                   );
                 }
                 if (index === 1) {
-                  setDoctor(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        staff: {
-                          ...prev.staff,
-                          medical_organization:
-                            prev.staff.medical_organization.map((org, i) =>
-                              i === 0
-                                ? {
-                                    ...org,
-                                    city: { ...org.city, foreign_name: value },
-                                  }
-                                : org
-                            ),
-                        },
-                      }
-                  );
+                  setDoctor((prev) => {
+                    if (!prev) return prev; // Ensure prev exists
+                
+                    return {
+                      ...prev,
+                      staff: {
+                        ...prev.staff,
+                        city:
+                          typeof prev.staff.city === "object" // Ensure city is an object
+                            ? {
+                                id: prev.staff.city.id, // Keep the existing ID (should be a number)
+                                name: value, // Update city name
+                                foreign_name: prev.staff.city.foreign_name,
+                              }
+                            : prev.staff.city, // If city is not an object, keep it as is
+                      },
+                    };
+                  });
                 }
                 if (index === 2) {
                   setDoctor((prev) => {

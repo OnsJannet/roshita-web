@@ -91,10 +91,6 @@ const InformationCard: React.FC<InformationCardProps> = ({
  const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
   const newCityId = event.target.value;
 
-  // Log the event and new speciality ID
-  console.log("Event:", event);
-  console.log("New Speciality ID:", newCityId);
-
   if (onCityChange) {
     console.log("onSpecialityChange function exists, calling it...");
     onCityChange(newCityId);
