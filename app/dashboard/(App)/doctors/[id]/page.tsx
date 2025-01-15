@@ -20,13 +20,18 @@ interface Doctor {
   staff: {
     first_name: string;
     last_name: string;
+    city: { id: string; name: string; foreign_name: string };
     medical_organization: {
       name: string;
-      city: { foreign_name: string; name: string };
+      city: { id: string; foreign_name: string };
       phone: string;
     }[];
     staff_avatar: string;
   };
+  specialty: Specialty[];
+  fixed_price: string;
+  user: User;
+  appointments: Appointment[];
 }
 
 interface Specialty {
@@ -37,6 +42,30 @@ interface Specialty {
 
 type Params = {
   id: string;
+};
+
+interface City {
+  id: number;
+  foreign_name: string;
+  name: string;
+}
+
+interface Specialty {
+  id: number;
+  name: string;
+  foreign_name: string;
+}
+
+interface Specialities {
+  specialities: Specialty[];
+}
+
+type Appointment = {
+  scheduled_date: string;
+  start_time: string;
+  end_time: string;
+  appointment_status: string;
+  //price: string;
 };
 
 type Language = "ar" | "en";
@@ -57,6 +86,10 @@ const translations = {
     action: "Action",
     roshitaBook: "Book",
     status: "Status",
+    patientName: "Patient Name",
+    patientLastName: "Patient Last Name",
+    patientNumber: "Patient Number",
+    patientEmail: "Patient Email",
   },
   ar: {
     title: "مواعيد توفر الطبيب",
@@ -73,6 +106,30 @@ const translations = {
     action: "إجراء",
     roshitaBook: "حجز ",
     status: "الحالة",
+    patientName: "اسم المريض",
+    patientLastName: "اسم العائلة للمريض",
+    patientNumber: "رقم المريض",
+    patientEmail: "بريد المريض الإلكتروني",
+  },
+  it: {
+    title: "Disponibilità degli appuntamenti del medico",
+    selectDate: "Seleziona la data",
+    startTime: "Orario di inizio",
+    endTime: "Orario di fine",
+    duration: "Durata (Ore)",
+    addSlot: "Aggiungi orario",
+    currentSlots: "Orari attuali",
+    noSlots: "Nessun orario aggiunto ancora.",
+    remove: "Annulla",
+    durationError: "La durata è maggiore dell'intervallo di tempo disponibile.",
+    date: "Data",
+    action: "Azione",
+    roshitaBook: "Prenota",
+    status: "Stato",
+    patientName: "Nome del paziente",
+    patientLastName: "Cognome del paziente",
+    patientNumber: "Numero del paziente",
+    patientEmail: "Email del paziente",
   },
 };
 
@@ -136,7 +193,57 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [cities, setCities] = useState<City[]>([]); // State for cities
+  const [specialities, setSpecialities] = useState<Specialities | null>(null); // Allow null if no data
+    const [bookingDetails, setBookingDetails] = useState<Appointment | null>(
+      null
+    );
   const t = translations[language];
+  const [patientDetails, setPatientDetails] = useState({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+    city: "",
+    address: "",
+  });
+
+  const handleBooked = (index: number) => {
+    console.log("index", index);
+    if (doctor && doctor.appointments) {
+      console.log("entered doctors");
+      const selectedAppointment = doctor.appointments[index];
+      setBookingDetails(selectedAppointment);
+      setPopupVisible(true);
+    }
+  };
+
+  const formatDate = (scheduledDate: string) => {
+    const date = new Date(scheduledDate); // Scheduled date is already in YYYY-MM-DD
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  
+  const handleRemoveSlot = (index: number) => {
+    if (doctor && doctor.appointments) {
+      const updatedAppointments = doctor.appointments.filter(
+        (_, idx) => idx !== index
+      );
+      setDoctor((prevDoctor) => {
+        return prevDoctor
+          ? {
+              ...prevDoctor,
+              appointments: updatedAppointments,
+            }
+          : null;
+      });
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -160,6 +267,49 @@ export default function Page() {
       };
     }
   }, []);
+
+  const handleBookingSubmit = async () => {
+    const payload = {
+      reservation: {
+        patient: patientDetails,
+        //reservation_status: "pending payment",
+        reservation_date: bookingDetails?.scheduled_date,
+      },
+      confirmation_code: "12345", // Replace or generate dynamically
+      // @ts-ignore
+      price: bookingDetails?.price, // Adjust as needed
+    };
+
+    const token = localStorage.getItem("access");
+
+    try {
+      const response = await fetch(
+        "https://test-roshita.net/api/appointment-reservations/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-CSRFToken":
+              "rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        alert("Booking successful!");
+        setPopupVisible(false);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Booking failed. Please try again.");
+    }
+  };
 
   console.log("doctorId", id);
 
@@ -224,17 +374,51 @@ export default function Page() {
     fetchDoctorAndSpecialty();
   }, [id]);
 
+
+  const fetchCities = async () => {
+    try {
+      const response = await fetch(
+        "https://test-roshita.net/api/cities-list/"
+      );
+      const citiesData: City[] = await response.json();
+      if (response.ok) {
+        setCities(citiesData);
+      } else {
+        console.error("Error fetching cities");
+      }
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+    }
+  };
+
+  const fetchSpecialities = async () => {
+    try {
+      const response = await fetch(
+        "https://test-roshita.net/api/specialty-list/"
+      );
+      const data: Specialities = await response.json();
+
+      if (response.ok) {
+        setSpecialities(data); // Now setSpecialities accepts Specialities
+      } else {
+        console.error("Error fetching cities");
+      }
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+    }
+  };
+
   // Fetch data from API with token from localStorage
   const fetchAppointments = async () => {
     try {
       // Retrieve token from localStorage
       const token = localStorage.getItem("access");
-  
+
       if (!token) {
         console.error("Access token is missing.");
         return;
       }
-  
+
       // Make the GET request with the Authorization header
       const response = await fetch(
         "https://test-roshita.net/api/appointment-reservations/",
@@ -246,47 +430,46 @@ export default function Page() {
           },
         }
       );
-  
+
       // Handle response
       if (!response.ok) {
         throw new Error("Failed to fetch data");
       }
-  
+
       const data = await response.json();
       console.log("this is the data appointments", data);
       console.log("appointment.doctor.id", id);
-  
+
       // Correct filtering: Ensure doctor exists before accessing doctor.id
       const filteredAppointments = data.results.filter((appointment: any) => {
         if (!appointment.doctor) {
           console.error(`Appointment has no doctor: ${appointment.id}`);
           return false;
         }
-  
+
         // Log the price for each appointment while filtering
-        console.log(`Filtering appointment ID: ${appointment.doctor.id}, id: ${id}`);
-      
+        console.log(
+          `Filtering appointment ID: ${appointment.doctor.id}, id: ${id}`
+        );
+
         return String(appointment.doctor.id) === String(id);
       });
-  
+
       console.log("this is the filtered appointments", filteredAppointments);
-  
+
       setAppointments(filteredAppointments.reverse());
       console.log(data); // Log the fetched data or handle it accordingly
-  
+
       return data;
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
   };
-  
+
   // Example usage of the function
   useEffect(() => {
     fetchAppointments();
   }, [id]);
-  
-
-
 
   const handleUpload = (file: File) => {
     console.log("Uploaded file:", file);
@@ -375,7 +558,149 @@ export default function Page() {
                 }
                 language={language}
               />
-              <Table className="w-full border border-gray-300  shadow-sm rounded-sm">
+              <div>
+              {error && <div className="text-red-500">{error}</div>}
+            {popupVisible && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-screen">
+                <div className="bg-white p-8 rounded-lg max-w-md w-full shadow-lg">
+                  <h3
+                    className={`text-lg font-bold mb-4 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {language === "ar" ? "احجز موعدك" : "Book Your Appointment"}
+                  </h3>
+                  <form
+                    className={`space-y-4 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    <input
+                      type="text"
+                      placeholder={
+                        language === "ar" ? "الاسم الأول" : "First Name"
+                      }
+                      value={patientDetails.first_name}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          first_name: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <input
+                      type="text"
+                      placeholder={
+                        language === "ar" ? "اسم العائلة" : "Last Name"
+                      }
+                      value={patientDetails.last_name}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          last_name: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <input
+                      type="text"
+                      placeholder={language === "ar" ? "رقم الهاتف" : "Phone"}
+                      value={patientDetails.phone}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          phone: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <input
+                      type="email"
+                      placeholder={
+                        language === "ar" ? "البريد الإلكتروني" : "Email"
+                      }
+                      value={patientDetails.email}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          email: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <div className="w-full">
+                      <select
+                        value={patientDetails.city}
+                        onChange={(e) =>
+                          setPatientDetails({
+                            ...patientDetails,
+                            city: e.target.value, // Store city ID here
+                          })
+                        }
+                        className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      >
+                        <option value="" disabled>
+                          {language === "ar" ? "اختر المدينة" : "Select a city"}
+                        </option>
+                        {cities.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {city[language === "ar" ? "name" : "foreign_name"]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={language === "ar" ? "العنوان" : "Address"}
+                      value={patientDetails.address}
+                      onChange={(e) =>
+                        setPatientDetails({
+                          ...patientDetails,
+                          address: e.target.value,
+                        })
+                      }
+                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}
+                    />
+                    <div
+                      className={`flex ${
+                        language === "ar"
+                          ? "space-x-reverse gap-2 pace-x-4"
+                          : "space-x-4"
+                      } justify-between`}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleBookingSubmit}
+                        className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      >
+                        {language === "ar" ? "احجز الآن" : "Book Now"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPopupVisible(false)}
+                        className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                      >
+                        {language === "ar" ? "إلغاء" : "Cancel"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+              <Table className="w-full border border-gray-300 shadow-sm rounded-sm">
                 <thead>
                   <TableRow>
                     {language === "ar" ? (
@@ -393,6 +718,18 @@ export default function Page() {
                           {t.startTime}
                         </TableCell>
                         <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientEmail}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientNumber}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientLastName}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientName}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
                           {t.date}
                         </TableCell>
                       </>
@@ -400,6 +737,18 @@ export default function Page() {
                       <>
                         <TableCell className="font-bold text-gray-700 text-center">
                           {t.date}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientName}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientLastName}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientNumber}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.patientEmail}
                         </TableCell>
                         <TableCell className="font-bold text-gray-700 text-center">
                           {t.startTime}
@@ -448,13 +797,37 @@ export default function Page() {
                               {slot.start_time}
                             </TableCell>
                             <TableCell className="text-center">
-                              {slot.reservation_date}
+                              {slot.reservation.patient.email}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.phone}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.last_name}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.first_name}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {formatDate(slot.reservation.reservation_date)}
                             </TableCell>
                           </>
                         ) : (
                           <>
                             <TableCell className="text-center">
-                              {slot.scheduled_date}
+                              {formatDate(slot.reservation.reservation_date)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.first_name}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.last_name}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.phone}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.patient.email}
                             </TableCell>
                             <TableCell className="text-center">
                               {slot.start_time}
@@ -463,9 +836,9 @@ export default function Page() {
                               {slot.end_time}
                             </TableCell>
                             <TableCell className="text-center">
-                              {slot.appointment_status}
+                              {slot.reservation.reservation_status}
                             </TableCell>
-                            <TableCell className="text-center gap-2">
+                            <TableCell className="text-center">
                               <Button
                                 variant="destructive"
                                 onClick={() => handleRemoveSlot(index)}
@@ -487,7 +860,7 @@ export default function Page() {
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={10}
                         className="text-center text-gray-500"
                       >
                         {language === "ar"
@@ -498,6 +871,7 @@ export default function Page() {
                   )}
                 </tbody>
               </Table>
+              </div>
             </div>
           )}
 
