@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/sidebar";
 import DoctorCard from "@/components/unique/DoctorCardDash";
 import { useParams } from "next/navigation";
-
+import LoadingDoctors from "../../../../../components/layout/LoadingDoctors";
+import { Table, TableCell, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 // Define types for doctor data and specialty data
 interface Doctor {
   id: string;
@@ -20,7 +22,7 @@ interface Doctor {
     last_name: string;
     medical_organization: {
       name: string;
-      city: { foreign_name: string };
+      city: { foreign_name: string; name: string };
       phone: string;
     }[];
     staff_avatar: string;
@@ -38,6 +40,41 @@ type Params = {
 };
 
 type Language = "ar" | "en";
+
+const translations = {
+  en: {
+    title: "Doctor Availability Slots",
+    selectDate: "Select Date",
+    startTime: "Start Time",
+    endTime: "End Time",
+    duration: "Duration (Hours)",
+    addSlot: "Add Slot",
+    currentSlots: "Current Slots",
+    noSlots: "No slots added yet.",
+    remove: "Cancel",
+    durationError: "Duration is greater than the available time range.",
+    date: "Date",
+    action: "Action",
+    roshitaBook: "Book",
+    status: "Status",
+  },
+  ar: {
+    title: "مواعيد توفر الطبيب",
+    selectDate: "اختر التاريخ",
+    startTime: "وقت البدء",
+    endTime: "وقت الانتهاء",
+    duration: "المدة (بالساعات)",
+    addSlot: "إضافة موعد",
+    currentSlots: "المواعيد الحالية",
+    noSlots: "لم تتم إضافة أي مواعيد بعد.",
+    remove: "إلغاء",
+    durationError: "المدة أكبر من نطاق الوقت المتاح.",
+    date: "التاريخ",
+    action: "إجراء",
+    roshitaBook: "حجز ",
+    status: "الحالة",
+  },
+};
 
 /**
  * Doctor Detail Page
@@ -92,13 +129,14 @@ type Language = "ar" | "en";
 export default function Page() {
   const params = useParams<Params>();
   const id = params?.id;
-
   // Define the state types
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [specialtyName, setSpecialtyName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const t = translations[language];
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -162,7 +200,7 @@ export default function Page() {
           if (specialtiesResponse.ok) {
             // Find specialty by ID
             const specialty = specialtiesData.find(
-              (item) => item.id === doctorData.data.specialty
+              (item) => item.id === doctorData.data.specialty.id
             );
             if (specialty) {
               setSpecialtyName(specialty.name);
@@ -186,6 +224,70 @@ export default function Page() {
     fetchDoctorAndSpecialty();
   }, [id]);
 
+  // Fetch data from API with token from localStorage
+  const fetchAppointments = async () => {
+    try {
+      // Retrieve token from localStorage
+      const token = localStorage.getItem("access");
+  
+      if (!token) {
+        console.error("Access token is missing.");
+        return;
+      }
+  
+      // Make the GET request with the Authorization header
+      const response = await fetch(
+        "https://test-roshita.net/api/appointment-reservations/",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in Authorization header
+            "Content-Type": "application/json", // Set content type to JSON
+          },
+        }
+      );
+  
+      // Handle response
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+  
+      const data = await response.json();
+      console.log("this is the data appointments", data);
+      console.log("appointment.doctor.id", id);
+  
+      // Correct filtering: Ensure doctor exists before accessing doctor.id
+      const filteredAppointments = data.results.filter((appointment: any) => {
+        if (!appointment.doctor) {
+          console.error(`Appointment has no doctor: ${appointment.id}`);
+          return false;
+        }
+  
+        // Log the price for each appointment while filtering
+        console.log(`Filtering appointment ID: ${appointment.doctor.id}, id: ${id}`);
+      
+        return String(appointment.doctor.id) === String(id);
+      });
+  
+      console.log("this is the filtered appointments", filteredAppointments);
+  
+      setAppointments(filteredAppointments.reverse());
+      console.log(data); // Log the fetched data or handle it accordingly
+  
+      return data;
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+    }
+  };
+  
+  // Example usage of the function
+  useEffect(() => {
+    fetchAppointments();
+  }, [id]);
+  
+
+
+
   const handleUpload = (file: File) => {
     console.log("Uploaded file:", file);
     // Handle the uploaded file (e.g., send it to a server or preview it)
@@ -199,7 +301,13 @@ export default function Page() {
     console.log("Delete clicked");
   };
 
-  return (
+  console.log("appointments", appointments);
+
+  return loading ? (
+    <div className="flex items-center justify-center min-h-screen mx-auto">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <SidebarProvider>
       <SidebarInset>
         {/* Header Section */}
@@ -253,7 +361,9 @@ export default function Page() {
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 location={
-                  doctor?.staff.medical_organization[0]?.city.foreign_name ??
+                  (language === "en"
+                    ? doctor?.staff.medical_organization[0]?.city.foreign_name
+                    : doctor?.staff.medical_organization[0]?.city.name) ??
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 phone={
@@ -265,6 +375,129 @@ export default function Page() {
                 }
                 language={language}
               />
+              <Table className="w-full border border-gray-300  shadow-sm rounded-sm">
+                <thead>
+                  <TableRow>
+                    {language === "ar" ? (
+                      <>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.action}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.status}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.endTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.startTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.date}
+                        </TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.date}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.startTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.endTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.status}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.action}
+                        </TableCell>
+                      </>
+                    )}
+                  </TableRow>
+                </thead>
+                <tbody>
+                  {appointments && appointments.length > 0 ? (
+                    appointments.map((slot, index) => (
+                      <TableRow key={index}>
+                        {language === "ar" ? (
+                          <>
+                            <TableCell className="text-center">
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleRemoveSlot(index)}
+                                className="text-white hover:text-red-800"
+                              >
+                                {t.remove}
+                              </Button>
+                              <Button
+                                onClick={() => handleBooked(index)}
+                                className="text-white bg-[#1685c7] ml-2"
+                              >
+                                {t.roshitaBook}
+                              </Button>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation.reservation_status}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.end_time}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.start_time}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.reservation_date}
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell className="text-center">
+                              {slot.scheduled_date}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.start_time}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.end_time}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {slot.appointment_status}
+                            </TableCell>
+                            <TableCell className="text-center gap-2">
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleRemoveSlot(index)}
+                                className="text-white hover:text-red-800"
+                              >
+                                {t.remove}
+                              </Button>
+                              <Button
+                                onClick={() => handleBooked(index)}
+                                className="text-white bg-[#1685c7] ml-2"
+                              >
+                                {t.roshitaBook}
+                              </Button>
+                            </TableCell>
+                          </>
+                        )}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-gray-500"
+                      >
+                        {language === "ar"
+                          ? "لا توجد مواعيد متاحة"
+                          : "No appointments available."}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </tbody>
+              </Table>
             </div>
           )}
 

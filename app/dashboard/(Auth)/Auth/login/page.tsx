@@ -117,11 +117,6 @@ const Page = () => {
             </p>
           </div>
 
-          <p className="text-balance text-muted-foreground text-center">
-            password: string <br />
-            phone: 0925544332
-          </p>
-
           {error && (
             <div className="text-red-500 text-center">
               {language === "ar"

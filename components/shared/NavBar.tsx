@@ -50,7 +50,13 @@ const NavBar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true); // Add loading state
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false); // Mobile menu state
   const router = useRouter();
+
+  const toggleDropdown = () => setShowDropdown((prev) => !prev);
+
+  const toggleMobileMenu = () => setShowMobileMenu((prev) => !prev); // Toggle mobile menu
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -102,7 +108,7 @@ const NavBar = () => {
 
   const handleClickLoginProfessionally = () => {
     window.location.href = "/dashboard/Auth/login";
-  }
+  };
 
   const handleClickHome = () => {
     window.location.href = "/";
@@ -164,11 +170,11 @@ const NavBar = () => {
           />
         </div>
 
+        {/* Desktop Menu */}
         <div className="gap-4 lg:flex pt-2 hidden">
           {loading ? (
             <div className="flex items-center gap-4">
               <div className="w-[140px] h-10 bg-gray-100 rounded animate-pulse"></div>{" "}
-              {/* Gray square on the right */}
             </div>
           ) : (
             <div className="mt-2">
@@ -178,28 +184,45 @@ const NavBar = () => {
 
           {!isLoggedIn ? (
             <>
-              {/* Loading Buttons */}
               {loading ? (
                 <div className="flex gap-4">
                   <div className="w-[140px] h-10 bg-gray-100 rounded animate-pulse"></div>{" "}
-                  {/* Loading login button */}
                 </div>
               ) : (
                 <>
-                  <Button
-                    onClick={handleClickLogin}
-                    variant="login"
-                    className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
-                  >
-                    {language === "ar" ? "تسجيل الدخول" : "Login"}
-                  </Button>
-                  <Button
-                    onClick={handleClickLoginProfessionally}
-                    variant="login"
-                    className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
-                  >
-                    {language === "ar" ? "تسجيل الدخول كمهني" : "Login as professional"}
-                  </Button>
+                  <div className="relative">
+                    <Button
+                      onClick={toggleDropdown}
+                      variant="login"
+                      className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
+                    >
+                      {language === "ar" ? "تسجيل الدخول" : "Login"}
+                    </Button>
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-2 w-[200px] bg-white shadow-lg rounded-md border border-gray-200 z-10">
+                        <Button
+                          onClick={handleClickLogin}
+                          variant="dropdown"
+                          className={`block w-full px-4 py-2 hover:bg-gray-100 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        >
+                          {language === "ar" ? "تسجيل الدخول" : "Login"}
+                        </Button>
+                        <Button
+                          onClick={handleClickLoginProfessionally}
+                          variant="dropdown"
+                          className={`block w-full px-4 py-2 hover:bg-gray-100 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        >
+                          {language === "ar"
+                            ? "تسجيل الدخول كمهني"
+                            : "Login as professional"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   <Button
                     onClick={handleClickRegister}
                     variant="register"
@@ -251,7 +274,84 @@ const NavBar = () => {
             </DropdownMenu>
           )}
         </div>
-        <AlignLeft className="lg:hidden flex items-center my-auto text-black h-8 w-auto cursor-pointer" />
+
+        {/* Mobile Menu */}
+        <AlignLeft
+          className="lg:hidden flex items-center my-auto text-black h-8 w-auto cursor-pointer"
+          onClick={toggleMobileMenu} // Toggle mobile menu visibility
+        />
+
+
+{/* Mobile Menu Content */}
+{showMobileMenu && (
+  <div className="lg:hidden fixed inset-0 bg-gray-800 bg-opacity-50 z-[99999]">
+    <div className="flex flex-col items-center justify-start bg-white h-full pt-4"> {/* Add pt-4 to give space at the top */}
+      <img
+        src="/logos/ShortLogo.png"
+        alt="roshita logo"
+        className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer mb-10"
+        onClick={handleClickHome}
+      />
+      <Button
+        onClick={handleClickHome}
+        variant="link"
+        className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+      >
+        {language === "ar" ? "الرئيسية" : "Home"}
+      </Button>
+      {!isLoggedIn ? (
+        <>
+          <Button
+            onClick={handleClickLogin}
+            variant="link"
+            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+          >
+            {language === "ar" ? "تسجيل الدخول" : "Login"}
+          </Button>
+          <Button
+            onClick={handleClickRegister}
+            variant="link"
+            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+          >
+            {language === "ar" ? "تسجيل" : "Register"}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            onClick={handleClickSettings}
+            variant="link"
+            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+          >
+            {language === "ar" ? "الإعدادات" : "Settings"}
+          </Button>
+          <Button
+            onClick={handleClickAppointments}
+            variant="link"
+            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+          >
+            {language === "ar" ? "مواعيدي" : "My Appointments"}
+          </Button>
+          <Button
+            onClick={() => {
+              localStorage.removeItem("access");
+              localStorage.removeItem("refresh");
+              localStorage.removeItem("isLoggedIn");
+              setIsLoggedIn(false);
+              window.location.href = "/login";
+            }}
+            variant="link"
+            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+          >
+            {language === "ar" ? "تسجيل الخروج" : "Logout"}
+          </Button>
+        </>
+      )}
+      <LanguageSwitcher />
+    </div>
+  </div>
+)}
+
       </div>
     </header>
   );

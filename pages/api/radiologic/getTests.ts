@@ -35,11 +35,8 @@ interface ApiResponse {
   details?: any; // Raw response for debugging
 }
 
-// Simple in-memory cache
-const cache = new Map<string, { data: ApiResponse; expiry: number }>();
-
 /**
- * Fetch tests list from the Roshita API with caching and pagination.
+ * Fetch tests list from the Roshita API without caching.
  *
  * @param {NextApiRequest} req - The incoming HTTP request object.
  * @param {NextApiResponse<ApiResponse>} res - The outgoing HTTP response object.
@@ -50,8 +47,6 @@ const cache = new Map<string, { data: ApiResponse; expiry: number }>();
  * - 401: Missing or invalid token.
  * - 500: Internal Server Error.
  */
-// Import statements remain the same
-
 export default async function getTests(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
@@ -66,15 +61,8 @@ export default async function getTests(
     }
 
     const page = req.query.page || 1;
-    const cacheKey = `tests-page-${page}`;
-    const cacheTTL = 60 * 5 * 1000;
 
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() < cached.expiry) {
-      console.log("Returning cached data for:", cacheKey);
-      return res.status(200).json(cached.data);
-    }
-
+    // Fetch fresh data from the API
     const response = await fetch(
       `https://test-roshita.net/api/guide-medical/by-type/3/`,
       {
@@ -99,7 +87,7 @@ export default async function getTests(
     }
 
     // Validate and normalize the response
-    const results = Array.isArray(data) ? data : []; // Fix for API response structure
+    const results = Array.isArray(data) ? data : [];
 
     // Handle empty results array
     if (results.length === 0) {
@@ -108,8 +96,6 @@ export default async function getTests(
         success: true,
         data: [],
         total: results.length,
-        //nextPage: null,
-        //previousPage: null,
       });
     }
 
@@ -117,11 +103,7 @@ export default async function getTests(
       success: true,
       data: results,
       total: results.length,
-      //nextPage: null, // No pagination details in the raw response
-      //previousPage: null,
     };
-
-    cache.set(cacheKey, { data: apiResponse, expiry: Date.now() + cacheTTL });
 
     return res.status(200).json(apiResponse);
   } catch (error) {
@@ -129,6 +111,3 @@ export default async function getTests(
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
-
-
-

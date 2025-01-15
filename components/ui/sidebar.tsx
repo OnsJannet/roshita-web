@@ -20,6 +20,7 @@ import { ViewVerticalIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { LogOut, Settings, House, Heart, Pill, TestTube } from "lucide-react";
 import { useRouter } from "next/navigation";
+import LanguageSwitcher from "../layout/LanguageSwitcher";
 
 const iconMapping: Record<string, React.ComponentType<any>> = {
   House,
@@ -292,8 +293,6 @@ const SidebarProvider = React.forwardRef<
       }
     }, []);
 
-
-
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen);
@@ -491,13 +490,11 @@ const Sidebar = React.forwardRef<
           const user = JSON.parse(userString);
 
           setUserRoles({
-            lab:
-              user?.medical_organization_type === "Laboratory",
+            lab: user?.medical_organization_type === "Laboratory",
             hospital:
               user?.medical_organization_type === "hospital" &&
               (user?.user_type === "Admin" || user?.user_type === "staff"),
-            xRays:
-              user?.medical_organization_type === "Radiologic",
+            xRays: user?.medical_organization_type === "Radiologic",
             doctor:
               user?.medical_organization_type === "hospital" &&
               user?.user_type === "Doctor",
@@ -528,11 +525,12 @@ const Sidebar = React.forwardRef<
             data-sidebar="sidebar"
             data-mobile="true"
             className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
+            style={{
+              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+              direction: language === "ar" ? "rtl" : "ltr",
+            } as React.CSSProperties}
+            
+
             side={side}
           >
             <div className="flex h-full w-full flex-col">
@@ -558,66 +556,57 @@ const Sidebar = React.forwardRef<
                   </div>
                 </div>
                 <div className="h-[70%]">
-                  {dataToMap.navMain.map((item) => {
-                    const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
-                    return (
-                      <SidebarMenuItem
-                        key={item.title}
-                        style={{ listStyleType: "none" }}
-                      >
-                        <SidebarMenuButton asChild>
-                          <a href={item.url} className="font-medium">
-                            {/* Dynamically render the icon */}
-                            {IconComponent && (
-                              <IconComponent className="mr-2" />
-                            )}{" "}
-                            {/* Apply margin-right for spacing */}
-                            {language === "ar" ? item.title : item.foreginTitle}
-                          </a>
-                        </SidebarMenuButton>
-                        {item.items?.length ? (
-                          <SidebarMenuSub>
-                            {item.items.map((subItem) => (
-                              <SidebarMenuSubItem
-                                key={subItem.title}
-                                style={{ listStyleType: "none" }}
+                {dataToMap.navMain.map((item) => {
+                  const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
+                  return (
+                    <SidebarMenuItem
+                      key={item.title}
+                      style={{ listStyleType: "none" }}
+                      className="h-10"
+                    >
+                      <SidebarMenuButton asChild>
+                        <a href={item.url} className="font-medium ">
+                          {/* Dynamically render the icon */}
+                          {IconComponent && (
+                            <IconComponent className="mr-2 h-6 w-6 mb-1" />
+                          )}{" "}
+                          {/* Apply margin-right for spacing */}
+                          {language === "ar" ? item.title : item.foreginTitle}
+                        </a>
+                      </SidebarMenuButton>
+                      {item.items?.length ? (
+                        <SidebarMenuSub>
+                          {item.items.map((subItem) => (
+                            <SidebarMenuSubItem
+                              key={subItem.title}
+                              style={{ listStyleType: "none" }}
+                            >
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={subItem.isActive}
                               >
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={subItem.isActive}
-                                >
-                                  <a href={subItem.url}>{subItem.title}</a>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
-                          </SidebarMenuSub>
-                        ) : null}
-                      </SidebarMenuItem>
-                    );
-                  })}
+                                <a href={subItem.url}>{subItem.title}</a>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      ) : null}
+                    </SidebarMenuItem>
+                  );
+                })}
+              </div>
+              <div className="h-[10%] flex justify-between items-center px-2">
+                <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
+                  <LogOut className="h-4 w-4 cursor-pointer" />
                 </div>
-                <div className="h-[10%] flex justify-between items-center px-2">
-                  <div
-                    onClick={handleLogout}
-                    className="h-4 w-4 cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4 cursor-pointer" />
-                  </div>
-                  <Avatar>
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                </div>
+                <LanguageSwitcher />
+              </div>
               </div>
             </div>
           </SheetContent>
         </Sheet>
       );
     }
-
 
     return (
       <div
@@ -686,12 +675,13 @@ const Sidebar = React.forwardRef<
                     <SidebarMenuItem
                       key={item.title}
                       style={{ listStyleType: "none" }}
+                      className="h-10"
                     >
                       <SidebarMenuButton asChild>
-                        <a href={item.url} className="font-medium">
+                        <a href={item.url} className="font-medium ">
                           {/* Dynamically render the icon */}
                           {IconComponent && (
-                            <IconComponent className="mr-2" />
+                            <IconComponent className="mr-2 h-6 w-6 mb-1" />
                           )}{" "}
                           {/* Apply margin-right for spacing */}
                           {language === "ar" ? item.title : item.foreginTitle}
@@ -722,13 +712,7 @@ const Sidebar = React.forwardRef<
                 <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
                   <LogOut className="h-4 w-4 cursor-pointer" />
                 </div>
-                <Avatar>
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="@shadcn"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
+                <LanguageSwitcher />
               </div>
             </div>
           </div>

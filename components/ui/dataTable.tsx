@@ -367,15 +367,20 @@ export function DataTable({
 
         return (
           <div className="flex items-center space-x-3 gap-6">
-            {img ? (
+
               <img
-                src={img}
+                src={
+                  img &&
+                  img !== null &&
+                  !img.startsWith("/media/media/") &&
+                  !img.startsWith("/avatar/")
+                    ? img
+                    : "/Images/default-doctor.jpeg"
+                }
                 alt={name}
                 className="h-10 w-10 rounded-full object-cover"
               />
-            ) : (
-              <UserIcon className="h-10 w-10 rounded-full" /> // Default user icon if no image is available
-            )}
+
             <span className="capitalize">{name}</span>
           </div>
         );
@@ -464,7 +469,7 @@ export function DataTable({
             if (response.ok) {
               console.log(`Deleted doctor with ID: ${id}`);
               // Refresh the page or update the list to reflect the changes
-              window.location.reload();
+              //window.location.reload();
             } else {
               console.error("Failed to delete doctor");
             }
