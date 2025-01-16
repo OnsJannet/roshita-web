@@ -2,6 +2,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import StatCard from "@/components/dashboard/StatCard";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import { DataTable } from "@/components/ui/dataTable";
 import {
   SidebarInset,
@@ -167,7 +168,11 @@ export default function Page() {
     },
   ];
 
-  return (
+  return loading ? (
+    <div className="flex items-center justify-center min-h-screen mx-auto">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <SidebarProvider>
       <SidebarInset>
       <header

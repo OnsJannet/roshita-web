@@ -15,6 +15,11 @@ import LoadingDoctors from "../../../../../components/layout/LoadingDoctors";
 import { Table, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 // Define types for doctor data and specialty data
+
+interface User {
+  phone: string;
+}
+
 interface Doctor {
   id: string;
   staff: {
@@ -23,7 +28,7 @@ interface Doctor {
     city: { id: string; name: string; foreign_name: string };
     medical_organization: {
       name: string;
-      city: { id: string; foreign_name: string };
+      city: { id: string; foreign_name: string; name: string };
       phone: string;
     }[];
     staff_avatar: string;
@@ -84,7 +89,7 @@ const translations = {
     durationError: "Duration is greater than the available time range.",
     date: "Date",
     action: "Action",
-    roshitaBook: "Book",
+    roshitaBook: "End",
     status: "Status",
     patientName: "Patient Name",
     patientLastName: "Patient Last Name",
@@ -104,7 +109,7 @@ const translations = {
     durationError: "المدة أكبر من نطاق الوقت المتاح.",
     date: "التاريخ",
     action: "إجراء",
-    roshitaBook: "حجز ",
+    roshitaBook: "إنهاء ",
     status: "الحالة",
     patientName: "اسم المريض",
     patientLastName: "اسم العائلة للمريض",
@@ -196,9 +201,9 @@ export default function Page() {
   const [popupVisible, setPopupVisible] = useState(false);
   const [cities, setCities] = useState<City[]>([]); // State for cities
   const [specialities, setSpecialities] = useState<Specialities | null>(null); // Allow null if no data
-    const [bookingDetails, setBookingDetails] = useState<Appointment | null>(
-      null
-    );
+  const [bookingDetails, setBookingDetails] = useState<Appointment | null>(
+    null
+  );
   const t = translations[language];
   const [patientDetails, setPatientDetails] = useState({
     first_name: "",
@@ -228,8 +233,7 @@ export default function Page() {
     });
   };
 
-  
-  const handleRemoveSlot = (index: number) => {
+  /*const handleRemoveSlot = (index: number) => {
     if (doctor && doctor.appointments) {
       const updatedAppointments = doctor.appointments.filter(
         (_, idx) => idx !== index
@@ -242,6 +246,60 @@ export default function Page() {
             }
           : null;
       });
+    }
+  };*/
+
+  const handleRemoveSlot = async (index: number) => {
+    console.log("index: ", index);
+    if (doctor && doctor.appointments) {
+      if (!index) {
+        console.error("Appointment ID not found");
+        return;
+      }
+
+      try {
+        // Get the Bearer token from localStorage
+        const token = localStorage.getItem("access");
+        if (!token) {
+          console.error("Access token not found in localStorage");
+          return;
+        }
+
+        // Send the DELETE request
+        const response = await fetch(
+          `https://test-roshita.net/api/appointment-reservations/${index}/`,
+          {
+            method: "DELETE",
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${token}`,
+              "X-CSRFToken":
+                "9htdjDGAaHSm5TKSyU7DoBSxj4PlVCSYt2yA1iOmGLIu2JXABwbrTe3rgvbCnG2U",
+            },
+          }
+        );
+
+        if (response.ok) {
+          console.log("Appointment deleted successfully");
+
+          // Update the appointments locally
+          const updatedAppointments = doctor.appointments.filter(
+            (_, idx) => idx !== index
+          );
+          setDoctor((prevDoctor) => {
+            return prevDoctor
+              ? {
+                  ...prevDoctor,
+                  appointments: updatedAppointments,
+                }
+              : null;
+          });
+        } else {
+          console.error("Failed to delete appointment", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error deleting appointment:", error);
+      }
     }
   };
 
@@ -374,12 +432,9 @@ export default function Page() {
     fetchDoctorAndSpecialty();
   }, [id]);
 
-
   const fetchCities = async () => {
     try {
-      const response = await fetch(
-        "https://test-roshita.net/api/cities-list/"
-      );
+      const response = await fetch("https://test-roshita.net/api/cities-list/");
       const citiesData: City[] = await response.json();
       if (response.ok) {
         setCities(citiesData);
@@ -486,6 +541,10 @@ export default function Page() {
 
   console.log("appointments", appointments);
 
+  const shouldShowAction = appointments.some(
+    (slot) => slot.reservation.reservation_status === "specific_status" // Adjust condition
+  );
+
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
       <LoadingDoctors />
@@ -559,318 +618,340 @@ export default function Page() {
                 language={language}
               />
               <div>
-              {error && <div className="text-red-500">{error}</div>}
-            {popupVisible && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-screen">
-                <div className="bg-white p-8 rounded-lg max-w-md w-full shadow-lg">
-                  <h3
-                    className={`text-lg font-bold mb-4 ${
-                      language === "ar" ? "text-right" : "text-left"
-                    }`}
-                  >
-                    {language === "ar" ? "احجز موعدك" : "Book Your Appointment"}
-                  </h3>
-                  <form
-                    className={`space-y-4 ${
-                      language === "ar" ? "text-right" : "text-left"
-                    }`}
-                  >
-                    <input
-                      type="text"
-                      placeholder={
-                        language === "ar" ? "الاسم الأول" : "First Name"
-                      }
-                      value={patientDetails.first_name}
-                      onChange={(e) =>
-                        setPatientDetails({
-                          ...patientDetails,
-                          first_name: e.target.value,
-                        })
-                      }
-                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        language === "ar" ? "text-right" : "text-left"
-                      }`}
-                    />
-                    <input
-                      type="text"
-                      placeholder={
-                        language === "ar" ? "اسم العائلة" : "Last Name"
-                      }
-                      value={patientDetails.last_name}
-                      onChange={(e) =>
-                        setPatientDetails({
-                          ...patientDetails,
-                          last_name: e.target.value,
-                        })
-                      }
-                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        language === "ar" ? "text-right" : "text-left"
-                      }`}
-                    />
-                    <input
-                      type="text"
-                      placeholder={language === "ar" ? "رقم الهاتف" : "Phone"}
-                      value={patientDetails.phone}
-                      onChange={(e) =>
-                        setPatientDetails({
-                          ...patientDetails,
-                          phone: e.target.value,
-                        })
-                      }
-                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        language === "ar" ? "text-right" : "text-left"
-                      }`}
-                    />
-                    <input
-                      type="email"
-                      placeholder={
-                        language === "ar" ? "البريد الإلكتروني" : "Email"
-                      }
-                      value={patientDetails.email}
-                      onChange={(e) =>
-                        setPatientDetails({
-                          ...patientDetails,
-                          email: e.target.value,
-                        })
-                      }
-                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        language === "ar" ? "text-right" : "text-left"
-                      }`}
-                    />
-                    <div className="w-full">
-                      <select
-                        value={patientDetails.city}
-                        onChange={(e) =>
-                          setPatientDetails({
-                            ...patientDetails,
-                            city: e.target.value, // Store city ID here
-                          })
-                        }
-                        className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                {error && <div className="text-red-500">{error}</div>}
+                {popupVisible && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-screen">
+                    <div className="bg-white p-8 rounded-lg max-w-md w-full shadow-lg">
+                      <h3
+                        className={`text-lg font-bold mb-4 ${
                           language === "ar" ? "text-right" : "text-left"
                         }`}
                       >
-                        <option value="" disabled>
-                          {language === "ar" ? "اختر المدينة" : "Select a city"}
-                        </option>
-                        {cities.map((city) => (
-                          <option key={city.id} value={city.id}>
-                            {city[language === "ar" ? "name" : "foreign_name"]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder={language === "ar" ? "العنوان" : "Address"}
-                      value={patientDetails.address}
-                      onChange={(e) =>
-                        setPatientDetails({
-                          ...patientDetails,
-                          address: e.target.value,
-                        })
-                      }
-                      className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        language === "ar" ? "text-right" : "text-left"
-                      }`}
-                    />
-                    <div
-                      className={`flex ${
-                        language === "ar"
-                          ? "space-x-reverse gap-2 pace-x-4"
-                          : "space-x-4"
-                      } justify-between`}
-                    >
-                      <button
-                        type="button"
-                        onClick={handleBookingSubmit}
-                        className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                      >
-                        {language === "ar" ? "احجز الآن" : "Book Now"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPopupVisible(false)}
-                        className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-                      >
-                        {language === "ar" ? "إلغاء" : "Cancel"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-              <Table className="w-full border border-gray-300 shadow-sm rounded-sm">
-                <thead>
-                  <TableRow>
-                    {language === "ar" ? (
-                      <>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.action}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.status}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.endTime}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.startTime}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientEmail}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientNumber}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientLastName}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientName}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.date}
-                        </TableCell>
-                      </>
-                    ) : (
-                      <>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.date}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientName}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientLastName}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientNumber}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.patientEmail}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.startTime}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.endTime}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.status}
-                        </TableCell>
-                        <TableCell className="font-bold text-gray-700 text-center">
-                          {t.action}
-                        </TableCell>
-                      </>
-                    )}
-                  </TableRow>
-                </thead>
-                <tbody>
-                  {appointments && appointments.length > 0 ? (
-                    appointments.map((slot, index) => (
-                      <TableRow key={index}>
-                        {language === "ar" ? (
-                          <>
-                            <TableCell className="text-center">
-                              <Button
-                                variant="destructive"
-                                onClick={() => handleRemoveSlot(index)}
-                                className="text-white hover:text-red-800"
-                              >
-                                {t.remove}
-                              </Button>
-                              <Button
-                                onClick={() => handleBooked(index)}
-                                className="text-white bg-[#1685c7] ml-2"
-                              >
-                                {t.roshitaBook}
-                              </Button>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.reservation_status}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.end_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.start_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.email}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.phone}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.last_name}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.first_name}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {formatDate(slot.reservation.reservation_date)}
-                            </TableCell>
-                          </>
-                        ) : (
-                          <>
-                            <TableCell className="text-center">
-                              {formatDate(slot.reservation.reservation_date)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.first_name}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.last_name}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.phone}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.patient.email}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.start_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.end_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.reservation.reservation_status}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Button
-                                variant="destructive"
-                                onClick={() => handleRemoveSlot(index)}
-                                className="text-white hover:text-red-800"
-                              >
-                                {t.remove}
-                              </Button>
-                              <Button
-                                onClick={() => handleBooked(index)}
-                                className="text-white bg-[#1685c7] ml-2"
-                              >
-                                {t.roshitaBook}
-                              </Button>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={10}
-                        className="text-center text-gray-500"
-                      >
                         {language === "ar"
-                          ? "لا توجد مواعيد متاحة"
-                          : "No appointments available."}
-                      </TableCell>
+                          ? "احجز موعدك"
+                          : "Book Your Appointment"}
+                      </h3>
+                      <form
+                        className={`space-y-4 ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      >
+                        <input
+                          type="text"
+                          placeholder={
+                            language === "ar" ? "الاسم الأول" : "First Name"
+                          }
+                          value={patientDetails.first_name}
+                          onChange={(e) =>
+                            setPatientDetails({
+                              ...patientDetails,
+                              first_name: e.target.value,
+                            })
+                          }
+                          className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        />
+                        <input
+                          type="text"
+                          placeholder={
+                            language === "ar" ? "اسم العائلة" : "Last Name"
+                          }
+                          value={patientDetails.last_name}
+                          onChange={(e) =>
+                            setPatientDetails({
+                              ...patientDetails,
+                              last_name: e.target.value,
+                            })
+                          }
+                          className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        />
+                        <input
+                          type="text"
+                          placeholder={
+                            language === "ar" ? "رقم الهاتف" : "Phone"
+                          }
+                          value={patientDetails.phone}
+                          onChange={(e) =>
+                            setPatientDetails({
+                              ...patientDetails,
+                              phone: e.target.value,
+                            })
+                          }
+                          className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        />
+                        <input
+                          type="email"
+                          placeholder={
+                            language === "ar" ? "البريد الإلكتروني" : "Email"
+                          }
+                          value={patientDetails.email}
+                          onChange={(e) =>
+                            setPatientDetails({
+                              ...patientDetails,
+                              email: e.target.value,
+                            })
+                          }
+                          className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        />
+                        <div className="w-full">
+                          <select
+                            value={patientDetails.city}
+                            onChange={(e) =>
+                              setPatientDetails({
+                                ...patientDetails,
+                                city: e.target.value, // Store city ID here
+                              })
+                            }
+                            className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              language === "ar" ? "text-right" : "text-left"
+                            }`}
+                          >
+                            <option value="" disabled>
+                              {language === "ar"
+                                ? "اختر المدينة"
+                                : "Select a city"}
+                            </option>
+                            {cities.map((city) => (
+                              <option key={city.id} value={city.id}>
+                                {
+                                  city[
+                                    language === "ar" ? "name" : "foreign_name"
+                                  ]
+                                }
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder={
+                            language === "ar" ? "العنوان" : "Address"
+                          }
+                          value={patientDetails.address}
+                          onChange={(e) =>
+                            setPatientDetails({
+                              ...patientDetails,
+                              address: e.target.value,
+                            })
+                          }
+                          className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            language === "ar" ? "text-right" : "text-left"
+                          }`}
+                        />
+                        <div
+                          className={`flex ${
+                            language === "ar"
+                              ? "space-x-reverse gap-2 pace-x-4"
+                              : "space-x-4"
+                          } justify-between`}
+                        >
+                          <button
+                            type="button"
+                            onClick={handleBookingSubmit}
+                            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                          >
+                            {language === "ar" ? "احجز الآن" : "Book Now"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPopupVisible(false)}
+                            className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                          >
+                            {language === "ar" ? "إلغاء" : "Cancel"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+                <Table className="w-full border border-gray-300 shadow-sm rounded-sm">
+                  <thead>
+                    <TableRow>
+                      {language === "ar" ? (
+                        <>
+                          {shouldShowAction && (
+                            <TableCell className="font-bold text-gray-700 text-center">
+                              {t.action}
+                            </TableCell>
+                          )}
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.status}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.endTime}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.startTime}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientEmail}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientNumber}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientLastName}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientName}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.date}
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.date}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientName}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientLastName}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientNumber}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.patientEmail}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.startTime}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.endTime}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.status}
+                          </TableCell>
+                          {shouldShowAction && (
+                            <TableCell className="font-bold text-gray-700 text-center">
+                              {t.action}
+                            </TableCell>
+                          )}
+                        </>
+                      )}
                     </TableRow>
-                  )}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {appointments && appointments.length > 0 ? (
+                      appointments.map((slot, index) => (
+                        <TableRow key={index}>
+                          {language === "ar" ? (
+                            <>
+                              {slot.reservation.reservation_status ===
+                                "pending" && (
+                                <TableCell className="text-center">
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => handleRemoveSlot(slot.id)}
+                                    className="text-white hover:text-red-800"
+                                  >
+                                    {t.remove}
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleBooked(index)}
+                                    className="text-white bg-[#1685c7] ml-2"
+                                  >
+                                    {t.roshitaBook}
+                                  </Button>
+                                </TableCell>
+                              )}
+                              <TableCell className="text-center">
+                                {slot.reservation.reservation_status}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.end_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.start_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.email}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.phone}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.last_name}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.first_name}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {formatDate(slot.reservation.reservation_date)}
+                              </TableCell>
+                            </>
+                          ) : (
+                            <>
+                              <TableCell className="text-center">
+                                {formatDate(slot.reservation.reservation_date)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.first_name}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.last_name}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.phone}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.patient.email}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.start_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.end_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.reservation.reservation_status}
+                              </TableCell>
+                              {slot.reservation.reservation_status ===
+                                "pending" && (
+                                <TableCell className="text-center">
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => handleRemoveSlot(slot.id)}
+                                    className="text-white hover:text-red-800"
+                                  >
+                                    {t.remove}
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleBooked(index)}
+                                    className="text-white bg-[#1685c7] ml-2"
+                                  >
+                                    {t.roshitaBook}
+                                  </Button>
+                                </TableCell>
+                              )}
+                            </>
+                          )}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={10}
+                          className="text-center text-gray-500"
+                        >
+                          {language === "ar"
+                            ? "لا توجد مواعيد متاحة"
+                            : "No appointments available."}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </tbody>
+                </Table>
               </div>
             </div>
           )}

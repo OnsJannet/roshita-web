@@ -1,6 +1,7 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import AnalysisPackage from "@/components/shared/AnalysisPackage";
 import {
   Pagination,
@@ -27,31 +28,31 @@ type Language = "ar" | "en";
  * This page displays a list of laboratory tests, with support for filtering, pagination, and deletion.
  * It allows users to filter tests by search term and group, and paginate through the results.
  * It also handles localization based on the selected language (Arabic or English).
- * 
+ *
  * The page has the following main functionalities:
- * 
- * 1. **Language Handling**: The language is stored in localStorage and can be changed dynamically. 
+ *
+ * 1. **Language Handling**: The language is stored in localStorage and can be changed dynamically.
  *    The layout and text are updated according to the selected language (Arabic or English).
- * 
+ *
  * 2. **Test Fetching**: Upon loading, the page fetches a list of tests from the server using an API call.
  *    The `accessToken` is used for authentication when making requests to the backend.
- * 
+ *
  * 3. **Test Filtering**: Users can filter the displayed tests based on a search term and a selected group.
  *    The search term is checked against the `medical_services` and `medical_services_category` properties of each test.
  *    The selected group filters the tests by their `medical_services_category`.
- * 
+ *
  * 4. **Test Deletion**: Each test can be deleted by clicking on a delete button next to it.
  *    The deletion is confirmed with a success or error message, and the list of tests is updated accordingly.
- * 
+ *
  * 5. **Pagination**: The tests are displayed in pages, with a maximum of 5 tests per page.
  *    The page supports navigating between pages using the pagination controls.
- * 
+ *
  * 6. **Empty and Error States**: If there are no tests available, a message is displayed indicating this.
  *    If an error occurs while fetching tests, an error message is shown.
- * 
+ *
  * 7. **Responsive Layout**: The page is designed to be responsive, with components adjusting based on screen size.
  *    The layout includes the sidebar, breadcrumb navigation, filter inputs, and test listing.
- * 
+ *
  * 8. **Components Used**:
  *    - `AppSidebar`: Sidebar component used for navigation.
  *    - `Breadcrumb`: Displays the navigation trail.
@@ -60,7 +61,7 @@ type Language = "ar" | "en";
  *    - `TestGroupSelector`: Component for selecting a test group to filter the tests.
  *    - `Pagination`: Pagination controls for navigating through the test list.
  *    - `ActionDropdown`: Dropdown component for performing actions on the page.
- * 
+ *
  * The page structure includes a header with breadcrumb navigation, a filter section for tests, and the main content area where tests are displayed.
  * The user can also navigate between pages of tests using the pagination controls at the bottom of the page.
  */
@@ -128,23 +129,22 @@ export default function Page() {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-  
+
       if (!response.ok) {
         const data = await response.json();
         console.error("Failed to delete test:", data);
-        alert("Failed to delete test. Please try again.");
+        setError("Failed to delete test. Please try again.");
         return;
       }
-  
+
       // Remove the deleted test from the state
       setTests((prevTests) => prevTests.filter((test) => test.id !== testId));
-      alert("Test deleted successfully!");
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting test:", error);
-      alert("An error occurred while deleting the test.");
+      setError("An error occurred while deleting the test.");
     }
   };
-  
 
   const testsPerPage = 5; // Number of tests per page
   const [currentPage, setCurrentPage] = useState(1); // Track the current page
@@ -180,7 +180,11 @@ export default function Page() {
     }
   };
 
-  return (
+  return loading ? (
+    <div className="flex items-center justify-center min-h-screen mx-auto">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <SidebarProvider>
       <SidebarInset>
         <header
@@ -243,26 +247,38 @@ export default function Page() {
                 />
               </div>
               <div className="lg:w-[30%] w-full flex justify-end items-center">
-                <ActionDropdown type="rays"/>
+                <ActionDropdown type="rays" />
               </div>
             </div>
 
             {loading && (
               <div className="flex flex-col gap-4">
-              <div
-                className={`flex flex-col lg:gap-0 gap-6 items-center justify-between border rounded-lg p-4 h-20 bg-gray-50 animate-pulse ${
-                  language === "ar" ? "rtl lg:flex-row-reverse" : "lg:flex-row"
-                }`}
-              ></div>
-              <div
-              className={`flex flex-col lg:gap-0 gap-6 items-center justify-between border rounded-lg p-4 h-20 bg-gray-50 animate-pulse ${
-                language === "ar" ? "rtl lg:flex-row-reverse" : "lg:flex-row"
-              }`}
-            ></div>
-            </div>
+                <div
+                  className={`flex flex-col lg:gap-0 gap-6 items-center justify-between border rounded-lg p-4 h-20 bg-gray-50 animate-pulse ${
+                    language === "ar"
+                      ? "rtl lg:flex-row-reverse"
+                      : "lg:flex-row"
+                  }`}
+                ></div>
+                <div
+                  className={`flex flex-col lg:gap-0 gap-6 items-center justify-between border rounded-lg p-4 h-20 bg-gray-50 animate-pulse ${
+                    language === "ar"
+                      ? "rtl lg:flex-row-reverse"
+                      : "lg:flex-row"
+                  }`}
+                ></div>
+              </div>
             )}
 
-            {error && <p className="text-red-500">{error}</p>}
+            {error && (
+              <div
+                className={`text-red-500 bg-red-100 p-4 rounded ${
+                  language === "ar" ? "text-end" : "text-start"
+                }`}
+              >
+                {error}
+              </div>
+            )}
 
             {/* Check for empty state */}
             {!loading && !error && currentTests.length === 0 && (

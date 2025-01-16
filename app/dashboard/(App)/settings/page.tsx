@@ -1,6 +1,7 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import InformationCard from "@/components/shared/InformationCardProps";
 import InformationUserCard from "@/components/shared/InformationUserCardProps";
 import { Button } from "@/components/ui/button";
@@ -283,6 +284,9 @@ export default function Page() {
         case 3:
           updatedDoctor.user.email = value; // Update email
           break;
+          case 4:
+            updatedDoctor.address = value; 
+            break;          
         default:
           break;
       }
@@ -290,7 +294,11 @@ export default function Page() {
     });
   };
 
-  return (
+  return loading ? (
+    <div className="flex items-center justify-center min-h-screen mx-auto">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <SidebarProvider>
       <SidebarInset>
         <header
@@ -315,9 +323,8 @@ export default function Page() {
               title={
                 language === "ar" ? "بيانات الشخصية" : "Personal Information"
               }
-              name={`${doctor?.user.first_name} ${
-                doctor?.user.last_name || ""
-              }`}
+              name={`${doctor?.user.first_name}`}
+              lastName={`${doctor?.user.last_name}`}
               fields={[
                 {
                   label: language === "ar" ? "رقم الهاتف" : "Phone Number",
@@ -370,9 +377,16 @@ export default function Page() {
                     : prev
                 )
               }
-              onFieldChange={handleFieldChange} // Use the updated handleFieldChange function here
+              onLastNameChange={(name) =>
+                setDoctor((prev) =>
+                  prev
+                    ? { ...prev, user: { ...prev.user, last_name: name } }
+                    : prev
+                )
+              }
+              onFieldChange={handleFieldChange}
               cities={cities}
-              onCityChange={handleCityChange} // Ensure this only updates the city field
+              onCityChange={handleCityChange}
             />
 
             <Button

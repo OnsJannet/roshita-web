@@ -88,24 +88,24 @@ const InformationCard: React.FC<InformationCardProps> = ({
     onFieldChange?.(index, event.target.value);
   };
 
- const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-  const newCityId = event.target.value;
+  const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCityId = event.target.value;
 
-  if (onCityChange) {
-    console.log("onSpecialityChange function exists, calling it...");
-    onCityChange(newCityId);
-  } else {
-    console.log("onSpecialityChange function is not defined.");
-  }
+    if (onCityChange) {
+      console.log("onSpecialityChange function exists, calling it...");
+      onCityChange(newCityId);
+    } else {
+      console.log("onSpecialityChange function is not defined.");
+    }
 
-  // Simulate a field change and log it
-  const simulatedEvent = {
-    target: { value: newCityId },
-  } as React.ChangeEvent<HTMLInputElement>;
+    // Simulate a field change and log it
+    const simulatedEvent = {
+      target: { value: newCityId },
+    } as React.ChangeEvent<HTMLInputElement>;
 
-  console.log("Simulated Event for handleFieldChange:", simulatedEvent);
+    console.log("Simulated Event for handleFieldChange:", simulatedEvent);
 
-  handleFieldChange(1, simulatedEvent);
+    handleFieldChange(1, simulatedEvent);
   };
 
   const handleSpecialityChange = (
@@ -204,7 +204,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                       <MoveRight className="h-4 w-4" />
                     </div>
                   </td>
-                  <td className="py-3 px-2 text-gray-700 p-4">
+                  <td className="py-3 px-2 text-gray-700 p-4 flex justify-end ">
                     {index === 0 ? (
                       // Editable phone number input
                       <input
@@ -212,7 +212,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                         value={field.value}
                         onChange={(event) => handleFieldChange(index, event)}
                         className={`${
-                          language === "ar" ? "text-end p-2" : "text-start"
+                          language === "ar" ? "text-end p-2 " : "text-end"
                         } ${getBorderClass()} rounded`}
                       />
                     ) : field.isDropdown ? (
@@ -240,12 +240,24 @@ const InformationCard: React.FC<InformationCardProps> = ({
                       field.value
                     )}
                   </td>
-                  <td className="py-3 px-2 text-gray-500 p-4">{field.label}</td>
+                  <td
+                    className={`py-3 px-2 text-gray-500 p-4 ${
+                      language === "ar" ? "text-end" : "text-start"
+                    }`}
+                  >
+                    {field.label}
+                  </td>
                 </>
               ) : (
                 <>
-                  <td className="py-3 px-2 text-gray-500 p-4">{field.label}</td>
-                  <td className="py-3 px-2 text-gray-700 p-4">
+                  <td
+                    className={`py-3 px-2 text-gray-500 p-4 
+                       text-start
+                    `}
+                  >
+                    {field.label}
+                  </td>
+                  <td className="pl-4 py-3 px-2 text-gray-700 p-4 flex justify-start">
                     {index === 0 ? (
                       // Editable phone number input
                       <input
@@ -262,18 +274,20 @@ const InformationCard: React.FC<InformationCardProps> = ({
                             ? handleCityChange(event)
                             : handleSpecialityChange(event)
                         }
-                        className={`${"text-end"} p-2 rounded`}
+                        className={`text-start p-2 rounded `}
                       >
                         {(index === 1 ? cities : specialities)?.map(
                           (option) => (
                             <option key={option.id} value={option.foreign_name}>
-                              option.foreign_name
+                              {option.foreign_name}
                             </option>
                           )
                         )}
                       </select>
                     ) : (
-                      field.value
+                      <p className="pl-4">
+                      {field.value}
+                      </p>
                     )}
                   </td>
                   <td className="py-3 px-2 text-gray-500 p-4 text-center">

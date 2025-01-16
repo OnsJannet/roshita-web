@@ -5,11 +5,13 @@ import { MoveRight } from "lucide-react";
 interface InformationCardProps {
   title: string;
   name: string;
+  lastName: string;
   picture: string;
   fields: { label: string; value: string }[];
   photoUploadHandler?: (file: File | string) => void;
   onFieldChange?: (index: number, value: string) => void;
   onNameChange?: (value: string) => void;
+  onLastNameChange?: (value: string) => void;
   cities?: { id: number; name: string; foreign_name: string }[];
   onCityChange?: (newCityId: string) => void;
   type?: string;
@@ -21,17 +23,21 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
   title,
   fields,
   name,
+  lastName,
   photoUploadHandler,
   picture,
   onFieldChange,
   onNameChange,
+  onLastNameChange,
   cities,
   onCityChange,
   type,
 }) => {
   const [editableName, setEditableName] = useState<string>(name);
+  const [editableLastName, setEditableLastName] = useState<string>(lastName);
   const [editableFields, setEditableFields] = useState(fields);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingLastName, setIsEditingLastName] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
 
   useEffect(() => {
@@ -62,6 +68,12 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
   }, [name, isEditingName]);
 
   useEffect(() => {
+    if (!isEditingLastName) {
+      setEditableLastName(lastName);
+    }
+  }, [name, isEditingLastName]);
+
+  useEffect(() => {
     setEditableFields(fields);
   }, [fields]);
 
@@ -69,6 +81,12 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
     const newName = event.target.value;
     setEditableName(newName);
     onNameChange?.(newName);
+  };
+
+  const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = event.target.value;
+    setEditableLastName(newName);
+    onLastNameChange?.(newName);
   };
 
   const handleFieldChange = (
@@ -92,8 +110,6 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
   };
 
   const getBorderClass = () => (type === "add" ? "border" : "border-0");
-
-
 
   const translate = (key: string) => {
     const translations: Record<
@@ -161,6 +177,21 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
             onChange={handleNameChange}
             onFocus={() => setIsEditingName(true)}
             onBlur={() => setIsEditingName(false)}
+            className={`${
+              language === "ar" ? "text-end p-2" : "text-start"
+            } ${getBorderClass()}  rounded`}
+          />
+        </div>
+        <div className="flex flex-col">
+          <h4 className={`${language === "ar" ? "text-end" : "text-start"}`}>
+            {translate("اللقب")}
+          </h4>
+          <input
+            type="text"
+            value={editableLastName}
+            onChange={handleLastNameChange}
+            onFocus={() => setIsEditingLastName(true)}
+            onBlur={() => setIsEditingLastName(false)}
             className={`${
               language === "ar" ? "text-end p-2" : "text-start"
             } ${getBorderClass()}  rounded`}

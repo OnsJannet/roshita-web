@@ -14,6 +14,7 @@ import { DoctorData } from "@/constant";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { specialities } from "../../../../../../constant/index";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 
 type Appointment = {
   scheduled_date: string;
@@ -385,9 +386,6 @@ export default function Page() {
     fetchSpecialities();
   }, [id]);
 
-
-
-
   // Handle city change here
   const handleCityChange = (cityNameOrForeignName: string) => {
     console.log("City selected:", cityNameOrForeignName);
@@ -445,8 +443,6 @@ export default function Page() {
   };
 
   const handleSpecialityChange = (specialityNameOrForeignName: string) => {
-    console.log("Specialty selected:", specialityNameOrForeignName);
-
     // Find the matching specialty in the specialties list based on name or foreign_name
     // @ts-ignore
     const matchingSpeciality = specialities?.find(
@@ -465,7 +461,6 @@ export default function Page() {
     }
 
     const specialityId = matchingSpeciality.id;
-    console.log("Matched specialty ID:", specialityId);
 
     // Set the selected specialty ID in state
     setSelectedSpecialityId(specialityId);
@@ -485,11 +480,9 @@ export default function Page() {
           : null, // Handle the case where specialty is not defined
       };
 
-      console.log("Updated doctor state in setDoctor:", updatedDoctor);
       return updatedDoctor;
     });
 
-    console.log("Updated doctor state after specialty change:", doctor);
   };
 
   const handleUpdateDoctor = async () => {
@@ -519,9 +512,6 @@ export default function Page() {
       );
     });
     // @ts-ignore
-    console.log("doctor.specialty.id", doctor.specialty.id);
-    console.log("selectedSpecialityId", selectedSpecialityId);
-
     // Create an updatedDoctor object with only changes to specialty and city if necessary
     const updatedDoctor = {
       ...doctor,
@@ -546,8 +536,6 @@ export default function Page() {
       },
       appointments: [...updatedAppointments, ...newAppointments],
     };
-
-    console.log("Updated Doctor:", updatedDoctor);
 
     try {
       const accessToken = localStorage.getItem("access");
@@ -577,9 +565,11 @@ export default function Page() {
     }
   };
 
-  console.log("doctor", doctor);
-
-  return (
+  return loading ? (
+    <div className="flex items-center justify-center min-h-screen mx-auto">
+      <LoadingDoctors />
+    </div>
+  ) :(
     <SidebarProvider>
       <SidebarInset>
         <header

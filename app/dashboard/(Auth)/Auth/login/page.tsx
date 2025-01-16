@@ -55,42 +55,40 @@ const Page = () => {
     setError(null);
   
     try {
-      // Sending the login request to your API
       const response = await fetch("/api/auth/login/loginStaff", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone, password }), // Sending phone and password
+        body: JSON.stringify({ phone, password }),
       });
   
-      // Check if the response is not OK
       if (!response.ok) {
-        const errorText = await response.text(); // Read response as text for error handling
+        const errorText = await response.text();
         console.error("Error response:", errorText);
         throw new Error(errorText || "An error occurred during login.");
       }
   
-      // Check if the response is JSON by inspecting content-type header
       const contentType = response.headers.get("Content-Type");
       if (contentType && contentType.includes("application/json")) {
-        const data = await response.json(); // Parse the JSON response
+        const data = await response.json();
         console.log("data", data);
   
-        // Store the tokens and user data in localStorage
         localStorage.setItem("refresh", data.refreshToken);
+        localStorage.setItem("userId", data.user.user_id);
         localStorage.setItem("access", data.token);
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userRole", data.user.user_type); // You may need to adjust this if the user type is an object
-        localStorage.setItem("user", JSON.stringify(data.user)); // Store full user object
+        localStorage.setItem("userRole", data.user.user_type);
+        localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("type", JSON.stringify(data.user.medical_organization_type));
   
-        // Redirect to the intended URL
-        if (redirectUrl) {
-          router.push(redirectUrl); // Redirect to the intended destination
+        // Redirect logic based on user_type
+        if (data.user.user_type === "Doctor") {
+          router.push(`/dashboard/doctors/${data.user.user_id}`);
+        } else if (redirectUrl) {
+          router.push(redirectUrl); // Default redirect
         }
       } else {
-        // If not JSON, handle it as an error or log it for debugging
         const errorText = await response.text();
         throw new Error(`Unexpected response format: ${errorText}`);
       }
@@ -100,6 +98,7 @@ const Page = () => {
       setLoading(false);
     }
   };
+  
   
 
   return (
