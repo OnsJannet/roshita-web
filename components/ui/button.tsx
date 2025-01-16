@@ -21,7 +21,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         login: "text-white bg-roshitaGreen p-8 ",
         register: "text-white bg-roshitaBlue p-8 ",
-        action: "text-white bg-roshitaBlue p-8 border-[23px]"        
+        action: "text-white bg-roshitaBlue p-8 border-[23px]",  
+        dropdown: "block w-full px-4 py-2 hover:bg-gray-100",      
       },
       size: {
         default: "h-9 px-4 py-2",
