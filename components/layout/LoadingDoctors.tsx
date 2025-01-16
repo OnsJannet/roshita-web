@@ -1,18 +1,15 @@
-import { cardio } from 'ldrs';
+'use client'
+import { useEffect } from 'react'
 
-// Register the cardio component
-cardio.register();
+export default function LoadingDoctors() {
+  useEffect(() => {
+    async function getLoader() {
+      const { cardio } = await import('ldrs')
+      cardio.register()  // Ensure the component is registered
+    }
+    getLoader()
+  }, [])
 
-// Usage of the <l-cardio> component with default values
-const LoadingDoctors = () => {
-  return (
-    <l-cardio
-      size="50"
-      stroke="4"
-      speed="2"
-      color="#1587c8"
-    ></l-cardio>
-  );
-};
+  return <l-cardio size="50" stroke="4" speed="2" color="#1587c8"></l-cardio>
+}
 
-export default LoadingDoctors;

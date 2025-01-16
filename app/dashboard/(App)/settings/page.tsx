@@ -97,29 +97,29 @@ export default function Page() {
     console.log("Uploaded file received in parent:", file);
   };
 
-  useEffect(() => {
-    if(typeof window !== 'undefined') {
-      // Code that accesses `localStorage` goes here
-      const storedLanguage = localStorage.getItem("language");
-      if (storedLanguage) {
-        setLanguage(storedLanguage as Language);
-      } else {
-        setLanguage("ar");
-      }
-
-      const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === "language") {
-          setLanguage((event.newValue as Language) || "ar");
-        }
-      };
-
-      window.addEventListener("storage", handleStorageChange);
-
-      return () => {
-        window.removeEventListener("storage", handleStorageChange);
-      };
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
     }
-  }, []);
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }
+}, []);
+
 
   const items = [
     { label: language === "ar" ? "الرئسية" : "Home", href: "/dashboard" },
