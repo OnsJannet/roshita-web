@@ -14,6 +14,8 @@ type Reservation = {
   reservation: {
     patient: Patient;
     reservation_date: string;
+    start_time: string;
+    end_time: string;
   };
   medical_organizations: number;
   doctor: number;
@@ -57,6 +59,8 @@ export default async function handler(
     price,
     payment,
   }: Reservation = req.body;
+
+  console.log("req.body", req.body);
 
   try {
     const apiResponse = await fetch(

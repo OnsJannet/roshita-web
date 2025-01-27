@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 
 import { Lock, Mail } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
+import { logAction } from "@/lib/logger";
 
 type Language = "ar" | "en";
 
@@ -54,8 +55,12 @@ const Page = () => {
     setLoading(true);
     setError(null);
   
+    const endpoint = "/api/auth/login/loginStaff"; // Define the endpoint
+    const backendEndpoint = "https://test-roshita.net/api/auth/staff-login/"
+    const token = localStorage.getItem("access"); // Get the token if it exists
+  
     try {
-      const response = await fetch("/api/auth/login/loginStaff", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,6 +71,17 @@ const Page = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error response:", errorText);
+  
+        // Log the failed login attempt
+        await logAction(
+          token || undefined, // Use the token if it exists, otherwise undefined
+          backendEndpoint,
+          { phone }, // Log the phone number used for login
+          "error",
+          response.status, // HTTP status code
+          errorText || "An error occurred during login." // Error message
+        );
+  
         throw new Error(errorText || "An error occurred during login.");
       }
   
@@ -74,6 +90,7 @@ const Page = () => {
         const data = await response.json();
         console.log("data", data);
   
+        // Save user data to localStorage
         localStorage.setItem("refresh", data.refreshToken);
         localStorage.setItem("userId", data.user.user_id);
         localStorage.setItem("access", data.token);
@@ -81,6 +98,15 @@ const Page = () => {
         localStorage.setItem("userRole", data.user.user_type);
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("type", JSON.stringify(data.user.medical_organization_type));
+  
+        // Log the successful login attempt
+        await logAction(
+          data.token, // Use the new token from the response
+          backendEndpoint,
+          { phone }, // Log the phone number used for login
+          "success",
+          response.status // HTTP status code
+        );
   
         // Redirect logic based on user_type
         if (data.user.user_type === "Doctor") {
@@ -90,10 +116,31 @@ const Page = () => {
         }
       } else {
         const errorText = await response.text();
+  
+        // Log the unexpected response format
+        await logAction(
+          token || undefined, // Use the token if it exists, otherwise undefined
+          backendEndpoint,
+          { phone }, // Log the phone number used for login
+          "error",
+          response.status, // HTTP status code
+          `Unexpected response format: ${errorText}` // Error message
+        );
+  
         throw new Error(`Unexpected response format: ${errorText}`);
       }
     } catch (error: any) {
       setError(error.message || "حدث خطأ أثناء تسجيل الدخول.");
+  
+      // Log the error
+      await logAction(
+        token || undefined, // Use the token if it exists, otherwise undefined
+        backendEndpoint,
+        { phone }, // Log the phone number used for login
+        "error",
+        error.response?.status || 500, // Use the error status code or default to 500
+        error.message || "An unknown error occurred" // Error message
+      );
     } finally {
       setLoading(false);
     }
@@ -117,11 +164,16 @@ const Page = () => {
           </div>
 
           {error && (
-            <div className="text-red-500 text-center">
+                          <div
+                          className={`text-red-500 bg-red-100 p-4 rounded ${
+                            language === "ar" ? "text-end" : "text-start"
+                          }`}
+                        >
               {language === "ar"
                 ? "حدث خطأ ما، يرجى المحاولة مرة أخرى"
                 : "An error occurred. Please try again."}
             </div>
+
           )}
 
           <form onSubmit={handleLogin} className="grid gap-4">

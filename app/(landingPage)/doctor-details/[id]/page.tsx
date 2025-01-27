@@ -292,13 +292,15 @@ const DoctorDetailsPage = () => {
   };
 
   // Function to handle appointment booking
-  const handleBooking = (dateString: string, timeString: string) => {
+  const handleBooking = (dateString: string, timeString: string, endDate: string) => {
     const appointmentDay = dateString;
     const appointmentTime = timeString;
+    const appointmentEndTime = endDate;
 
     // Save appointment day and time to localStorage
     localStorage.setItem("appointmentDay", appointmentDay);
     localStorage.setItem("appointmentTime", appointmentTime);
+    localStorage.setItem("appointmentEndTime", appointmentEndTime);
 
     // Navigate to the appointment page
     window.location.href = `/appointment/${doctor.doctor_id}`;
@@ -379,8 +381,12 @@ const DoctorDetailsPage = () => {
                               formatDate(appointment.scheduled_date),
                               formatTime(
                                 appointment.scheduled_date,
-                                appointment.start_time
-                              )
+                                appointment.start_time,
+                              ),
+                              formatTime(
+                                appointment.scheduled_date,
+                                appointment.end_time,
+                              )                              
                             )
                           }
                           className="p-4 bg-roshitaBlue rounded text-white text-center font-bold flex justify-center"

@@ -86,7 +86,7 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
 
       // Determine the API endpoint based on testType
       const apiEndpoint =
-        testType === "ray" ? "/api/radiologic/addTests" : "/api/tests/addTests";
+        testType === "rays" ? "/api/radiologic/addTests" : "/api/tests/addTests";
 
       try {
         const response = await fetch(apiEndpoint, {
@@ -104,9 +104,9 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
 
         const data = await response.json();
         // Redirect based on testType
-        testType === "lab"
+        /*testType === "lab"
           ? (window.location.href = "/dashboard/labs")
-          : (window.location.href = "/dashboard/x-rays");
+          : (window.location.href = "/dashboard/x-rays");*/
 
         console.log("Data successfully sent:", data);
       } catch (error) {

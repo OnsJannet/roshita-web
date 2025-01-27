@@ -15,6 +15,7 @@ type DoctorCardAppointmentProps = {
   id: number;
   day: string;
   time: string;
+  endTime: string;
   medical_organizations: { id: number; name: string };
 };
 
@@ -27,6 +28,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   price,
   location,
   imageUrl,
+  endTime,
   day,
   time,
   medical_organizations,
@@ -254,6 +256,12 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   ? "Select the payment method available to you"
                   : "أختار الطريقــة المعاملة التي موجودة لديــــــك"}
               </p>
+
+              <p className="text-black mb-2 pb-2 text-center">
+  {language === "en"
+    ? "Your payment for Roshita will be processed using the selected method. Please note that payments for the doctor must be made in cash directly at the doctor's cabinet."
+    : "سيتم معالجة دفعتك لروشيتا باستخدام الطريقة المحددة. يرجى ملاحظة أن الدفع للطبيب يجب أن يتم نقدًا مباشرة في عيادة الطبيب."}
+</p>
               <p
                 className={`text-gray-600 mb-2 pb-2 text-2xl font-semibold ${
                   language === "en" ? "text-start" : "text-end"
@@ -302,6 +310,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               id={id}
               day={day}
               time={time}
+              endTime={endTime}
               medical_organizations={medical_organizations}
               paymentMethod={
                 selectedId

@@ -45,6 +45,7 @@ const Appointment = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
+  const [appointmentEndTime, setAppointmentEndTime] = useState<string>("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -109,8 +110,10 @@ const Appointment = () => {
     // Fetch appointment preferences from localStorage
     const day = localStorage.getItem("appointmentDay") || "";
     const time = localStorage.getItem("appointmentTime") || "";
+    const endTime = localStorage.getItem("appointmentEndTime") || "";
     setAppointmentDay(day);
     setAppointmentTime(time);
+    setAppointmentEndTime(endTime);
   }, [id]); // Re-run the effect whenever `id` changes
   
 
@@ -154,6 +157,7 @@ const Appointment = () => {
         imageUrl={doctor.imageUrl}
         day={appointmentDay}
         time={appointmentTime}
+        endTime={appointmentEndTime}
         medical_organizations={
           doctor?.medical_organizations || { id: 0, name: "Unknown" }
         }

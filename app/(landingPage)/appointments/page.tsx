@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
+import { Bell, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
 import AppointementsCard from "@/components/unique/AppointementsCard"; // Adjust the import path as needed
 import { useRouter } from "next/navigation";
 
@@ -11,6 +11,7 @@ const translations = {
     settings: "Settings",
     changePassword: "Change Password",
     appointments: "My Appointments",
+    notification: "Notifications",
     logout: "Log Out",
     next: "Next",
     previous: "Previous",
@@ -21,6 +22,7 @@ const translations = {
     changePassword: "تغير كلمة المرور",
     appointments: "مواعيدي",
     logout: "تسجيل الخروج",
+    notification: "إشعارات",
     next: "التالي",
     previous: "السابق",
     noAppointments: "لا توجد مواعيد لعرضها",
@@ -174,6 +176,10 @@ const Page = () => {
     router.push("/appointments");
   };
 
+  const handleNotificationsClick = () => {
+    router.push("/notifications");
+  }
+
   const handleSettingsPasswordClick = () => {
     router.push("/password-change");
   };
@@ -229,6 +235,15 @@ const Page = () => {
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].appointments}</p>
+              </div>
+              <div
+                onClick={handleNotificationsClick}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
+                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-roshitaDarkBlue" />
+                </div>
+                <p>{translations[language].notification}</p>
               </div>
               <div
                 onClick={handleLogout}

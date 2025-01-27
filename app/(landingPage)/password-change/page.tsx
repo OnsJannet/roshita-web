@@ -17,6 +17,7 @@ import {
   UserRound,
   Eye,
   EyeOff,
+  Bell,
 } from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -156,6 +157,10 @@ const PasswordChange = () => {
     router.push("/appointments");
   };
 
+  const handleNotificationsClick = () => {
+    router.push("/notifications");
+  }
+
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
@@ -197,6 +202,15 @@ const PasswordChange = () => {
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{language === "ar" ? "مواعيدي" : "My Appointments"}</p>
+              </div>
+              <div
+                onClick={handleNotificationsClick}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
+                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-roshitaDarkBlue" />
+                </div>
+                <p>{language === "ar" ? "إشعارات" : "Notifications"}</p>
               </div>
               <div
                 onClick={handleLogout}

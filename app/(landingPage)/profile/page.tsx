@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import withAuth from "@/hoc/withAuth";
 import {
+  Bell,
   Camera,
   LogOut,
   Mail,
@@ -25,6 +26,7 @@ const translations = {
     settings: "Settings",
     changePassword: "Change Password",
     appointments: "My Appointments",
+    notification: "Notifications",
     logout: "Log Out",
     next: "Next",
     previous: "Previous",
@@ -35,6 +37,7 @@ const translations = {
     changePassword: "تغير كلمة المرور",
     appointments: "مواعيدي",
     logout: "تسجيل الخروج",
+    notification: "إشعارات",
     next: "التالي",
     previous: "السابق",
     noAppointments: "لا توجد مواعيد لعرضها",
@@ -280,6 +283,10 @@ const Profile = () => {
     router.push("/password-change");
   };
 
+  const handleNotificationsClick = () => {
+    router.push("/notifications");
+  }
+
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
@@ -323,6 +330,15 @@ const Profile = () => {
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].appointments}</p>
+              </div>
+              <div
+                onClick={handleNotificationsClick}
+                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
+                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-roshitaDarkBlue" />
+                </div>
+                <p>{translations[language].notification}</p>
               </div>
               <div
                 onClick={handleLogout}

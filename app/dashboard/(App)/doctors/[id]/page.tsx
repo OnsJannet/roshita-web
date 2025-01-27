@@ -14,6 +14,7 @@ import { useParams } from "next/navigation";
 import LoadingDoctors from "../../../../../components/layout/LoadingDoctors";
 import { Table, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { logAction } from "@/lib/logger";
 // Define types for doctor data and specialty data
 
 interface User {
@@ -233,21 +234,6 @@ export default function Page() {
     });
   };
 
-  /*const handleRemoveSlot = (index: number) => {
-    if (doctor && doctor.appointments) {
-      const updatedAppointments = doctor.appointments.filter(
-        (_, idx) => idx !== index
-      );
-      setDoctor((prevDoctor) => {
-        return prevDoctor
-          ? {
-              ...prevDoctor,
-              appointments: updatedAppointments,
-            }
-          : null;
-      });
-    }
-  };*/
 
   const handleRemoveSlot = async (index: number) => {
     console.log("index: ", index);
@@ -256,7 +242,7 @@ export default function Page() {
         console.error("Appointment ID not found");
         return;
       }
-
+  
       try {
         // Get the Bearer token from localStorage
         const token = localStorage.getItem("access");
@@ -264,7 +250,7 @@ export default function Page() {
           console.error("Access token not found in localStorage");
           return;
         }
-
+  
         // Send the DELETE request
         const response = await fetch(
           `https://test-roshita.net/api/appointment-reservations/${index}/`,
@@ -278,10 +264,19 @@ export default function Page() {
             },
           }
         );
-
+  
         if (response.ok) {
           console.log("Appointment deleted successfully");
-
+  
+          // Log the action as a success
+          await logAction(
+            token,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            { appointmentId: index },
+            "success",
+            response.status // HTTP status code (e.g., 200)
+          );
+  
           // Update the appointments locally
           const updatedAppointments = doctor.appointments.filter(
             (_, idx) => idx !== index
@@ -296,10 +291,95 @@ export default function Page() {
           });
         } else {
           console.error("Failed to delete appointment", response.statusText);
+  
+          // Log the action as an error
+          const errorData = await response.json(); // Parse the error response
+          await logAction(
+            token,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            { appointmentId: index },
+            "error",
+            response.status, // HTTP status code (e.g., 400, 500)
+            errorData.message || "Failed to delete appointment" // Error message
+          );
         }
       } catch (error) {
         console.error("Error deleting appointment:", error);
+  
+        // Log the action as an error
+        const token = localStorage.getItem("access");
+        if (token) {
+          await logAction(
+            token,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            { appointmentId: index },
+            "error",
+            error.response?.status || 500, // Use the error status code or default to 500
+            error.message || "An unknown error occurred" // Error message
+          );
+        }
       }
+    }
+  };
+
+  const handleEndSlot = async (index: number) => {
+    // Define the URL of the API endpoint
+    const url =
+      "https://test-roshita.net/api/complete-appointment-reservations/";
+
+    // Retrieve the Bearer token from localStorage
+    const token = localStorage.getItem("access");
+
+    // Define the data to be sent in the request body
+    const data = {
+      appointment_reservation_id: index, // Use the index parameter as the appointment_reservation_id
+    };
+
+    try {
+      // Use the Fetch API to make the POST request
+      const response = await fetch(url, {
+        method: "POST", // Specify the request method
+        headers: {
+          accept: "application/json", // Accept JSON response
+          Authorization: `Bearer ${token}`, // Add Bearer token to headers
+          "X-CSRFToken":
+            "9htdjDGAaHSm5TKSyU7DoBSxj4PlVCSYt2yA1iOmGLIu2JXABwbrTe3rgvbCnG2U", // Add CSRF token
+          "Content-Type": "application/json", // Specify content type
+        },
+        body: JSON.stringify(data), // Convert the data to a JSON string
+      });
+
+      // Check if the response is OK (status code 200-299)
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
+      // Log the action as a success
+      if (token) {
+        await logAction(
+          token,
+          url,
+          { appointmentId: index },
+          "success",
+          response.status
+        );
+      }
+      // Parse the JSON response
+      const responseData = await response.json();
+
+      console.log("Success:", responseData); // Handle the success response
+    } catch (error) {
+      // Log the action as an error
+      if (token) {
+        await logAction(
+          token,
+          url,
+          { appointmentId: index },
+          "error",
+          error?.response?.status || 500, // Use the error status code or default to 500
+          error?.message || "An unknown error occurred"
+        );
+      }
+      console.error("Error:", error); // Handle any errors
     }
   };
 
@@ -432,36 +512,6 @@ export default function Page() {
     fetchDoctorAndSpecialty();
   }, [id]);
 
-  const fetchCities = async () => {
-    try {
-      const response = await fetch("https://test-roshita.net/api/cities-list/");
-      const citiesData: City[] = await response.json();
-      if (response.ok) {
-        setCities(citiesData);
-      } else {
-        console.error("Error fetching cities");
-      }
-    } catch (error) {
-      console.error("Error fetching cities:", error);
-    }
-  };
-
-  const fetchSpecialities = async () => {
-    try {
-      const response = await fetch(
-        "https://test-roshita.net/api/specialty-list/"
-      );
-      const data: Specialities = await response.json();
-
-      if (response.ok) {
-        setSpecialities(data); // Now setSpecialities accepts Specialities
-      } else {
-        console.error("Error fetching cities");
-      }
-    } catch (error) {
-      console.error("Error fetching cities:", error);
-    }
-  };
 
   // Fetch data from API with token from localStorage
   const fetchAppointments = async () => {
@@ -526,24 +576,8 @@ export default function Page() {
     fetchAppointments();
   }, [id]);
 
-  const handleUpload = (file: File) => {
-    console.log("Uploaded file:", file);
-    // Handle the uploaded file (e.g., send it to a server or preview it)
-  };
-
-  const handleEdit = () => {
-    console.log("Edit clicked");
-  };
-
-  const handleDelete = () => {
-    console.log("Delete clicked");
-  };
-
   console.log("appointments", appointments);
 
-  const shouldShowAction = appointments.some(
-    (slot) => slot.reservation.reservation_status === "specific_status" // Adjust condition
-  );
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -776,11 +810,9 @@ export default function Page() {
                     <TableRow>
                       {language === "ar" ? (
                         <>
-                          {shouldShowAction && (
-                            <TableCell className="font-bold text-gray-700 text-center">
-                              {t.action}
-                            </TableCell>
-                          )}
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.action}
+                          </TableCell>
                           <TableCell className="font-bold text-gray-700 text-center">
                             {t.status}
                           </TableCell>
@@ -832,11 +864,9 @@ export default function Page() {
                           <TableCell className="font-bold text-gray-700 text-center">
                             {t.status}
                           </TableCell>
-                          {shouldShowAction && (
-                            <TableCell className="font-bold text-gray-700 text-center">
-                              {t.action}
-                            </TableCell>
-                          )}
+                          <TableCell className="font-bold text-gray-700 text-center">
+                            {t.action}
+                          </TableCell>
                         </>
                       )}
                     </TableRow>
@@ -848,7 +878,7 @@ export default function Page() {
                           {language === "ar" ? (
                             <>
                               {slot.reservation.reservation_status ===
-                                "pending" && (
+                              "pending" ? (
                                 <TableCell className="text-center">
                                   <Button
                                     variant="destructive"
@@ -858,21 +888,23 @@ export default function Page() {
                                     {t.remove}
                                   </Button>
                                   <Button
-                                    onClick={() => handleBooked(index)}
+                                    onClick={() => handleEndSlot(slot.id)}
                                     className="text-white bg-[#1685c7] ml-2"
                                   >
                                     {t.roshitaBook}
                                   </Button>
                                 </TableCell>
+                              ) : (
+                                <p className="text-center p-4">-</p>
                               )}
                               <TableCell className="text-center">
                                 {slot.reservation.reservation_status}
                               </TableCell>
                               <TableCell className="text-center">
-                                {slot.end_time}
+                                {slot.end_time ? slot.end_time : "-"}
                               </TableCell>
                               <TableCell className="text-center">
-                                {slot.start_time}
+                                {slot.start_time ? slot.start_time : "-"}
                               </TableCell>
                               <TableCell className="text-center">
                                 {slot.reservation.patient.email}
@@ -917,7 +949,7 @@ export default function Page() {
                                 {slot.reservation.reservation_status}
                               </TableCell>
                               {slot.reservation.reservation_status ===
-                                "pending" && (
+                              "pending" ? (
                                 <TableCell className="text-center">
                                   <Button
                                     variant="destructive"
@@ -927,12 +959,14 @@ export default function Page() {
                                     {t.remove}
                                   </Button>
                                   <Button
-                                    onClick={() => handleBooked(index)}
+                                    onClick={() => handleEndSlot(slot.id)}
                                     className="text-white bg-[#1685c7] ml-2"
                                   >
                                     {t.roshitaBook}
                                   </Button>
                                 </TableCell>
+                              ) : (
+                                <p className="text-center p-4">-</p>
                               )}
                             </>
                           )}

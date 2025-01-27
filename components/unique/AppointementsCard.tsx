@@ -31,7 +31,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   appointementId,
   appointementStatus,
   status: initialStatus,
-  onError
+  onError,
 }) => {
   const [status, setStatus] = useState(initialStatus);
   const [language, setLanguage] = useState<Language>("ar");
@@ -39,8 +39,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   const [rating, setRating] = useState(0);
   const [error, setError] = useState("error");
   const [comment, setComment] = useState("");
-
-  console.log("onError", onError);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -63,68 +63,86 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     };
   }, []);
 
-  /*const handleCancel = () => {
-    const appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
+  const handleCancelClick = () => {
+    // Sanitize the `day` string to remove any unwanted Unicode characters
+    const sanitizedDay = day.replace(/[^\x00-\x7F]/g, "");
 
-    const updatedAppointments = appointments.map((appointment: any) => {
-      if (appointment.doctorName === name && appointment.day === day) {
-        return { ...appointment, status: "canceled" };
-      }
-      return appointment;
-    });
+    // Sanitize the `time` string to convert it into a 24-hour format
+    const sanitizedTime = time
+      .replace(/ص/g, "AM") // Replace Arabic "ص" with "AM"
+      .replace(/م/g, "PM"); // Replace Arabic "م" with "PM"
 
-    localStorage.setItem("appointments", JSON.stringify(updatedAppointments));
-    setStatus("canceled");
-    alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
-  };*/
+    // Log the sanitized day and time for debugging
+    console.log("sanitizedDay", sanitizedDay);
+    console.log("sanitizedTime", sanitizedTime);
 
+    // Create the appointment date using the sanitized day and time
+    const appointmentDate = new Date(`${sanitizedDay} ${sanitizedTime}`);
+    const currentDate = new Date();
+    const timeDifference = appointmentDate.getTime() - currentDate.getTime();
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
 
+    // Log all values for debugging
+    console.log("day", day);
+    console.log("time", time);
+    console.log("hoursDifference", hoursDifference);
+    console.log("appointmentDate", appointmentDate);
+    console.log("currentDate", currentDate);
+    console.log("timeDifference", timeDifference);
 
-  const handleCancel = async () => {
+    // Set the modal message based on the time difference
+    if (isNaN(hoursDifference)) {
+      // Handle invalid date parsing
+      setModalMessage(
+        language === "ar"
+          ? "حدث خطأ في تحويل التاريخ أو الوقت. يرجى المحاولة مرة أخرى."
+          : "An error occurred while parsing the date or time. Please try again."
+      );
+    } else if (hoursDifference <= 24) {
+      setModalMessage(
+        language === "ar"
+          ? "هل أنت متأكد أنك تريد الإلغاء؟"
+          : "Are you sure you want to cancel?"
+      );
+    } else if (hoursDifference <= 48) {
+      setModalMessage(
+        language === "ar"
+          ? "إذا قمت بالإلغاء بعد 48 ساعة، ستحصل على 50٪ فقط من المبلغ المسترد."
+          : "If you cancel after 48 hours, you will only get a 50% refund."
+      );
+    } else {
+      setModalMessage(
+        language === "ar"
+          ? "لن تحصل على أي استرداد لأنك تجاوزت 48 ساعة."
+          : "You won't get any refund because you passed 48 hours."
+      );
+    }
+
+    // Open the cancel modal
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
     try {
       const url = `https://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
       const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access")}`,
-        },
-      });
-  
-      if (!response.ok) {
-        const errorMsg =
-          language === "ar"
-            ? "حدث خطأ ما. حاول مرة أخرى."
-            : "Something went wrong. Please try again.";
-        setError(errorMsg);
-        onError?.(errorMsg); // Notify parent about the error
-        return;
-      }
-  
-      const reservationData = await response.json();
-      const updatedReservation = { ...reservationData, reservation_status: "CANCELLED" };
-  
-      const updateResponse = await fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access")}`,
         },
-        body: JSON.stringify(updatedReservation),
       });
-  
-      if (updateResponse.ok) {
-        //window.location.reload();
+
+      if (response.ok) {
         setStatus("canceled");
-        //alert(language === "ar" ? "تم إلغاء الموعد" : "Appointment canceled");
+        setIsCancelModalOpen(false);
       } else {
         const errorMsg =
           language === "ar"
             ? "حدث خطأ ما. حاول مرة أخرى."
             : "Something went wrong. Please try again.";
-        const errorData = await updateResponse.json();
-        console.error("Error canceling appointment:", errorData);
-        onError?.(errorMsg); // Notify parent
+        setError(errorMsg);
+        onError?.(errorMsg);
       }
     } catch (err) {
       const errorMsg =
@@ -132,52 +150,54 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
           ? "حدث خطأ ما. حاول مرة أخرى."
           : "Something went wrong. Please try again.";
       console.error("Error during cancellation:", err);
-      onError?.(errorMsg); // Notify parent
+      onError?.(errorMsg);
     }
   };
-  
-  console.log("appointement status", appointementStatus);
 
+  const handleCloseModal = () => {
+    setIsCancelModalOpen(false);
+  };
 
   const handleRate = async () => {
     try {
-      // Prepare the payload
       const payload = { rating };
-      const token = localStorage.getItem("access")
-      // Replace the doctor ID dynamically
-      const doctorId = doctorID; // Ensure this variable holds the correct doctor's ID
+      const token = localStorage.getItem("access");
+      const doctorId = doctorID;
       const url = `https://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
-  
-      // Send the POST request
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
-  
-      // Parse the response
+
       const data = await response.json();
-  
-      // Check if the request was successful
+
       if (response.ok) {
-        //alert(language === "ar" ? "شكراً لتقييمك!" : "Thank you for your feedback!");
         window.location.reload();
         console.log("Rating submitted successfully:", data);
       } else {
         console.error("Failed to submit rating:", data);
-        alert(language === "ar" ? "حدث خطأ ما. حاول مرة أخرى." : "Something went wrong. Please try again.");
+        alert(
+          language === "ar"
+            ? "حدث خطأ ما. حاول مرة أخرى."
+            : "Something went wrong. Please try again."
+        );
       }
     } catch (error) {
       console.error("Error while submitting rating:", error);
-      alert(language === "ar" ? "حدث خطأ ما. حاول مرة أخرى." : "Something went wrong. Please try again.");
+      alert(
+        language === "ar"
+          ? "حدث خطأ ما. حاول مرة أخرى."
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setIsModalOpen(false);
     }
   };
-  
 
   return (
     <div
@@ -230,13 +250,12 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             </div>
           </div>
 
-          {}
           <div className="flex justify-between items-center w-full">
             <div
               className={`w-full flex ${
                 language === "ar"
-                  ? "lg:justify-start justify-start"
-                  : "lg:justify-end justify-end"
+                  ? "lg:justify-start justify-between"
+                  : "lg:justify-end justify-between"
               } mt-4`}
             >
               {status === "canceled" ? (
@@ -246,7 +265,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               ) : (
                 <Button
                   className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50"
-                  onClick={handleCancel}
+                  onClick={handleCancelClick}
                 >
                   {language === "ar" ? "إلغاء" : "Cancel"}{" "}
                   <Trash className="text-red-500 w-6 h-6 ml-2" />
@@ -269,7 +288,6 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               </button>
             </div>
           </div>
-
         </div>
 
         <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
@@ -306,33 +324,42 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
                 </span>
               ))}
             </div>
-            {/*<textarea
-              className="w-full p-2 border rounded mb-4"
-              rows={3}
-              placeholder={
-                language === "ar"
-                  ? "أضف تعليقك هنا"
-                  : "Add your comment here"
-              }
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            ></textarea>*/}
-            {(appointementStatus === "confirmed" || appointementStatus === "pending payment") && (
-              <div className="flex justify-center gap-2">
-                <button
-                  className="bg-gray-300 px-4 py-2 rounded"
-                  onClick={handleCancel}
-                >
-                  {language === "ar" ? "إلغاء" : "Cancel"}
-                </button>
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={handleRate}
-                >
-                  {language === "ar" ? "إرسال" : "Submit"}
-                </button>
-              </div>
-            )}
+            <div className="flex justify-center gap-2">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded"
+                onClick={() => setIsModalOpen(false)}
+              >
+                {language === "ar" ? "إلغاء" : "Cancel"}
+              </button>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={handleRate}
+              >
+                {language === "ar" ? "إرسال" : "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <p className="mb-4">{modalMessage}</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                {language === "ar" ? "إلغاء" : "Cancel"}
+              </button>
+              <button
+                onClick={handleConfirmCancel}
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                {language === "ar" ? "تأكيد" : "Confirm"}
+              </button>
+            </div>
           </div>
         </div>
       )}

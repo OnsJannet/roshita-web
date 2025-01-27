@@ -33,6 +33,7 @@ type DoctorCardAppointmentProps = {
   id: number;
   day: string;
   time: string;
+  endTime: string;
   medical_organizations: { id: number; name: string };
   paymentMethod: PaymentMethod | undefined | null;
 };
@@ -75,6 +76,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   imageUrl,
   day,
   time,
+  endTime,
   medical_organizations,
   paymentMethod,
   id
@@ -169,12 +171,14 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   
     console.log("day", day);
     console.log("time", time);
+    console.log("endTime", endTime)
   
     // Convert the day and time to ISO 8601 format
     const [dayPart, monthPart, yearPart] = day.split("/"); // Split day into DD/MM/YYYY
     const formattedDate = `${yearPart}-${monthPart}-${dayPart}`; // Rearrange to YYYY-MM-DD
     const reservationDate = `${formattedDate}T${time}:00Z`; // Combine date and time into ISO format
-  
+    const formattedStartTime = `${time}:00`;
+    const formattedEndTime = `${endTime}:00`;
     // Prepare the payload for the API
     const newAppointment = {
       reservation: {
@@ -187,7 +191,9 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
           city: profileData.city || 2,
           address: profileData.address,
         },
-        reservation_date: reservationDate, // Use correctly formatted ISO 8601 date
+        reservation_date: formattedDate, // Use correctly formatted ISO 8601 date
+        start_time: formattedStartTime,
+        end_time: formattedEndTime
       },
       medical_organizations: organizationId || 0,
       //confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
@@ -407,7 +413,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
               >
                 <Input
                   id="time"
-                  defaultValue={time}
+                  defaultValue={`${time} - ${endTime}`}
                   className="flex-1"
                   readOnly
                   disabled

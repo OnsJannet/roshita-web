@@ -224,8 +224,16 @@ export default function Page() {
         patient: patientDetails,
         //reservation_status: "pending payment",
         reservation_date: bookingDetails?.scheduled_date,
+        start_time: bookingDetails?.start_time,
+        end_time: bookingDetails?.end_time
+
       },
       confirmation_code: "12345", // Replace or generate dynamically
+      doctor_id: id,
+      doctor: {
+        id: id,
+        name: doctor?.staff.first_name + " " + doctor?.staff.last_name
+      },
       // @ts-ignore
       price: bookingDetails?.price, // Adjust as needed
     };
@@ -249,7 +257,7 @@ export default function Page() {
       );
 
       if (response.ok) {
-        alert("Booking successful!");
+
         setPopupVisible(false);
       } else {
         const error = await response.json();

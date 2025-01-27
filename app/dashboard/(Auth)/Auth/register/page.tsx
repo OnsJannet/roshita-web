@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { loginUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-import { Lock, Mail, Phone, User } from "lucide-react";
+import { Building, Lock, Mail, Phone, User } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
+import { logAction } from "@/lib/logger";
 
 type Language = "ar" | "en";
 
@@ -24,10 +25,15 @@ const translations = {
     next: "التالي",
     adminInfo: "تسجيل معلومات الأدمن",
     adminName: "اسم الأدمن",
+    email: "البريد الإلكتروني",
+    password: "كلمة المرور",
     adminLastName: "لقب الأدمن",
+    hospitalName: "اسم المستشفى",
+    hospitalForgeinName: "اسم المستشفى الأجنبي",
     phone: "رقم الهاتف",
     errorLogin: "حدث خطأ أثناء تسجيل الدخول",
     welcome: "أهلا بيك",
+    fillField: "يرجى ملء الحقل",
   },
   en: {
     selectType: "Choose the type of institution",
@@ -38,10 +44,15 @@ const translations = {
     next: "Next",
     adminInfo: "Admin Information Registration",
     adminName: "Admin Name",
+    email: "Email",
+    password: "Password",
     adminLastName: "Admin Last Name",
     phone: "Phone Number",
     errorLogin: "An error occurred during login",
+    hospitalName: "Hospitals Name",
+    hospitalForgeinName: "Hospital foreign name",
     welcome: "Welcome",
+    fillField: "Please fill the field",
   },
 };
 
@@ -57,9 +68,13 @@ const Page = () => {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
   const router = useRouter();
+  const [hospitalName, setHospitalName] = useState("");
+  const [hospitalForeignName, setHospitalForeignName] = useState("");
   const [selected, setSelected] = useState<"lab" | "hospital" | "rays" | null>(
     null
   );
+  const [formSubmitted, setFormSubmitted] = useState(false); // Track if form is submitted
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({}); // Track field errors
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -100,65 +115,65 @@ const Page = () => {
     }
   };
 
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const url = query.get("redirect") || "/login"; // Default to home page
-    setRedirectUrl(url);
-  }, []);
+  // Validate form fields
+  const validateForm = () => {
+    const errors: Record<string, boolean> = {};
+    if (!name.trim()) errors.name = true;
+    if (!lastName.trim()) errors.lastName = true;
+    if (!phone.trim()) errors.phone = true;
+    if (!email.trim()) errors.email = true;
+    if (!hospitalName.trim()) errors.hospitalName = true;
+    if (!hospitalForeignName.trim()) errors.hospitalForeignName = true;
+    if (!password.trim()) errors.password = true;
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await loginUser({ phone, password });
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      localStorage.setItem("refresh", data.refresh);
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("isLoggedIn", "true");
-
-      setStep(2);
-    } catch (error: any) {
-      setError("حدث خطأ أثناء تسجيل الدخول.");
-    } finally {
-      setLoading(false);
-    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0; // Return true if no errors
   };
 
-  // Example API request
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormSubmitted(true);
+
+    if (!validateForm()) {
+      const message =
+        language === "ar"
+          ? "يرجى ملء جميع الحقول المطلوبة!"
+          : "Please fill all required fields!";
+      setError(message);
+      return;
+    }
+
+    // Proceed with form submission if all fields are filled
+    const endpoint = "/api/auth/register/registerStaff";
+    const backendEndpoint = "https://test-roshita.net/api/auth/staff-register/";
+    const token = localStorage.getItem("access");
 
     const payload = {
       user: {
-        phone: phone?.trim() || " ",
-        password: password?.trim() || " ",
-        email: email?.trim() || " ",
-        first_name: name?.trim() || " ",
-        last_name: lastName?.trim() || " ",
+        phone: phone.trim(),
+        password: password.trim(),
+        email: email.trim(),
+        first_name: name.trim(),
+        last_name: lastName.trim(),
       },
       city: 1,
-      address: " ",
+      address: "", 
       medical_organization: [
         {
-          name: " ",
-          foreign_name: " ",
-          phone: " ",
-          email: " ",
+          name: hospitalName,
+          foreign_name: hospitalName,
+          phone: phone,
+          email: email,
           city: {
             country: {
-              name: " ",
-              foreign_name: " ",
+              name: "",
+              foreign_name: "",
             },
-            name: " ",
-            foreign_name: " ",
+            name: "", 
+            foreign_name: "", 
           },
-          address: " ",
+          address: "", 
           Latitude: 0,
           Longitude: 0,
           type: selected === "hospital" ? 1 : selected === "lab" ? 2 : 3,
@@ -167,7 +182,7 @@ const Page = () => {
     };
 
     try {
-      const response = await fetch("/api/auth/register/registerStaff", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -179,65 +194,32 @@ const Page = () => {
         const successMessage =
           language === "ar" ? "تم التسجيل بنجاح!" : "Registration successful!";
         alert(successMessage);
+        setStep(2);
       } else {
-        // Map and display error messages
-        const translatedErrors: Record<string, string> = {
-          "This field may not be blank.":
-            language === "ar" ? "هذا الحقل مطلوب." : "This field is required.",
-          "A user with that email already exists.":
-            language === "ar"
-              ? "البريد الإلكتروني مستخدم مسبقاً."
-              : "Email is already in use.",
-          'Expected a list of items but got type "int".':
-            language === "ar"
-              ? "القيمة المدخلة غير صحيحة، يجب أن تكون قائمة."
-              : "The entered value is incorrect; it must be a list.",
-        };
-
-        const errors = result?.details || {};
-        const languageErrors = Object.keys(errors)
-          .map((key) => {
-            const fieldErrors = errors[key];
-            if (Array.isArray(fieldErrors)) {
-              return fieldErrors
-                .map((error) => translatedErrors[error] || error)
-                .join(", ");
-            }
-            return null;
-          })
-          .filter(Boolean); // Remove null values
-
-        setError(
-          languageErrors.join(" | ") ||
-            (language === "ar"
-              ? "حدث خطأ أثناء التسجيل."
-              : "An error occurred during registration.")
-        );
+        setError(result.message || "An error occurred during registration.");
       }
     } catch (error: any) {
-      const errorMessage =
+      setError(
         language === "ar"
           ? `حدث خطأ أثناء إرسال البيانات: ${error.message || error}`
-          : `An error occurred while submitting data: ${
-              error.message || error
-            }`;
-      setError(errorMessage);
+          : `An error occurred while submitting data: ${error.message || error}`
+      );
     }
   };
 
   // Retrieve translations based on the selected language
   const t = translations[language];
   const textAlignment = language === "en" ? "text-start" : "text-end";
-  const elementAlignment = language === "en" ? "text-start" : "text-end";
+  const elementAlignment = language === "en" ? "justify-start" : "justify-end";
 
   return (
     <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
       {/* Left Column */}
       <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
+        <div className="mx-auto grid lg:w-[600px] w-[90%] gap-6">
           {/* Step 1 */}
           {step === 1 && (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-12 ">
               <div className="mx-auto grid w-full gap-6">
                 <div className="grid gap-2 text-center">
                   <h1 className="text-3xl font-bold text-center">
@@ -321,62 +303,188 @@ const Page = () => {
 
           {/* Step 2 */}
           {step === 2 && (
-            <div className="flex items-center justify-center py-12">
-              <div className="mx-auto grid w-[350px] gap-6">
+            <div className="flex items-center justify-center py-12 ">
+              <div className="mx-auto grid lg:w-[600px] w-[90%] gap-6">
                 <div className="grid gap-2 text-center">
                   <h1 className="text-3xl font-bold text-center">
                     {t.adminInfo}
                   </h1>
                 </div>
+
                 {error && (
-                  <div className="text-red-500 text-center">{t.errorLogin}</div>
-                )}
-                <form onSubmit={handleNext} className="grid gap-4">
-                  {/* Admin Name */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone" className={textAlignment}>
-                      {t.adminName}
-                    </Label>
-                    <InputAdmin
-                      placeholder={t.adminName}
-                      icon={<User size={24} />}
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </div>
-                  {/* Admin Last Name */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone" className={textAlignment}>
-                      {t.adminLastName}
-                    </Label>
-                    <InputAdmin
-                      placeholder={t.adminLastName}
-                      icon={<User size={24} />}
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                  {/* Phone */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone" className={textAlignment}>
-                      {t.phone}
-                    </Label>
-                    <InputAdmin
-                      icon={<Phone size={24} />}
-                      type="phone"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-[#0575E6] h-[70px] rounded-[30px]"
-                    onClick={handleSubmit}
+                  <div
+                    className={`text-red-500 bg-red-100 p-4 rounded ${
+                      language === "ar" ? "text-end" : "text-start"
+                    }`}
                   >
-                    {t.next}
-                  </Button>
+                    {t.errorLogin}
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} className="grid gap-4 ">
+                  <div
+                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                  >
+                    {/* Admin Name */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.adminName}
+                      </Label>
+                      <InputAdmin
+                        placeholder={t.adminName}
+                        icon={<User size={24} />}
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className={fieldErrors.name ? "border-red-500" : ""}
+                      />
+                      {fieldErrors.name && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.adminName}"
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Admin Last Name */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.adminLastName}
+                      </Label>
+                      <InputAdmin
+                        placeholder={t.adminLastName}
+                        icon={<User size={24} />}
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className={fieldErrors.lastName ? "border-red-500" : ""}
+                      />
+                      {fieldErrors.lastName && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.adminLastName}"
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                  >
+                    {/* Phone */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.phone}
+                      </Label>
+                      <InputAdmin
+                        icon={<Phone size={24} />}
+                        type="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className={fieldErrors.phone ? "border-red-500" : ""}
+                      />
+                      {fieldErrors.phone && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.phone}"
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Email */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.email}
+                      </Label>
+                      <InputAdmin
+                        icon={<Mail size={24} />}
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={fieldErrors.email ? "border-red-500" : ""}
+                      />
+                      {fieldErrors.email && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.email}"
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                  >
+                    {/* Hospital Name */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.hospitalName}
+                      </Label>
+                      <InputAdmin
+                        placeholder={t.hospitalName}
+                        icon={<Building size={24} />}
+                        type="text"
+                        value={hospitalName}
+                        onChange={(e) => setHospitalName(e.target.value)}
+                        className={
+                          fieldErrors.hospitalName ? "border-red-500" : ""
+                        }
+                      />
+                      {fieldErrors.hospitalName && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.hospitalName}"
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Hospital Foreign Name */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.hospitalForgeinName}
+                      </Label>
+                      <InputAdmin
+                        placeholder={t.hospitalForgeinName}
+                        icon={<Building size={24} />}
+                        type="text"
+                        value={hospitalForeignName}
+                        onChange={(e) => setHospitalForeignName(e.target.value)}
+                        className={
+                          fieldErrors.hospitalForeignName
+                            ? "border-red-500"
+                            : ""
+                        }
+                      />
+                      {fieldErrors.hospitalForeignName && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.hospitalForgeinName}"
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                  >
+                    {/* Password */}
+                    <div className="grid gap-2 lg:w-1/2 w-full">
+                      <Label htmlFor="phone" className={textAlignment}>
+                        {t.password}
+                      </Label>
+                      <InputAdmin
+                        icon={<Lock size={24} />}
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={fieldErrors.password ? "border-red-500" : ""}
+                      />
+                      {fieldErrors.password && (
+                        <p className={`text-red-500 text-sm ${textAlignment}`}>
+                          {t.fillField} "{t.password}"
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {/* Submit Button */}
+                  <div className="flex justify-center">
+                    <Button
+                      type="submit"
+                      className="w-full bg-[#0575E6] h-[70px] rounded-[30px] lg:w-1/2 "
+                    >
+                      {t.next}
+                    </Button>
+                  </div>
                 </form>
               </div>
             </div>
