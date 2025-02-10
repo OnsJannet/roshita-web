@@ -31,11 +31,12 @@ import Services from "@/components/unique/Services";
  * - React hooks (useState, useEffect) for managing state and side effects if needed.
  */
 
+//should be #f9f9f9
 
 const page = () => {
   return (
-    <div className="bg-[#f9f9f9]">
-      <div className="bg-[#f9f9f9] pb-40">
+    <div className="bg-[#f2f7ff]">
+      <div className="bg-[#f2f7ff] pb-40">
         <div className="pb-[140px]">
           <HeroPage />
         </div>

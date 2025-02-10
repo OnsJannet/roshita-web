@@ -259,7 +259,7 @@ const Page = () => {
   };
 
   return (
-    <div className="bg-[#F9F9F9] pb-20">
+    <div className="bg-white pb-20">
       <GuideTitleSection
         onSearchChange={handleSearchUpdate}
         onCountryChange={handleCountryUpdate}

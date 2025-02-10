@@ -22,6 +22,7 @@ import {
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns'; // Import format function from date-fns
+import { Folder } from "lucide-react";
 
 // Define the types for the data you're expecting from the API
 interface DoctorStaff {
@@ -356,6 +357,7 @@ export default function Page() {
                     requestDate={item.requestDate}
                     speciality={item.speciality}
                     language={language}
+                    doctors={tableData}
                     userType="hospital"
                   />
                 ))}

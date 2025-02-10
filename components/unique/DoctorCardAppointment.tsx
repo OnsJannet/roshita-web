@@ -3,6 +3,22 @@ import { Button } from "../ui/button";
 import { Banknote, Calendar, MapPin } from "lucide-react";
 import { AcceptAppointment } from "../shared/accpetAppoitment"; // Ensure the path is correct for this import
 import { paiement } from "@/constant";
+import { Checkbox } from "../ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 type DoctorCardAppointmentProps = {
   name: string;
@@ -18,6 +34,12 @@ type DoctorCardAppointmentProps = {
   endTime: string;
   medical_organizations: { id: number; name: string };
 };
+
+interface City {
+  id: number;
+  foreign_name: string;
+  name: string;
+}
 
 type Language = "ar" | "en";
 
@@ -38,6 +60,57 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   const [language, setLanguage] = useState<Language>("ar");
   const [processId, setProcessId] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState<string>("");
+  const [selectedPaiementOption, setSelectedPaiementOption] = useState("");
+  const [selectedFamilyOption, setSelectedFamilyOption] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    relative: "",
+    phone: "",
+    email: "",
+    city: "",
+    address: "",
+  });
+
+  const fetchCities = async () => {
+    try {
+      const response = await fetch("https://test-roshita.net/api/cities-list/");
+      const citiesData: City[] = await response.json();
+      if (response.ok) {
+        setCities(citiesData);
+      } else {
+        console.error("Error fetching cities");
+      }
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCities();
+  }, []);
+
+  const handleSubmit = () => {
+    console.log("Form Data:", formData);
+    setIsModalOpen(false);
+    // Add your form submission logic here
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCheckboxChange = (id: any) => {
+    setSelectedPaiementOption(selectedPaiementOption === id ? "" : id); // Toggle selection
+  };
+
+  const handleCheckboxFamilyChange = () => {
+    setSelectedFamilyOption(!selectedFamilyOption);
+    setIsModalOpen(!selectedFamilyOption);
+  };
 
   const handleClick = (id: number) => {
     setSelectedId(id);
@@ -212,6 +285,161 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                 {time} {day}
               </p>
 
+              <div className="flex gap-2">
+                {/* Full Payment Option */}
+                <div className="flex items-center space-x-2 mt-4 mb-2">
+                  <input
+                    type="checkbox"
+                    id="full"
+                    checked={selectedPaiementOption === "full"}
+                    onChange={() => handleCheckboxChange("full")}
+                    className="w-4 h-4" // Add appropriate styling
+                  />
+                  <label
+                    htmlFor="full"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {language === "en" ? "Pay full amount" : "دفع المبلغ كاملا"}
+                  </label>
+                </div>
+
+                {/* Roshita Option */}
+                <div className="flex items-center space-x-2 mt-4 mb-2">
+                  <input
+                    type="checkbox"
+                    id="roshita"
+                    checked={selectedPaiementOption === "roshita"}
+                    onChange={() => handleCheckboxChange("roshita")}
+                    className="w-4 h-4" // Add appropriate styling
+                  />
+                  <label
+                    htmlFor="roshita"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {language === "en"
+                      ? "Pay Doctor's Fee in Cash and Settle Roshita's Fee"
+                      : "دفع أتعاب الطبيب نقدًا وتسديد رسوم روشيتا"}
+                  </label>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center space-x-2 mt-4 mb-2">
+                  <input
+                    type="checkbox"
+                    id="family"
+                    checked={selectedFamilyOption}
+                    onChange={handleCheckboxFamilyChange}
+                    className="w-4 h-4"
+                  />
+                  <label
+                    htmlFor="full"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {language === "en"
+                      ? "Is this appointment for a family member?"
+                      : " هل هذا الموعد لأحد أفراد العائلة؟"}
+                  </label>
+                </div>
+              </div>
+
+              {isModalOpen && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      {language === "en"
+                        ? "Add Family Member"
+                        : "إضافة أحد أفراد العائلة"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {language === "en"
+                          ? "Family Member Details"
+                          : "تفاصيل أحد أفراد العائلة"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        placeholder={
+                          language === "en" ? "First Name" : "الاسم الأول"
+                        }
+                        name="first_name"
+                        value={formData.first_name}
+                        onChange={handleInputChange}
+                      />
+                      <Input
+                        placeholder={
+                          language === "en" ? "Last Name" : "اسم العائلة"
+                        }
+                        name="last_name"
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                      />
+                      <Input
+                        placeholder={
+                          language === "en" ? "Relative" : "صلة القرابة"
+                        }
+                        name="relative"
+                        value={formData.relative}
+                        onChange={handleInputChange}
+                      />
+                      <Input
+                        placeholder={language === "en" ? "Phone" : "رقم الهاتف"}
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                      />
+                      <Input
+                        placeholder={
+                          language === "en" ? "Email" : "البريد الإلكتروني"
+                        }
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                      />
+                      <Select
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, city: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              language === "en" ? "Select City" : "اختر مدينة"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cities.map((city) => (
+                            <SelectItem key={city.id} value={city.id}>
+                              {language === "en"
+                                ? city.foreign_name
+                                : city.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Input
+                        placeholder={language === "en" ? "Address" : "العنوان"}
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="mt-4 flex justify-end gap-2">
+                      <Button variant="outline">
+                        {language === "en" ? "Cancel" : "إلغاء"}
+                      </Button>
+                      <Button onClick={handleSubmit}>
+                        {language === "en" ? "Save" : "حفظ"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
               {/* Navigate to Step 2 Button */}
               <Button onClick={() => setStep(2)} className="mt-4">
                 {language === "en"
@@ -258,10 +486,10 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               </p>
 
               <p className="text-black mb-2 pb-2 text-center">
-  {language === "en"
-    ? "Your payment for Roshita will be processed using the selected method. Please note that payments for the doctor must be made in cash directly at the doctor's cabinet."
-    : "سيتم معالجة دفعتك لروشيتا باستخدام الطريقة المحددة. يرجى ملاحظة أن الدفع للطبيب يجب أن يتم نقدًا مباشرة في عيادة الطبيب."}
-</p>
+                {language === "en"
+                  ? "Your payment for Roshita will be processed using the selected method. Please note that payments for the doctor must be made in cash directly at the doctor's cabinet."
+                  : "سيتم معالجة دفعتك لروشيتا باستخدام الطريقة المحددة. يرجى ملاحظة أن الدفع للطبيب يجب أن يتم نقدًا مباشرة في عيادة الطبيب."}
+              </p>
               <p
                 className={`text-gray-600 mb-2 pb-2 text-2xl font-semibold ${
                   language === "en" ? "text-start" : "text-end"
@@ -312,6 +540,17 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               time={time}
               endTime={endTime}
               medical_organizations={medical_organizations}
+              payement={selectedPaiementOption}
+              formData={{
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                phone: formData.phone,
+                email: formData.email,
+                address: formData.address,
+                city: formData.city,
+                relative: formData.relative,
+              }}
+              familymember={selectedFamilyOption}
               paymentMethod={
                 selectedId
                   ? paiement.find((option) => option.id === selectedId)

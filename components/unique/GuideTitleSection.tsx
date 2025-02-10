@@ -59,7 +59,7 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
 
   return (
     <div>
-      <div className="relative w-full h-[80vh] lg:flex-row flex-col bg-cover bg-center bg-[url('/Images/medicalBanner.png')]">
+      <div className="relative w-full h-[80vh] lg:flex-row flex-col bg-cover bg-center bg-[url('/Images/medicalBanner.png')] z-1">
         <div
           className="absolute inset-0 opacity-60 z-10"
           style={{

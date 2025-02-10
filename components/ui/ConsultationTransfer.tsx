@@ -3,23 +3,35 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface ConsultationTransferProps {
   isOpen: boolean;
   onClose: () => void;
-  language: "ar" | "en"; // Language can be either 'ar' or 'en'
+  language: "ar" | "en";
+}
+
+interface Doctor {
+  id: number;
+  staff: {
+    first_name: string;
+    last_name: string;
+    staff_avatar: string;
+  };
+  specialty: {
+    name: string;
+    foreign_name: string;
+  };
 }
 
 export function ConsultationTransfer({
@@ -27,117 +39,178 @@ export function ConsultationTransfer({
   onClose,
   language,
 }: ConsultationTransferProps) {
-  console.log("transfer modal language", language);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalPages, setTotalPages] = useState(0);
 
-  // Define all text content based on language
+  const limit = 5;
+
   const content = {
     title: language === "ar" ? "تحويل الاستشارة" : "Transfer Consultation",
-    notebookLabel:
-      language === "ar" ? "إرسال الي دكتور محدد" : "Send to a specific doctor",
-    notebookPlaceholder:
-      language === "ar" ? "ادخل اسم الدفتر" : "Enter notebook name",
-    specialtyLabel:
-      language === "ar" ? "إرسال الى تخصص محدد" : "Send to Specific Specialty",
-    specialtyPlaceholder:
-      language === "ar" ? "اختر التخصص" : "Select specialty",
-    transferLabel: language === "ar" ? "تحويل" : "Transfer",
-    transferPlaceholder:
-      language === "ar" ? "ادخل تفاصيل التحويل" : "Enter transfer details",
     submitButton: language === "ar" ? "إرسال" : "Submit",
-    specialties: {
-      cardiology: language === "ar" ? "أمراض القلب" : "Cardiology",
-      dermatology: language === "ar" ? "الأمراض الجلدية" : "Dermatology",
-      orthopedics: language === "ar" ? "جراحة العظام" : "Orthopedics",
-      pediatrics: language === "ar" ? "طب الأطفال" : "Pediatrics",
-    },
   };
 
-  // Determine the direction based on the language
   const direction = language === "ar" ? "rtl" : "ltr";
+
+  const fetchDoctors = async (pageNumber: number) => {
+    if (!hasMore || loading) return;
+
+    setLoading(true);
+    try {
+      const accessToken = localStorage.getItem("access");
+
+      if (!accessToken) {
+        console.error("Access token not found");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        `/api/doctors/getDoctors?page=${pageNumber}&limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to fetch doctors:", data.error);
+        setLoading(false);
+        return;
+      }
+
+      if (data.success && Array.isArray(data.data)) {
+        const total = data.total || 0;
+        const calculatedTotalPages = Math.ceil(total / limit);
+        setDoctors((prev) => [...prev, ...data.data]);
+        setTotalPages(calculatedTotalPages);
+        setHasMore(pageNumber < calculatedTotalPages);
+      } else {
+        console.error("Unexpected response format:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDoctors(page);
+  }, [page]);
+
+  const handleNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         dir={direction}
-        className={language === "ar" ? "text-right" : "text-left"}
+        className={`max-w-[1200px] ${
+          language === "ar" ? "text-right h-[50%]" : "text-left h-[50%]"
+        } py-4`}
       >
         <DialogHeader>
-          <DialogTitle
-            className={language === "ar" ? "text-center" : "text-center"}
-          >
+          <DialogTitle className="text-center text-2xl">
             {content.title}
-          </DialogTitle>{" "}
-          {/* Dynamic title */}
+          </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          {/* Notebook Input */}
-          <div>
-            <Label htmlFor="notebook">{content.notebookLabel}</Label>
-            <Input
-              id="notebook"
-              placeholder={content.notebookPlaceholder}
-              className="h-[50px] mt-2"
-            />
+
+        <div className="">
+          <div className="text-center">
+            <p
+              dir={direction}
+              className={`w-full ${
+                language === "ar" ? "text-center" : "text-center"
+              } py-4`}
+            >
+              {language === "ar"
+                ? "تحويل الاستشارة يتيح لك إحالة المريض إلى أخصائي أو طبيب آخر. يضمن ذلك حصول المريض على الرعاية الأنسب بناءً على حالته. اختر الطبيب المطلوب من القائمة أدناه وقم بإرسال طلبك."
+                : "Transferring a consultation allows you to redirect a patient to another specialist or doctor. This ensures that the patient receives the most suitable care based on their condition. Select the desired doctor from the list below and submit your request."}
+            </p>
           </div>
 
-          {/* Specialty Select 
-          <div>
-            <Label htmlFor="specialty">{content.specialtyLabel}</Label>
-            <Select>
-              <SelectTrigger
-                className={
-                  language === "ar"
-                    ? "text-right justify-end h-[50px] mt-2"
-                    : "text-left h-[50px] mt-2"
-                }
-              >
-                <SelectValue placeholder={content.specialtyPlaceholder} />
-              </SelectTrigger>
-              <SelectContent
-                className={language === "ar" ? "text-right" : "text-left"}
-              >
-                <SelectItem
-                  value="cardiology"
-                  className={
-                    language === "ar" ? "text-right items-start" : "text-left"
-                  }
-                >
-                  {content.specialties.cardiology}
-                </SelectItem>
-                <SelectItem
-                  value="dermatology"
-                  className={language === "ar" ? "text-right" : "text-left"}
-                >
-                  {content.specialties.dermatology}
-                </SelectItem>
-                <SelectItem
-                  value="orthopedics"
-                  className={language === "ar" ? "text-right" : "text-left"}
-                >
-                  {content.specialties.orthopedics}
-                </SelectItem>
-                <SelectItem
-                  value="pediatrics"
-                  className={language === "ar" ? "text-right" : "text-left"}
-                >
-                  {content.specialties.pediatrics}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          */}
+          <div className="flex justify-center">
+            {doctors.length === 0 && !loading && (
+              <p className="text-center p-2">No doctors found</p>
+            )}
+            <Carousel className="w-full max-w-[1100px] relative">
+              <CarouselContent>
+                {doctors.map((doctor) => (
+                  <CarouselItem
+                    key={doctor.id}
+                    className="md:basis-1/2 lg:basis-1/5"
+                  >
+                    <div className="p-1">
+                      <Card>
+                        <CardContent className="aspect-square items-center justify-center p-6">
+                          <div className="flex justify-center">
+                            <img
+                              src={
+                                doctor.staff.staff_avatar &&
+                                !doctor.staff.staff_avatar.startsWith(
+                                  "/media/media/"
+                                ) &&
+                                !doctor.staff.staff_avatar.startsWith(
+                                  "/avatar/"
+                                )
+                                  ? doctor.staff.staff_avatar
+                                  : "/Images/default-doctor.jpeg"
+                              }
+                              alt={`${doctor.staff.first_name} ${doctor.staff.last_name}`}
+                              className="w-20 h-20 rounded-full object-cover"
+                            />
+                          </div>
+                          <div className="mt-2 text-center">
+                            <span className="font-semibold">
+                              {doctor.staff.first_name} {doctor.staff.last_name}
+                            </span>
+                          </div>
+                          <div className="mt-2 text-center">
+                            <span className="font-regular">
+                              {language === "ar"
+                                ? doctor.specialty.name
+                                : doctor.specialty.foreign_name}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
 
-          {/* Transfer Input 
-          <div>
-            <Label htmlFor="transfer">{content.transferLabel}</Label>
-            <Input id="transfer" placeholder={content.transferPlaceholder} className="h-10 mt-2"/>
-          </div>
-          */}
+              {loading && <p className="text-center p-2">Loading...</p>}
+              {!hasMore && doctors.length > 0 && (
+                <p className="text-center p-2">No more doctors</p>
+              )}
 
-          {/* Submit Button */}
-          <div className=" flex justify-center items-center mt-6  mx-[50px]">
-            <Button type="submit" className=" bg-[#1588C8] text-white w-1/2">
-              {content.transferLabel}
+              <div className="absolute top-1/2 left-2 transform -translate-y-1/2 z-10">
+                <CarouselPrevious onClick={handlePrevious} />
+              </div>
+              <div className="absolute top-1/2 right-2 transform -translate-y-1/2 z-10">
+                <CarouselNext onClick={handleNext} />
+              </div>
+            </Carousel>
+          </div>
+
+          <div className="flex justify-center items-center mt-6 ">
+            <Button type="submit" className="bg-[#1588C8] text-white w-1/2 h-10">
+              {content.submitButton}
             </Button>
           </div>
         </div>

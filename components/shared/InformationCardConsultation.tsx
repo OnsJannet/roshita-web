@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { ConsultationTransfer } from "../ui/ConsultationTransfer";
 
-interface RequestCardProps {
+interface InformationCardConsultationProps {
     requestNumber: string;
     patientName: string;
     requestDate: string;
     speciality: string;
     userType: string;
-    language: "ar" | "en";
-    doctors: any;
+    typeConsultation: string;
+    language: "ar" | "en"; // 'ar' for Arabic, 'en' for English
   }
 
-const RequestCard: React.FC<RequestCardProps> = ({
+const InformationCardConsultation: React.FC<InformationCardConsultationProps> = ({
     requestNumber,
     patientName,
     requestDate,
     language,
     speciality,
     userType,
-    doctors,
+    typeConsultation
   }) => {
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false); // State to control modal
   
@@ -31,6 +31,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
       editButton: language === "ar" ? "قبول" : "Accept",
       deleteButton: language === "ar" ? "حذف" : "Delete",
       specialityLabel: language === "ar" ? "التخصص" : "Speciality",
+      typeConsultation: language === "ar" ? "التخصص" : "Speciality",
       detailsButton: language === "ar" ? "تفاصيل" : "Details",
       transferButton: language === "ar" ? "تحويل" : "Transfer",
     };
@@ -42,14 +43,14 @@ const RequestCard: React.FC<RequestCardProps> = ({
   
     return (
       <div
-        className={`w-full rounded-lg overflow-hidden  flex lg:justify-between items-center lg:h-40 h-full p-4 bg-gray-50 ${
+        className={`w-full rounded-lg overflow-hidden flex lg:justify-between items-center lg:h-[234px] h-full p-4 bg-gray-50 ${
           language === "ar"
             ? "text-right lg:flex-row-reverse flex-col"
             : "text-left lg:flex-row flex-col"
         }`}
       >
         <div
-          className={`text-gray-700 text-base flex  w-[60%] lg:gap-20 gap-4 items-center ${
+          className={`text-gray-700 text-base flex  w-[100%] lg:gap-20 gap-4 items-center ${
             language === "ar"
               ? "lg:flex-row-reverse flex-col justify-start"
               : "lg:flex-row flex-col"
@@ -80,43 +81,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
             <p>{speciality}</p>
           </div>
         </div>
-        <div
-          className={`lg:mt-2 mt-4 flex gap-4 ${
-            language === "ar" ? "flex-row-reverse  justify-start" : "flex-row "
-          } `}
-        >
-          <button className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-            {content.detailsButton}
-          </button>
-          {userType === "hospital" && (
-            <button
-              className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2"
-              onClick={handleTransferClick} // Open the modal on click
-            >
-              {content.transferButton}
-            </button>
-          )}
-          {userType !== "hospital" && (
-            <>
-              <button className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
-                {content.editButton}
-              </button>
-              <button className="border border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-black font-bold py-2 px-4 rounded mr-2">
-                {content.deleteButton}
-              </button>
-            </>
-          )}
-        </div>
-  
-        {/* Render the ConsultationTransfer modal */}
-        <ConsultationTransfer
-          isOpen={isTransferModalOpen}
-          onClose={() => setIsTransferModalOpen(false)}
-          language= {language}
-
-        />
       </div>
     );
   };
   
-  export default RequestCard;
+  export default InformationCardConsultation;

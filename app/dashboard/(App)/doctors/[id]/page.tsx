@@ -410,7 +410,7 @@ export default function Page() {
     const payload = {
       reservation: {
         patient: patientDetails,
-        //reservation_status: "pending payment",
+        //reservation_payment_status: "pending payment",
         reservation_date: bookingDetails?.scheduled_date,
       },
       confirmation_code: "12345", // Replace or generate dynamically
@@ -526,7 +526,8 @@ export default function Page() {
 
       // Make the GET request with the Authorization header
       const response = await fetch(
-        "https://test-roshita.net/api/appointment-reservations/",
+        `https://www.test-roshita.net/api/appointment-reservations/search/?id&doctor_id=${id}&page=4`,
+        
         {
           method: "GET",
           headers: {
@@ -877,7 +878,7 @@ export default function Page() {
                         <TableRow key={index}>
                           {language === "ar" ? (
                             <>
-                              {slot.reservation.reservation_status ===
+                              {slot.reservation.reservation_payment_status ===
                               "pending" ? (
                                 <TableCell className="text-center">
                                   <Button
@@ -898,7 +899,7 @@ export default function Page() {
                                 <p className="text-center p-4">-</p>
                               )}
                               <TableCell className="text-center">
-                                {slot.reservation.reservation_status}
+                                {slot.reservation.reservation_payment_status}
                               </TableCell>
                               <TableCell className="text-center">
                                 {slot.end_time ? slot.end_time : "-"}
@@ -946,9 +947,9 @@ export default function Page() {
                                 {slot.end_time}
                               </TableCell>
                               <TableCell className="text-center">
-                                {slot.reservation.reservation_status}
+                                {slot.reservation.reservation_payment_status}
                               </TableCell>
-                              {slot.reservation.reservation_status ===
+                              {slot.reservation.reservation_payment_status ===
                               "pending" ? (
                                 <TableCell className="text-center">
                                   <Button

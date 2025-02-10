@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { specialities } from "../../../../../../constant/index";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
+import { logAction } from "@/lib/logger";
 
 type Appointment = {
   scheduled_date: string;
@@ -191,7 +192,7 @@ export default function Page() {
 
   const t = translations[language];
 
-  const handleRemoveSlot = (index: number) => {
+  /*const handleRemoveSlot = (index: number) => {
     if (doctor && doctor.appointments) {
       const updatedAppointments = doctor.appointments.filter(
         (_, idx) => idx !== index
@@ -205,7 +206,97 @@ export default function Page() {
           : null;
       });
     }
-  };
+  };*/
+
+    const handleRemoveSlot = async ( index: number, id:number) => {
+      console.log("index: ", index);
+      if (doctor && doctor.appointments) {
+        if (!index) {
+          console.error("Appointment ID not found");
+          return;
+        }
+    
+        try {
+          // Get the Bearer token from localStorage
+          const token = localStorage.getItem("access");
+          if (!token) {
+            console.error("Access token not found in localStorage");
+            return;
+          }
+    
+          // Send the DELETE request
+          const response = await fetch(
+            `https://test-roshita.net/api/appointment-reservations/${id}/`,
+            {
+              method: "DELETE",
+              headers: {
+                accept: "application/json",
+                Authorization: `Bearer ${token}`,
+                "X-CSRFToken":
+                  "9htdjDGAaHSm5TKSyU7DoBSxj4PlVCSYt2yA1iOmGLIu2JXABwbrTe3rgvbCnG2U",
+              },
+            }
+          );
+    
+          if (response.ok) {
+            console.log("Appointment deleted successfully");
+    
+            // Log the action as a success
+            await logAction(
+              token,
+              `https://test-roshita.net/api/appointment-reservations/${index}/`,
+              { appointmentId: index },
+              "success",
+              response.status // HTTP status code (e.g., 200)
+            );
+    
+            // Update the appointments locally
+            if (doctor && doctor.appointments) {
+              const updatedAppointments = doctor.appointments.filter(
+                (_, idx) => idx !== index
+              );
+              setDoctor((prevDoctor) => {
+                return prevDoctor
+                  ? {
+                      ...prevDoctor,
+                      appointments: updatedAppointments,
+                    }
+                  : null;
+              });
+            }
+            //window.location.reload();
+          } else {
+            console.error("Failed to delete appointment", response.statusText);
+    
+            // Log the action as an error
+            const errorData = await response.json(); // Parse the error response
+            await logAction(
+              token,
+              `https://test-roshita.net/api/appointment-reservations/${index}/`,
+              { appointmentId: index },
+              "error",
+              response.status, // HTTP status code (e.g., 400, 500)
+              errorData.message || "Failed to delete appointment" // Error message
+            );
+          }
+        } catch (error) {
+          console.error("Error deleting appointment:", error);
+    
+          // Log the action as an error
+          const token = localStorage.getItem("access");
+          if (token) {
+            await logAction(
+              token,
+              `https://test-roshita.net/api/appointment-reservations/${index}/`,
+              { appointmentId: index },
+              "error",
+              error.response?.status || 500, // Use the error status code or default to 500
+              error.message || "An unknown error occurred" // Error message
+            );
+          }
+        }
+      }
+    };
 
   console.log("specialities", specialities);
   const handleBooked = (index: number) => {
@@ -540,7 +631,7 @@ export default function Page() {
           selectedCityId !== null && selectedCityId !== doctor.staff.city
             ? selectedCityId
             : // @ts-ignore
-              doctor.staff.city, // Only update if the city ID has changed
+              doctor.staff.city.id, // Only update if the city ID has changed
       },
       appointments: [...updatedAppointments, ...newAppointments],
     };
@@ -919,85 +1010,87 @@ export default function Page() {
                 </TableRow>
               </thead>
               <tbody>
-                {doctor?.appointments && doctor.appointments.length > 0 ? (
-                  doctor.appointments.map((slot, index) => (
-                    <TableRow key={index}>
-                      {language === "ar" ? (
-                        <>
-                          <TableCell className="text-center">
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleRemoveSlot(index)}
-                              className="text-white hover:text-red-800"
-                            >
-                              {t.remove}
-                            </Button>
-                            <Button
-                              onClick={() => handleBooked(index)}
-                              className="text-white bg-[#1685c7] ml-2"
-                            >
-                              {t.roshitaBook}
-                            </Button>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.appointment_status}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.end_time}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.start_time}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.scheduled_date}
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell className="text-center">
-                            {slot.scheduled_date}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.start_time}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.end_time}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {slot.appointment_status}
-                          </TableCell>
-                          <TableCell className="text-center gap-2">
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleRemoveSlot(index)}
-                              className="text-white hover:text-red-800"
-                            >
-                              {t.remove}
-                            </Button>
-                            <Button
-                              onClick={() => handleBooked(index)}
-                              className="text-white bg-[#1685c7] ml-2"
-                            >
-                              {t.roshitaBook}
-                            </Button>
-                          </TableCell>
-                        </>
-                      )}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center text-gray-500"
-                    >
-                      {language === "ar"
-                        ? "لا توجد مواعيد متاحة"
-                        : "No appointments available."}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </tbody>
+  {doctor?.appointments && doctor.appointments.length > 0 ? (
+    doctor.appointments.map((slot, index) => {
+      console.log("Appointment:", slot); // Log the appointment
+
+      return (
+        <TableRow key={index}>
+          {language === "ar" ? (
+            <>
+              <TableCell className="text-center">
+                <Button
+                  variant="destructive"
+                  onClick={() => handleRemoveSlot(index, slot.id)}
+                  className="text-white hover:text-red-800"
+                >
+                  {t.remove}
+                </Button>
+                <Button
+                  onClick={() => handleBooked(index)}
+                  className="text-white bg-[#1685c7] ml-2"
+                >
+                  {t.roshitaBook}
+                </Button>
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.appointment_status}
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.end_time}
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.start_time}
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.scheduled_date}
+              </TableCell>
+            </>
+          ) : (
+            <>
+              <TableCell className="text-center">
+                {slot.scheduled_date}
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.start_time}
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.end_time}
+              </TableCell>
+              <TableCell className="text-center">
+                {slot.appointment_status}
+              </TableCell>
+              <TableCell className="text-center gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={() => handleRemoveSlot(index, slot.id)}
+                  className="text-white hover:text-red-800"
+                >
+                  {t.remove}
+                </Button>
+                <Button
+                  onClick={() => handleBooked(index)}
+                  className="text-white bg-[#1685c7] ml-2"
+                >
+                  {t.roshitaBook}
+                </Button>
+              </TableCell>
+            </>
+          )}
+        </TableRow>
+      );
+    })
+  ) : (
+    <TableRow>
+      <TableCell colSpan={4} className="text-center text-gray-500">
+        {language === "ar"
+          ? "لا توجد مواعيد متاحة"
+          : "No appointments available."}
+      </TableCell>
+    </TableRow>
+  )}
+</tbody>
+
             </Table>
 
             <DoctorSlots onSlotsChange={handleSlotsChange} />

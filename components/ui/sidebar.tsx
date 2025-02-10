@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ViewVerticalIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { LogOut, Settings, House, Heart, Pill, TestTube } from "lucide-react";
+import { LogOut, Settings, House, Heart, Pill, TestTube, Folder } from "lucide-react";
 import { useRouter } from "next/navigation";
 import LanguageSwitcher from "../layout/LanguageSwitcher";
 
@@ -28,6 +28,7 @@ const iconMapping: Record<string, React.ComponentType<any>> = {
   Pill,
   TestTube,
   Settings,
+  Folder,
 };
 
 type NavItem = {
@@ -73,7 +74,7 @@ function useSidebar() {
   return context;
 }
 
-type IconNames = "House" | "Heart" | "Pill" | "TestTube" | "Settings";
+type IconNames = "House" | "Heart" | "Pill" | "TestTube" | "Settings" | "Folder";
 
 // This is sample data.
 const data: Data = {
@@ -93,6 +94,14 @@ const data: Data = {
       items: [],
       isActive: false,
       icon: "Heart" as IconNames,
+    },
+    {
+      title: "الاستشارات",
+      foreginTitle: "Consultations",
+      url: "/dashboard/consultations",
+      items: [],
+      isActive: false,
+      icon: "Folder" as IconNames,
     },
     /*{
       title: "صيدليات",
@@ -194,12 +203,28 @@ const dataRadiologic: Data = {
 const dataDoctor: Data = {
   navMain: [
     {
+      title: "الرئسية",
+      foreginTitle: "Dashboard",
+      url: "/dashboard/doctor-dashboard",
+      items: [],
+      isActive: false,
+      icon: "House" as IconNames,
+    },
+    {
       title: "دكاترة",
       foreginTitle: "Doctors",
       url: "/dashboard/doctors",
       items: [],
       isActive: false,
       icon: "Heart" as IconNames,
+    },
+    {
+      title: "الاستشارات",
+      foreginTitle: "Consultations",
+      url: "/dashboard/doctor-consultations",
+      items: [],
+      isActive: false,
+      icon: "Folder" as IconNames,
     },
   ],
 };

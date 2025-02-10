@@ -200,6 +200,8 @@ const Page = () => {
     indexOfLastDoctor
   );*/
 
+  //bg-[#F9F9F9]
+
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -211,7 +213,7 @@ const Page = () => {
 </div>
 
     ) : (
-    <div className="bg-[#F9F9F9] pb-20">
+    <div className="bg-white pb-20">
       <TitleSection />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
         <div className="lg:w-[20%]">

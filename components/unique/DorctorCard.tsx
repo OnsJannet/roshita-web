@@ -75,7 +75,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
 
   return (
     <div
-      className={`cursor-pointer flex flex-col  p-4 bg-white shadow-lg rounded-xl max-w-4xl mx-auto ${
+      className={`cursor-pointer flex flex-col  p-4 bg-[#fbfbfdff]  rounded-xl max-w-4xl mx-auto ${
         language === "en" ? "md:flex-row-reverse" : "md:flex-row"
       }`}
     >

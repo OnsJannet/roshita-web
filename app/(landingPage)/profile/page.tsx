@@ -26,6 +26,7 @@ const translations = {
     settings: "Settings",
     changePassword: "Change Password",
     appointments: "My Appointments",
+    consultations: "My Consultations",
     notification: "Notifications",
     logout: "Log Out",
     next: "Next",
@@ -36,6 +37,7 @@ const translations = {
     settings: "الإعدادات",
     changePassword: "تغير كلمة المرور",
     appointments: "مواعيدي",
+    consultations: "استشارتي",
     logout: "تسجيل الخروج",
     notification: "إشعارات",
     next: "التالي",
@@ -45,12 +47,12 @@ const translations = {
 };
 
 /**
- * This React component serves as a client-side page for editing the user's profile. 
- * It allows authenticated users to update their personal information, such as 
+ * This React component serves as a client-side page for editing the user's profile.
+ * It allows authenticated users to update their personal information, such as
  * name, email, and password, with support for dynamic form validation and submission.
- * The page supports both Arabic and English languages, with language preferences 
+ * The page supports both Arabic and English languages, with language preferences
  * stored in localStorage and dynamically applied.
- * 
+ *
  * Key functionalities include:
  * - Secure user profile update via API call using the current user's authentication token.
  * - Form fields for editing name, email, and password, with validation for each input.
@@ -58,7 +60,7 @@ const translations = {
  * - Language support for Arabic and English, with dynamic layout adjustments based on the selected language.
  * - Navigation options for settings, appointments, and logout in the sidebar.
  * - Displaying success or error messages based on the API response, with appropriate feedback to the user.
- * 
+ *
  * Dependencies:
  * - Custom components (Button, Input, Label, etc.)
  * - React hooks (useState, useEffect, useContext) for state management and side effects.
@@ -125,7 +127,7 @@ interface UploadImageProps {
         onChange={onImageChange}
         accept="image/*"
       />
-      <div className="w-full h-full rounded-full bg-[#f1f1f1] flex items-center justify-center overflow-hidden">
+      <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center overflow-hidden">
         {image ? (
           <img
             src={image}
@@ -135,7 +137,7 @@ interface UploadImageProps {
         ) : (
           <UserRound className="w-1/2 h-1/2 text-roshitaBlue" />
         )}
-        <div className="absolute bottom-2 left-2 bg-white rounded-full p-1 shadow-md">
+        <div className="absolute bottom-2 left-2 bg-gray-50 rounded-full p-1 shadow-md">
           <span className="text-xl font-bold text-gray-600">
             <Camera className="text-roshitaDarkBlue" />
           </span>
@@ -285,7 +287,11 @@ const Profile = () => {
 
   const handleNotificationsClick = () => {
     router.push("/notifications");
-  }
+  };
+
+  const handleConsultationsClick = () => {
+    router.push("/consultations");
+  };
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
@@ -298,7 +304,7 @@ const Profile = () => {
           <div className="flex lg:w-[20%] w-[100%] justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
             <div className="mx-auto flex justify-center">
               <div className="relative lg:w-60 lg:h-60 xl:w-20 xl:h-20 h-40 w-40">
-                <div className="w-full h-full rounded-full bg-[#f1f1f1] flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center overflow-hidden">
                   <UserRound className="w-1/2 h-1/2 text-roshitaBlue" />
                 </div>
               </div>
@@ -306,52 +312,61 @@ const Profile = () => {
             <div>
               <div
                 onClick={handleSettingsClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
-                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                <div className="rounded-full bg-gray-50 h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].settings}</p>
               </div>
               <div
                 onClick={handleSettingsPasswordClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
-                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                <div className="rounded-full bg-gray-50 h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].changePassword}</p>
               </div>
               <div
                 onClick={handleAppointmentsClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
-                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                <div className="rounded-full bg-gray-50 h-6 w-6 flex items-center justify-center">
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].appointments}</p>
               </div>
               <div
-                onClick={handleNotificationsClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                onClick={handleConsultationsClick}
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
-                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                <div className="rounded-full bg-gray-50 h-6 w-6 flex items-center justify-center">
+                  <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
+                </div>
+                <p>{translations[language].consultations}</p>
+              </div>
+              <div
+                onClick={handleNotificationsClick}
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
+                <div className="rounded-full bg-gray-50 h-6 w-6 flex items-center justify-center">
                   <Bell className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].notification}</p>
               </div>
               <div
                 onClick={handleLogout}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
-                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                <div className="rounded-full bg-gray-50 h-6 w-6 flex items-center justify-center">
                   <LogOut className="h-4 w-4 text-roshitaDarkBlue" />
                 </div>
                 <p>{translations[language].logout}</p>
               </div>
             </div>
           </div>
-          <div className="flex gap-10 text-end flex-col w-[80%] mx-auto">
+          <div className="flex gap-10 text-end flex-col w-[80%] mx-auto bg-white p-4">
             {successMessage && (
               <p className="text-green-400">{successMessage}</p>
             )}
@@ -362,11 +377,14 @@ const Profile = () => {
                   <Label className="text-start">الإسم الأول</Label>
                 ) : (
                   <div className="w-full flex ">
-                  <Label className="text-end pb-2"> First Name</Label>
+                    <Label className="text-end pb-2"> First Name</Label>
                   </div>
                 )}
-                <div className={`flex gap-2 ${language === "ar" ? "flex-row-reverse" : "flex-row"} items-center rounded-lg bg-white border px-4 mt-2 border-none`}>
-
+                <div
+                  className={`flex gap-2 ${
+                    language === "ar" ? "flex-row-reverse" : "flex-row"
+                  } items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none`}
+                >
                   <UserRound className="text-roshitaBlue" />
                   <Input
                     value={profileData.user.first_name || "-"}
@@ -388,11 +406,14 @@ const Profile = () => {
                   <Label className="text-start">الإسم الأخير</Label>
                 ) : (
                   <div className="w-full flex ">
-                  <Label className="text-end pb-2"> Last Name</Label>
+                    <Label className="text-end pb-2"> Last Name</Label>
                   </div>
                 )}
-                <div className={`flex gap-2 ${language === "ar" ? "flex-row-reverse" : "flex-row"} items-center rounded-lg bg-white border px-4 mt-2 border-none`}>
-
+                <div
+                  className={`flex gap-2 ${
+                    language === "ar" ? "flex-row-reverse" : "flex-row"
+                  } items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none`}
+                >
                   <UserRound className="text-roshitaBlue" />
                   <Input
                     value={profileData.user.last_name || "-"}
@@ -419,7 +440,7 @@ const Profile = () => {
                 </div>
               )}
 
-              <div className="flex gap-2 items-center rounded-lg bg-white border px-4 mt-2 border-none">
+              <div className="flex gap-2 items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none">
                 <Mail className="text-roshitaBlue" />
                 <Input
                   value={profileData.user.email || "-"}
@@ -455,7 +476,7 @@ const Profile = () => {
                     service_country: Number(e.target.value), // Ensure it's a number
                   }))
                 }
-                className="border-transparent shadow-none h-[50px] w-full"
+                className="border-transparent shadow-none h-[50px] w-full bg-gray-50"
               >
                 {language === "ar" ? (
                   <option value="">اختر البلد</option>
@@ -492,7 +513,7 @@ const Profile = () => {
                     service_city: Number(e.target.value), // Ensure it's a number
                   }))
                 }
-                className="border-transparent shadow-none h-[50px] w-full"
+                className="border-transparent shadow-none h-[50px] w-full bg-gray-50"
                 disabled={!profileData.service_country} // Disable if no country is selected
               >
                 {language === "ar" ? (
@@ -560,7 +581,7 @@ const Profile = () => {
               <div
                 className={`flex gap-2 ${
                   language === "en" ? "flex-row" : "flex-row-reverse"
-                } items-center rounded-lg bg-white border px-4 mt-2 border-none`}
+                } items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none`}
               >
                 <Input
                   type="date"
@@ -579,7 +600,7 @@ const Profile = () => {
             </div>
             {/*<div>
               <Label className="text-start">العنوان</Label>
-              <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-white border px-4 mt-2 border-none">
+              <div className="flex gap-2 flex-row-reverse items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none">
                 <MapPin className="text-roshitaBlue" />
                 <Input
                   value={profileData.address || '-'}

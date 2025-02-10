@@ -122,6 +122,10 @@ const NavBar = () => {
     router.push("/appointments");
   };
 
+  const handleClickConsultations = () => {
+  router.push("/consultations");
+  }
+
   return (
     <header
       className="h-[80px] lg:px-0 px-4 pb-4 pt-2 rounded-b-lg"
@@ -199,7 +203,7 @@ const NavBar = () => {
                       {language === "ar" ? "تسجيل الدخول" : "Login"}
                     </Button>
                     {showDropdown && (
-                      <div className="absolute right-0 mt-2 w-[200px] bg-white shadow-lg rounded-md border border-gray-200 z-10">
+                      <div className="absolute right-0 mt-2 w-[200px] bg-white shadow-lg rounded-md border border-gray-200 z-[9999]">
                         <Button
                           onClick={handleClickLogin}
                           variant="dropdown"
@@ -257,6 +261,9 @@ const NavBar = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleClickAppointments}>
                   {language === "ar" ? "مواعيدي" : "My Appointments"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClickConsultations}>
+                  {language === "ar" ? "استشارتي" : "My consultation"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

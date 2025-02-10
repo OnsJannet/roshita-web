@@ -131,7 +131,7 @@ const Filters = () => {
           onValueChange={handleCountryChange}
           value={selectedCountry ?? undefined}
         >
-          <SelectTrigger className="h-[52px] flex-row-reverse ">
+          <SelectTrigger className="h-[52px] flex-row-reverse">
             <div className="flex flex-row-reverse gap-2 items-center">
               <MapPin className="h-[20px] w-[20px] text-roshitaDarkBlue" />
               <SelectValue
@@ -140,6 +140,9 @@ const Filters = () => {
             </div>
           </SelectTrigger>
           <SelectContent className="z-[999999]">
+            <SelectItem key="all" value="all">
+              {language === "ar" ? "الكل" : "All"}
+            </SelectItem>
             {countries.map((country) => (
               <SelectItem key={country.id} value={country.name}>
                 {language === "ar" ? country.name : country.foreign_name}
@@ -162,6 +165,9 @@ const Filters = () => {
             </div>
           </SelectTrigger>
           <SelectContent className="z-[999999]">
+            <SelectItem key="all" value="all">
+              {language === "ar" ? "الكل" : "All"}
+            </SelectItem>
             {specialties.map((specialty) => (
               <SelectItem key={specialty.id} value={specialty.name}>
                 {language === "ar" ? specialty.name : specialty.foreign_name}

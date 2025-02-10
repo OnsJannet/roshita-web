@@ -42,7 +42,7 @@ const HeroPage = () => {
         } flex-col`}
       >
         <div
-          className={`lg:w-1/2 w-full p-20 text-center flex flex-col justify-center ${
+          className={`lg:w-1/2 w-full p-20 text-center flex flex-col justify-center bg-white ${
             language === "en" ? "text-left" : "text-end"
           }`}
         >

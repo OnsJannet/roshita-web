@@ -3,6 +3,10 @@ import React, { useEffect, useState } from "react";
 import { Bell, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
 import AppointementsCard from "@/components/unique/AppointementsCard"; // Adjust the import path as needed
 import { useRouter } from "next/navigation";
+import { fetchProfileDetails } from "@/lib/api";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
+import ConsultationDropdown from "@/components/shared/ConsultationDropdown";
+import { Button } from "@/components/ui/button";
 
 type Language = "ar" | "en";
 
@@ -31,6 +35,20 @@ const translations = {
   },
 };
 
+interface EditProfileData {
+  user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  gender: string; // "male", "female", etc.
+  service_country: number; // assuming this is an ID for a country
+  birthday: string; // ISO date string
+  city: number; // assuming this is an ID for the city
+  user_type: number; // assuming this is an ID for user type
+  address: string;
+}
+
 /**
  * The main user page where users can manage their appointments, change settings,
  * and log out from their account. The page adapts to the selected language (Arabic or English).
@@ -55,6 +73,56 @@ const Page = () => {
   const router = useRouter(); // Initialize useRouter
   const [language, setLanguage] = useState<Language>("ar");
   const [errorMessage, setErrorMessage] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<EditProfileData>({
+    user: {
+      first_name: "",
+      last_name: "",
+      email: "",
+    },
+    gender: "",
+    service_country: 2,
+    birthday: "",
+    city: 1,
+    user_type: 0,
+    address: "",
+  });
+
+  const hospitalName = "مستشفى الحياة";
+  const notificationMessage = "تم قبول ورد على طلبك من قبل د. زياد";
+  const date = "11/1/2024";
+  const consultationType = "استشارة خاصة";
+  const doctorMessage = `
+مرحباً أحمد،
+تمت مراجعة استشارتك، وتم تشخيص حالتك بأنها التهاب في الجيوب الأنفية المزمن. نوصي بالبدء في العلاج الذي يتضمن:
+- بخاخ أنفي مضاد للاحتقان.
+- مضاد حيوي (إن استدعى الأمر) لمدة 10 أيام.
+- جلسات بخار يومية لمدة أسبوع لتخفيف الأعراض.
+
+التكلفة: 150 دينار ليبي (تشمل الاستشارة والعلاج المقترح).
+الوقت المقدر للعلاج الأولي: أسبوع إلى 10 أيام حسب استجابتك للعلاج.
+
+إذا كنت بحاجة إلى موعد متابعة أو إجراء فحص إضافي، يمكنك التواصل معنا.
+`;
+  const patientMessage = `
+مرحباً دكتور،
+أرغب في استشارتك بخصوص بعض الأعراض التي أعاني منها منذ حوالي شهر.
+أشعر بارهاق دائم، حتى بعد الحصول على نوم كافٍ، وأعاني من صداع متكرر خاصة في منطقة الجبهة وحول العينين. كما أشعر بصعوبة في التنفس، خاصة في الليل، مع احتقان دائم في الأنف. وأحياناً ترتفع درجة حرارتي بشكل طفيف.
+
+أنا أعاني من حساسية موسمية منذ سنوات، وأستخدم بخاخاً أنفياً بشكل دوري، لكن هذه الأعراض مختلفة ومستمرة بشكل مزعج. هل يمكن أن تكون مرتبطة بالتهاب الجيوب الأنفية؟ وهل أحتاج إلى إجراء فحوصات أو تغيير العلاج؟
+
+شكراً جزيلاً لوقتك، وأنتظر نصيحتك.
+مع التحية،
+أحمد
+`;
+
+  const files = [
+    { name: "Diagnosis", url: "/Images/drahmed.png" },
+    { name: "Treatment", url: "/Images/drahmed.png" },
+    { name: "Therapy Images", url: "/Images/drahmed.png" },
+  ];
 
   useEffect(() => {
     // Sync the language state with the localStorage value
@@ -91,51 +159,34 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      const token = localStorage.getItem("access");
+    const loadProfileData = async () => {
       try {
-        const response = await fetch(
-          "https://test-roshita.net/api/user-appointment-reservations/",
-          {
-            method: "GET",
-            headers: {
-              accept: "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          console.log("appointement data", data);
+        const data = await fetchProfileDetails();
 
-          // Use the `results` array for appointments
-          const results = data.results || [];
-          setAppointments(results);
-          filterAppointments(results, "next"); // Set default to show next appointments
-        } else {
-          console.error("Failed to fetch appointments:", response.statusText);
-        }
+        // Check the structure of the fetched data
+        console.log("Fetched profile data:", data);
+
+        // Update profileData with the fetched data
+        setProfileData({
+          user: {
+            first_name: data.user?.first_name || "",
+            last_name: data.user?.last_name || "",
+            email: data.user?.email || "",
+          },
+          gender: data.gender || "",
+          service_country: data.service_country || 2, // Ensure default values are not 0
+          birthday: data.birthday || "",
+          city: data.city || 1, // Ensure default values are not 0
+          user_type: data.user_type || 0,
+          address: data.address || "",
+        });
       } catch (error) {
-        console.error("Error fetching appointments:", error);
+        console.error("Error loading profile data", error);
       }
     };
 
-    fetchAppointments();
+    loadProfileData();
   }, []);
-
-  /*const filterAppointments = (appointments: any[], type: 'previous' | 'next') => {
-    const today = new Date();
-
-    if (type === 'next') {
-      // Show appointments where day > today
-      const nextAppointments = appointments.filter(appointment => new Date(appointment.day) > today);
-      setFilteredAppointments(nextAppointments);
-    } else {
-      // Show appointments where day <= today
-      const previousAppointments = appointments.filter(appointment => new Date(appointment.day) <= today);
-      setFilteredAppointments(previousAppointments);
-    }
-  };*/
 
   const filterAppointments = (
     appointments: any[],
@@ -158,11 +209,6 @@ const Page = () => {
     }
   };
 
-  const handleFilterChange = (type: "previous" | "next") => {
-    setFilterType(type);
-    filterAppointments(appointments, type);
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
@@ -178,17 +224,12 @@ const Page = () => {
     router.push("/appointments");
   };
 
+  const handleSettingsPasswordClick = () => {
+    router.push("/password-change");
+  };
 
   const handleConsultationsClick = () => {
     router.push("/consultations");
-  };
-
-  const handleNotificationsClick = () => {
-    router.push("/notifications");
-  }
-
-  const handleSettingsPasswordClick = () => {
-    router.push("/password-change");
   };
 
   const handleError = (errorMessage: string) => {
@@ -198,6 +239,19 @@ const Page = () => {
   };
 
   console.log("filteredAppointments", filteredAppointments);
+
+  // Render loading or error states after all hooks are called
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen mx-auto">
+        <LoadingDoctors />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
@@ -253,7 +307,7 @@ const Page = () => {
                 <p>{translations[language].consultations}</p>
               </div>
               <div
-                onClick={handleNotificationsClick}
+                onClick={handleAppointmentsClick}
                 className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
@@ -272,68 +326,31 @@ const Page = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-10 text-end flex-col lg:w-[80%] w-full mx-auto">
-            <div className="flex justify-center bg-white w-[80%] mx-auto p-8 rounded">
-              <div
-                className={`p-4 text-center border-l-gray-300 w-1/2 cursor-pointer ${
-                  filterType === "next" ? "font-bold" : ""
-                }`}
-                onClick={() => handleFilterChange("next")}
+          <div className="lg:w-[80%]">
+            <div
+              className={`flex mb-4 ${
+                language === "ar" ? "lg:flex-row" : "lg:flex-row-reverse"
+              }`}
+            >
+              <Button
+                className="bg-[#1584c5]"
+                onClick={() => (window.location.href = "/create-consultation")}
               >
-                {translations[language].next}
-              </div>
-              <div
-                className={`p-4 text-center border-l-2 border-l-gray-300 w-1/2 cursor-pointer ${
-                  filterType === "previous" ? "font-bold" : ""
-                }`}
-                onClick={() => handleFilterChange("previous")}
-              >
-                {translations[language].previous}
-              </div>
+                {language === "en"
+                  ? "Create New Consultation"
+                  : "إنشاء استشارة جديدة"}
+              </Button>
             </div>
-            {errorMessage && (
-              <div
-                className={`text-red-500 bg-red-100 p-4 rounded lg:w-[80%] w-full mx-auto ${
-                  language === "ar" ? "text-end" : "text-start"
-                }`}
-              >
-                {errorMessage}
-              </div>
-            )}
-            <div className="flex flex-col gap-4">
-              {filteredAppointments.length > 0 ? (
-                filteredAppointments.map((appointment) => (
-                  <AppointementsCard
-                    key={appointment.id} // Using `id` as a unique key
-                    appointementId={appointment.id}
-                    doctorID={appointment.doctor.id}
-                    name={`${appointment.doctor.name} ${appointment.doctor.last_name}`} // Doctor's full name
-                    specialty={appointment.doctor.specialty} // Doctor's specialty
-                    price={appointment.price} // Price of the appointment
-                    location="" // No location provided in the data
-                    imageUrl="" // No image URL provided in the data
-                    day={new Date(
-                      appointment.reservation.reservation_date
-                    ).toLocaleDateString(language)} // Format reservation date
-                    time={new Date(
-                      appointment.reservation.reservation_date
-                    ).toLocaleTimeString(language, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })} // Format reservation time
-                    appointementStatus={
-                      appointment.reservation.reservation_status
-                    }
-                    status={appointment.reservation_status || ""}
-                    onError={handleError}
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-500">
-                  {translations[language].noAppointments}
-                </div>
-              )}
-            </div>
+            <ConsultationDropdown
+              hospitalName={hospitalName}
+              notificationMessage={notificationMessage}
+              date={date}
+              consultationType={consultationType}
+              doctorMessage={doctorMessage}
+              patientMessage={patientMessage}
+              language={language}
+              files={files}
+            />
           </div>
         </div>
       </div>

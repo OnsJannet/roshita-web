@@ -203,7 +203,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     <div
       className={`flex ${
         language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
-      } flex-col p-4 bg-white shadow-lg rounded-xl w-full max-w-[80%] lg:max-w-[80%] mx-auto`}
+      } flex-col p-4 bg-white  rounded-xl w-full max-w-[80%] lg:max-w-[80%] mx-auto`}
     >
       <div
         className={`flex flex-1 ${
@@ -219,7 +219,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         >
           <h1 className="text-2xl font-bold text-gray-800 mb-1">{name}</h1>
           <p className="text-sm text-gray-500 mb-2 text-end">{specialty}</p>
-          <div className="bg-gray-100 lg:p-4 p-2 flex lg:flex-row flex-col w-full justify-between lg:gap-20 gap-4 rounded">
+          <div className="bg-gray-50 lg:p-4 p-2 flex lg:flex-row flex-col w-full justify-between lg:gap-20 gap-4 rounded">
             <div
               className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
                 language === "ar" ? "flex-row-reverse" : ""

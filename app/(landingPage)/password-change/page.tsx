@@ -161,6 +161,10 @@ const PasswordChange = () => {
     router.push("/notifications");
   }
 
+  const handleConsultationsClick = () => {
+    router.push("/consultations");
+  };
+
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
@@ -168,7 +172,7 @@ const PasswordChange = () => {
           <div className="flex lg:w-[20%] w-[40%] justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
             <div className="mx-auto flex justify-center">
               <div className="relative lg:w-60 lg:h-60 xl:w-20 xl:h-20 h-40 w-40">
-                <div className="w-full h-full rounded-full bg-[#f1f1f1] flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center overflow-hidden">
                   <UserRound className="w-1/2 h-1/2 text-roshitaBlue" />
                 </div>
               </div>
@@ -176,7 +180,7 @@ const PasswordChange = () => {
             <div>
               <div
                 onClick={handleSettingsClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
@@ -185,7 +189,7 @@ const PasswordChange = () => {
               </div>
               <div
                 onClick={handleSettingsPasswordClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Settings className="h-4 w-4 text-roshitaDarkBlue" />
@@ -196,7 +200,7 @@ const PasswordChange = () => {
               </div>
               <div
                 onClick={handleAppointmentsClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
@@ -204,8 +208,17 @@ const PasswordChange = () => {
                 <p>{language === "ar" ? "مواعيدي" : "My Appointments"}</p>
               </div>
               <div
+                onClick={handleConsultationsClick}
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+              >
+                <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
+                  <MonitorCheck className="h-4 w-4 text-roshitaDarkBlue" />
+                </div>
+                <p>{language === "ar" ? "استشارتي" : "My consultation"}</p>
+              </div>
+              <div
                 onClick={handleNotificationsClick}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <Bell className="h-4 w-4 text-roshitaDarkBlue" />
@@ -214,7 +227,7 @@ const PasswordChange = () => {
               </div>
               <div
                 onClick={handleLogout}
-                className="flex p-2 bg-[#F1F1F1] text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
+                className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">
                   <LogOut className="h-4 w-4 text-roshitaDarkBlue" />
@@ -223,7 +236,7 @@ const PasswordChange = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-10 text-end flex-col w-[80%] mx-auto">
+          <div className="flex gap-10 text-end flex-col w-[80%] mx-auto bg-white p-4">
             {error && <p className="text-red-500">{error}</p>}
             {msg && <p className="text-green-500">{msg}</p>}
             <div>
@@ -238,7 +251,7 @@ const PasswordChange = () => {
               <div
                 className={`flex gap-2 ${
                   language === "en" ? "flex-row" : "flex-row-reverse"
-                } items-center rounded-lg bg-white border px-4 mt-2 border-none text-start`}
+                } items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none text-start`}
               >
                 <Lock className="text-roshitaBlue" />
                 <Input
@@ -276,7 +289,7 @@ const PasswordChange = () => {
               <div
                 className={`flex gap-2 ${
                   language === "en" ? "flex-row" : "flex-row-reverse"
-                } items-center rounded-lg bg-white border px-4 mt-2 border-none text-start`}
+                } items-center rounded-lg bg-gray-50 border px-4 mt-2 border-none text-start`}
               >
                 <Lock className="text-roshitaBlue" />
                 <Input
