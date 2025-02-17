@@ -110,7 +110,7 @@ const Page = () => {
   
         // Redirect logic based on user_type
         if (data.user.user_type === "Doctor") {
-          router.push(`/dashboard/doctors/${data.user.user_id}`);
+          router.push(`/dashboard/doctors/dashboard`);
         } else if (redirectUrl) {
           router.push(redirectUrl); // Default redirect
         }

@@ -15,6 +15,20 @@ import LoadingDoctors from "../../../../../components/layout/LoadingDoctors";
 import { Table, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { logAction } from "@/lib/logger";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 // Define types for doctor data and specialty data
 
 interface User {
@@ -91,11 +105,30 @@ const translations = {
     date: "Date",
     action: "Action",
     roshitaBook: "End",
+    followUpAppointment: "Follow-up Appointment",
+    sameDoctorFollowUp: "Same Doctor Follow-up",
+    sendToAnotherDoctor: "Send to Another Doctor",
     status: "Status",
     patientName: "Patient Name",
     patientLastName: "Patient Last Name",
     patientNumber: "Patient Number",
     patientEmail: "Patient Email",
+    appointmentRef: "Appointment",
+    patientFullName: "Patient Name",
+    patientPhone: "Patient Phone",
+    doctorFullName: "Doctor Name",
+    appointmentPrice: "Price",
+    appointmentDate: "Date",
+    appointmentStatus: "Status",
+    noShow: "No Show",
+    done: "Done",
+    cancel: "Cancel",
+    endAppointment: "End Appointment",
+    confirmationCode: "Confirmation Code",
+    reservationDate: "Reservation Date",
+    submit: "Submit",
+    selectHospital: "Select Hospital",
+    selectDoctor: "Select Doctor",
   },
   ar: {
     title: "مواعيد توفر الطبيب",
@@ -108,6 +141,9 @@ const translations = {
     noSlots: "لم تتم إضافة أي مواعيد بعد.",
     remove: "إلغاء",
     durationError: "المدة أكبر من نطاق الوقت المتاح.",
+    followUpAppointment: "موعد المتابعة",
+    sameDoctorFollowUp: "متابعة نفس الطبيب",
+    sendToAnotherDoctor: "إرسال إلى طبيب آخر",
     date: "التاريخ",
     action: "إجراء",
     roshitaBook: "إنهاء ",
@@ -116,6 +152,22 @@ const translations = {
     patientLastName: "اسم العائلة للمريض",
     patientNumber: "رقم المريض",
     patientEmail: "بريد المريض الإلكتروني",
+    appointmentRef: "الموعد",
+    patientFullName: "اسم المريض الكامل",
+    patientPhone: "هاتف المريض",
+    doctorFullName: "اسم الطبيب الكامل",
+    appointmentPrice: "سعر الموعد",
+    appointmentDate: "تاريخ الموعد",
+    appointmentStatus: "حالة الموعد",
+    noShow: "لم يحضر",
+    cancel: "إلغاء",
+    done: "إنهاء",
+    endAppointment: "إنهاء الموعد",
+    confirmationCode: "رمز التأكيد",
+    reservationDate: "تاريخ الحجز",
+    submit: "إرسال",
+    selectHospital: "اختر المستشفى",
+    selectDoctor: "اختر الطبيب",
   },
   it: {
     title: "Disponibilità degli appuntamenti del medico",
@@ -205,6 +257,26 @@ export default function Page() {
   const [bookingDetails, setBookingDetails] = useState<Appointment | null>(
     null
   );
+  const [selectedAppointment, setSelectedAppointment] = useState<number | null>(
+    null
+  );
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
+  const [isSameDoctorModalOpen, setIsSameDoctorModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSendToAnotherDoctorModalOpen, setIsSendToAnotherDoctorModalOpen] =
+    useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<
+    number | null
+  >(null);
+  const [hospitals, setHospitals] = useState([]);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(
+    null
+  );
+  const [selectedDoctorId, setSelectedDoctorId] = useState<number | null>(null);
+  const [appointmentNumber, setAppointmentNumber] = useState("");
+  const [followUpError, setFollowUpError] = useState("");
   const t = translations[language];
   const [patientDetails, setPatientDetails] = useState({
     first_name: "",
@@ -214,6 +286,106 @@ export default function Page() {
     city: "",
     address: "",
   });
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(
+    null
+  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [nextPage, setNextPage] = useState(null);
+  const [prevPage, setPrevPage] = useState(null);
+
+  // Handle "Same Doctor Follow-up" form submission
+  const handleSameDoctorFollowUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = {
+      confirmation_code: appointmentNumber,
+      reservation_date: selectedSlot.scheduled_date,
+      start_time: selectedSlot.start_time,
+      end_time: selectedSlot.end_time,
+    };
+
+    try {
+      const token = localStorage.getItem("access");
+      const response = await fetch(
+        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to submit follow-up request");
+
+      const data = await response.json();
+      console.log("Follow-up request successful:", data);
+      setIsModalOpen(false);
+      setIsFollowUpModalOpen(false);
+      setIsSameDoctorModalOpen(false);
+      setIsSendToAnotherDoctorModalOpen(false);
+    } catch (error) {
+      console.error("Error:", error);
+      // Extract the error message from the error object
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      setFollowUpError(errorMessage);
+      setIsModalOpen(false);
+      setIsFollowUpModalOpen(false);
+      setIsSameDoctorModalOpen(false);
+      setIsSendToAnotherDoctorModalOpen(false);
+    }
+  };
+
+  // Handle "Send to Another Doctor" action
+  const handleSendToAnotherDoctorSubmit = async () => {
+    if (!selectedHospitalId || !selectedDoctorId) {
+      alert("Please select a hospital and a doctor.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("access");
+      const response = await fetch(
+        "https://www.test-roshita.net/api/api/select-organization",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            doctor_suggest_id: selectedDoctorId,
+            medical_organization: selectedHospitalId,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to send to another doctor");
+
+      const data = await response.json();
+      console.log("Send to another doctor successful:", data);
+      setIsSendToAnotherDoctorModalOpen(false);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  // Open modal and set the selected appointment ID
+  const handleDoneClick = (
+    appointmentId: number,
+    appointmentNumber: number
+  ) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    setAppointmentNumber(appointmentNumber);
+    setSelectedAppointmentId(appointmentId);
+    setIsModalOpen(true);
+  };
 
   const handleBooked = (index: number) => {
     console.log("index", index);
@@ -234,7 +406,6 @@ export default function Page() {
     });
   };
 
-
   const handleRemoveSlot = async (index: number) => {
     console.log("index: ", index);
     if (doctor && doctor.appointments) {
@@ -242,7 +413,7 @@ export default function Page() {
         console.error("Appointment ID not found");
         return;
       }
-  
+
       try {
         // Get the Bearer token from localStorage
         const token = localStorage.getItem("access");
@@ -250,7 +421,7 @@ export default function Page() {
           console.error("Access token not found in localStorage");
           return;
         }
-  
+
         // Send the DELETE request
         const response = await fetch(
           `https://test-roshita.net/api/appointment-reservations/${index}/`,
@@ -264,10 +435,10 @@ export default function Page() {
             },
           }
         );
-  
+
         if (response.ok) {
           console.log("Appointment deleted successfully");
-  
+
           // Log the action as a success
           await logAction(
             token,
@@ -276,7 +447,7 @@ export default function Page() {
             "success",
             response.status // HTTP status code (e.g., 200)
           );
-  
+
           // Update the appointments locally
           const updatedAppointments = doctor.appointments.filter(
             (_, idx) => idx !== index
@@ -291,7 +462,7 @@ export default function Page() {
           });
         } else {
           console.error("Failed to delete appointment", response.statusText);
-  
+
           // Log the action as an error
           const errorData = await response.json(); // Parse the error response
           await logAction(
@@ -305,7 +476,7 @@ export default function Page() {
         }
       } catch (error) {
         console.error("Error deleting appointment:", error);
-  
+
         // Log the action as an error
         const token = localStorage.getItem("access");
         if (token) {
@@ -314,7 +485,11 @@ export default function Page() {
             `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             error.response?.status || 500, // Use the error status code or default to 500
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             error.message || "An unknown error occurred" // Error message
           );
         }
@@ -375,7 +550,11 @@ export default function Page() {
           url,
           { appointmentId: index },
           "error",
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           error?.response?.status || 500, // Use the error status code or default to 500
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           error?.message || "An unknown error occurred"
         );
       }
@@ -449,7 +628,64 @@ export default function Page() {
     }
   };
 
+  // Fetch hospitals
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/userHospital/getHospital");
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data.error || "Failed to fetch hospitals");
+        setHospitals(data.data || []);
+      } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHospitals();
+  }, []);
+
+  // Update doctors when a hospital is selected
+  useEffect(() => {
+    if (selectedHospitalId) {
+      const selectedHospital = hospitals.find(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (h) => h.id === selectedHospitalId
+      );
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      setFilteredDoctors(selectedHospital?.doctors || []);
+    } else {
+      setFilteredDoctors([]);
+    }
+  }, [selectedHospitalId, hospitals]);
+
   console.log("doctorId", id);
+
+  // Handle "End Appointment" action
+  const handleEndAppointment = async () => {
+    if (selectedAppointmentId) {
+      await handleEndSlot(selectedAppointmentId);
+      setIsModalOpen(false);
+    }
+  };
+
+  // Handle "Follow-up Appointment" action
+  const handleFollowUpAppointment = () => {
+    setIsModalOpen(false);
+    setIsFollowUpModalOpen(true);
+  };
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const handleSlotSelection = (slot: AppointmentSlot) => {
+    setSelectedSlot(slot);
+  };
 
   // Breadcrumb items with Arabic text
   const items = [
@@ -512,73 +748,54 @@ export default function Page() {
     fetchDoctorAndSpecialty();
   }, [id]);
 
-
   // Fetch data from API with token from localStorage
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (page = 1) => {
     try {
-      // Retrieve token from localStorage
       const token = localStorage.getItem("access");
-
       if (!token) {
         console.error("Access token is missing.");
         return;
       }
 
-      // Make the GET request with the Authorization header
       const response = await fetch(
-        `https://www.test-roshita.net/api/appointment-reservations/search/?id&doctor_id=${id}&page=4`,
-        
+        `https://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${id}&page=${page}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in Authorization header
-            "Content-Type": "application/json", // Set content type to JSON
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
-      // Handle response
-      if (!response.ok) {
-        throw new Error("Failed to fetch data");
-      }
+      if (!response.ok) throw new Error("Failed to fetch data");
 
       const data = await response.json();
-      console.log("this is the data appointments", data);
-      console.log("appointment.doctor.id", id);
+      console.log("Fetched Appointments:", data);
 
-      // Correct filtering: Ensure doctor exists before accessing doctor.id
-      const filteredAppointments = data.results.filter((appointment: any) => {
-        if (!appointment.doctor) {
-          console.error(`Appointment has no doctor: ${appointment.id}`);
-          return false;
-        }
-
-        // Log the price for each appointment while filtering
-        console.log(
-          `Filtering appointment ID: ${appointment.doctor.id}, id: ${id}`
-        );
-
-        return String(appointment.doctor.id) === String(id);
-      });
-
-      console.log("this is the filtered appointments", filteredAppointments);
+      // Filter appointments by doctor ID
+      const filteredAppointments = data.results.filter(
+        //@ts-ignore
+        (appointment) =>
+          appointment.doctor && String(appointment.doctor.id) === String(id)
+      );
 
       setAppointments(filteredAppointments.reverse());
-      console.log(data); // Log the fetched data or handle it accordingly
-
-      return data;
+      setCurrentPage(page);
+      setTotalPages(Math.ceil(data.count / 5)); // Assuming 5 items per page
+      setNextPage(data.next);
+      setPrevPage(data.previous);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
   };
 
-  // Example usage of the function
+  // Fetch data on component mount
   useEffect(() => {
     fetchAppointments();
-  }, [id]);
+  }, []);
 
   console.log("appointments", appointments);
-
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -806,6 +1023,9 @@ export default function Page() {
                     </div>
                   </div>
                 )}
+                {followUpError && (
+                  <p className="text-red-500 text-center">{followUpError}</p>
+                )}
                 <Table className="w-full border border-gray-300 shadow-sm rounded-sm">
                   <thead>
                     <TableRow>
@@ -830,9 +1050,6 @@ export default function Page() {
                             {t.patientNumber}
                           </TableCell>
                           <TableCell className="font-bold text-gray-700 text-center">
-                            {t.patientLastName}
-                          </TableCell>
-                          <TableCell className="font-bold text-gray-700 text-center">
                             {t.patientName}
                           </TableCell>
                           <TableCell className="font-bold text-gray-700 text-center">
@@ -846,9 +1063,6 @@ export default function Page() {
                           </TableCell>
                           <TableCell className="font-bold text-gray-700 text-center">
                             {t.patientName}
-                          </TableCell>
-                          <TableCell className="font-bold text-gray-700 text-center">
-                            {t.patientLastName}
                           </TableCell>
                           <TableCell className="font-bold text-gray-700 text-center">
                             {t.patientNumber}
@@ -889,7 +1103,12 @@ export default function Page() {
                                     {t.remove}
                                   </Button>
                                   <Button
-                                    onClick={() => handleEndSlot(slot.id)}
+                                    onClick={() =>
+                                      handleDoneClick(
+                                        slot.id,
+                                        slot.confirmation_code
+                                      )
+                                    }
                                     className="text-white bg-[#1685c7] ml-2"
                                   >
                                     {t.roshitaBook}
@@ -914,10 +1133,8 @@ export default function Page() {
                                 {slot.reservation.patient.phone}
                               </TableCell>
                               <TableCell className="text-center">
+                                {slot.reservation.patient.first_name}{" "}
                                 {slot.reservation.patient.last_name}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {slot.reservation.patient.first_name}
                               </TableCell>
                               <TableCell className="text-center">
                                 {formatDate(slot.reservation.reservation_date)}
@@ -929,9 +1146,7 @@ export default function Page() {
                                 {formatDate(slot.reservation.reservation_date)}
                               </TableCell>
                               <TableCell className="text-center">
-                                {slot.reservation.patient.first_name}
-                              </TableCell>
-                              <TableCell className="text-center">
+                                {slot.reservation.patient.first_name}{" "}
                                 {slot.reservation.patient.last_name}
                               </TableCell>
                               <TableCell className="text-center">
@@ -987,9 +1202,223 @@ export default function Page() {
                     )}
                   </tbody>
                 </Table>
+                <div className="flex justify-center mt-4 mb-4 mx-auto gap-4 items-center ">
+                  {/* Previous Button */}
+                  <Button
+                    onClick={() => fetchAppointments(currentPage - 1)}
+                    disabled={!prevPage}
+                    className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+                  >
+                    {language === "ar" ? "السابق" : "Previous"}
+                  </Button>
+
+                  {/* Page Info */}
+                  <span className="text-lg font-semibold">
+                    {language === "ar"
+                      ? `الصفحة ${currentPage} من ${totalPages}`
+                      : `Page ${currentPage} of ${totalPages}`}
+                  </span>
+
+                  {/* Next Button */}
+                  <Button
+                    onClick={() => fetchAppointments(currentPage + 1)}
+                    disabled={!nextPage}
+                    className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+                  >
+                    {language === "ar" ? "التالي" : "Next"}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
+
+          {/* Modal for Done Action */}
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-center">{t.done}</DialogTitle>
+              </DialogHeader>
+              <div className="flex lg:flex-row flex-col gap-4 justify-center">
+                <Button onClick={handleEndAppointment}>
+                  {t.endAppointment}
+                </Button>
+                <Button onClick={handleFollowUpAppointment}>
+                  {t.followUpAppointment}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Modal for Follow-up Action */}
+          <Dialog
+            open={isFollowUpModalOpen}
+            onOpenChange={setIsFollowUpModalOpen}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-center">
+                  {t.followUpAppointment}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-4">
+                <Button onClick={() => setIsSameDoctorModalOpen(true)}>
+                  {t.sameDoctorFollowUp}
+                </Button>
+                <Button onClick={() => setIsSendToAnotherDoctorModalOpen(true)}>
+                  {t.sendToAnotherDoctor}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Modal for Same Doctor Follow-up */}
+          <Dialog
+            open={isSameDoctorModalOpen}
+            onOpenChange={setIsSameDoctorModalOpen}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-center">
+                  {t.sameDoctorFollowUp}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {doctor?.appointments?.map((slot, index) => (
+                  <Button
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    key={slot.id || index}
+                    onClick={() => {
+                      handleSlotSelection(slot);
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      setSelectedSlot(slot.id); // Store the selected slot ID
+                    }}
+                    className={`w-full text-black hover:bg-gray-300 transition-colors ${
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      selectedSlot === slot.id ? "bg-gray-400" : "bg-gray-200"
+                    }`}
+                  >
+                    {slot.scheduled_date} - {slot.start_time} to {slot.end_time}
+                  </Button>
+                ))}
+                <Button
+                  onClick={handleSameDoctorFollowUpSubmit}
+                  className="w-full"
+                >
+                  {t.submit}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Modal for Send to Another Doctor */}
+          <Dialog
+            open={isSendToAnotherDoctorModalOpen}
+            onOpenChange={setIsSendToAnotherDoctorModalOpen}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-center">
+                  {t.sendToAnotherDoctor}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Hospital Selection */}
+                <Select
+                  onValueChange={(value) =>
+                    setSelectedHospitalId(Number(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t.selectHospital} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hospitals.map((hospital) => (
+                      <SelectItem
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        key={hospital.id}
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        value={hospital.id.toString()}
+                      >
+                        {hospital.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Doctor Selection */}
+                {selectedHospitalId && (
+                  <Select
+                    onValueChange={(value) =>
+                      setSelectedDoctorId(Number(value))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t.selectDoctor} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hospitals
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        .find((hospital) => hospital.id === selectedHospitalId)
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        ?.doctors.map((doctor) => (
+                          <SelectItem
+                            key={doctor.id}
+                            value={doctor.id.toString()}
+                          >
+                            {doctor.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* Appointment Selection */}
+                {selectedDoctorId && (
+                  <Select
+                  //@ts-ignore
+                    onValueChange={(value) => setSelectedAppointment(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t.selectAppointment} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hospitals
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        .flatMap((hospital) => hospital.doctors)
+                        .find((doctor) => doctor.id === selectedDoctorId)
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        ?.appointments.map((appointment, index) => (
+                          <SelectItem
+                            key={index}
+                            value={appointment.scheduled_date}
+                          >
+                            {appointment.scheduled_date} -{" "}
+                            {appointment.start_time} to {appointment.end_time}{" "}
+                            (€{appointment.price})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                <Button
+                  onClick={handleSendToAnotherDoctorSubmit}
+                  className="w-full"
+                >
+                  {t.submit}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Empty div to fill space */}
           <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />

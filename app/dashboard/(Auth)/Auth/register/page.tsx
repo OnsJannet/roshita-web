@@ -22,6 +22,7 @@ const translations = {
     lab: "معامل التحليل",
     rays: "معامل تصوير",
     hospital: "مصحة",
+    doctors: "الأطباء",
     next: "التالي",
     adminInfo: "تسجيل معلومات الأدمن",
     adminName: "اسم الأدمن",
@@ -34,6 +35,21 @@ const translations = {
     errorLogin: "حدث خطأ أثناء تسجيل الدخول",
     welcome: "أهلا بيك",
     fillField: "يرجى ملء الحقل",
+    doctorPhone: "رقم هاتف الطبيب",
+    specialty: "التخصص",
+    city: "المدينة",
+    staffAvatar: "صورة الموظف",
+    fixedPrice: "السعر الثابت",
+    isConsultant: "هل هو استشاري",
+    medicalOrgName: "اسم المنظمة الطبية",
+    medicalOrgPhone: "رقم هاتف المنظمة الطبية",
+    medicalOrgEmail: "البريد الإلكتروني للمنظمة الطبية",
+    medicalOrgCity: "مدينة المنظمة الطبية",
+    medicalOrgAddress: "عنوان المنظمة الطبية",
+    medicalOrgLatitude: "خط العرض للمنظمة الطبية",
+    medicalOrgLongitude: "خط الطول للمنظمة الطبية",
+    firstName: "الاسم",
+    lastName: "اللقب",
   },
   en: {
     selectType: "Choose the type of institution",
@@ -41,6 +57,7 @@ const translations = {
     lab: "Laboratories",
     rays: "Radiologies",
     hospital: "Hospitals",
+    doctors: "Doctors",
     next: "Next",
     adminInfo: "Admin Information Registration",
     adminName: "Admin Name",
@@ -49,10 +66,25 @@ const translations = {
     adminLastName: "Admin Last Name",
     phone: "Phone Number",
     errorLogin: "An error occurred during login",
-    hospitalName: "Hospitals Name",
-    hospitalForgeinName: "Hospital foreign name",
+    hospitalName: "Hospital Name",
+    hospitalForgeinName: "Hospital Foreign Name",
     welcome: "Welcome",
     fillField: "Please fill the field",
+    doctorPhone: "Doctor Phone",
+    specialty: "Specialty",
+    city: "City",
+    staffAvatar: "Staff Avatar",
+    fixedPrice: "Fixed Price",
+    isConsultant: "Is Consultant",
+    medicalOrgName: "Medical Organization Name",
+    medicalOrgPhone: "Medical Organization Phone",
+    medicalOrgEmail: "Medical Organization Email",
+    medicalOrgCity: "Medical Organization City",
+    medicalOrgAddress: "Medical Organization Address",
+    medicalOrgLatitude: "Medical Organization Latitude",
+    medicalOrgLongitude: "Medical Organization Longitude",
+    firstName: "First Name",
+    lastName: "Last Name",
   },
 };
 
@@ -63,18 +95,28 @@ const Page = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [speciality, setSpecialty] = useState(1);
+  const [city, setCity] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [medicalOrgName, setMedicalOrgName] = useState("");
+  const [medicalOrgPhone, setMedicalOrgPhone] = useState("");
+  const [fixedPrice, setFixedPrice] = useState("");
   const [loading, setLoading] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
   const router = useRouter();
   const [hospitalName, setHospitalName] = useState("");
   const [hospitalForeignName, setHospitalForeignName] = useState("");
-  const [selected, setSelected] = useState<"lab" | "hospital" | "rays" | null>(
-    null
-  );
+  const [medicalOrgEmail, setMedicalOrgEmail] = useState("");
+  const [medicalOrgAddress, setMedicalOrgAddress] = useState("");
+  const [medicalOrgCity, setMedicalOrgCity] = useState("");
+  const [selected, setSelected] = useState<
+    "lab" | "hospital" | "rays" | "doctors" | null
+  >(null);
   const [formSubmitted, setFormSubmitted] = useState(false); // Track if form is submitted
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({}); // Track field errors
+  const [specialties, setSpecialties] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -98,7 +140,7 @@ const Page = () => {
   }, []);
 
   // Handle option selection
-  const handleSelect = (option: "lab" | "hospital" | "rays") => {
+  const handleSelect = (option: "lab" | "hospital" | "rays" | "doctors") => {
     setSelected(option);
   };
 
@@ -130,6 +172,52 @@ const Page = () => {
     return Object.keys(errors).length === 0; // Return true if no errors
   };
 
+  useEffect(() => {
+    // Fetch the specialties data from the API
+    const fetchSpecialties = async () => {
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/specialty-list/",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        setSpecialties(data);
+      } catch (error) {
+        console.error("Error fetching specialties:", error);
+      }
+    };
+
+    // Fetch the countries data from the API
+    const fetchCountries = async () => {
+      const csrfToken = process.env.NEXT_PUBLIC_CSRF_TOKEN;
+      console.log("csrfToken", csrfToken);
+
+      try {
+        const response = await fetch(
+          "https://test-roshita.net/api/cities-list/",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        setCities(data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+
+    fetchSpecialties();
+    fetchCountries();
+  }, []);
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,7 +246,7 @@ const Page = () => {
         last_name: lastName.trim(),
       },
       city: 1,
-      address: "", 
+      address: "",
       medical_organization: [
         {
           name: hospitalName,
@@ -170,10 +258,10 @@ const Page = () => {
               name: "",
               foreign_name: "",
             },
-            name: "", 
-            foreign_name: "", 
+            name: "",
+            foreign_name: "",
           },
-          address: "", 
+          address: "",
           Latitude: 0,
           Longitude: 0,
           type: selected === "hospital" ? 1 : selected === "lab" ? 2 : 3,
@@ -207,6 +295,61 @@ const Page = () => {
     }
   };
 
+  const handleRegisterDoctor = async () => {
+    setLoading(true);
+    setError(null);
+
+    const doctorData = {
+      doctor_phone: phone,
+      email: email,
+      first_name: name,
+      last_name: lastName,
+      specialty: speciality,
+      city: city,
+      staff_avatar: "",
+      fixed_price: fixedPrice,
+      is_consultant: true,
+      medical_org_name: medicalOrgName,
+      medical_org_phone: medicalOrgPhone,
+      medical_org_email: medicalOrgEmail,
+      medical_org_city: medicalOrgCity,
+      medical_org_address: medicalOrgAddress,
+      medical_org_latitude: 0,
+      medical_org_longitude: 0,
+    };
+
+    try {
+      const response = await fetch(
+        "https://www.test-roshita.net/api/register-doctor/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(doctorData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          `Error: ${response.status} - ${
+            errorData.message || "Registration failed"
+          }`
+        );
+      }
+
+      const data = await response.json();
+      window.location.href="/dashboard/Auth/login"
+      console.log("Response:", data);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error registering doctor:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Retrieve translations based on the selected language
   const t = translations[language];
   const textAlignment = language === "en" ? "text-start" : "text-end";
@@ -232,7 +375,7 @@ const Page = () => {
                 {error && (
                   <div className="text-red-500 text-center">{error}</div>
                 )}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   {/* Option 1 */}
                   <div
                     className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
@@ -289,6 +432,25 @@ const Page = () => {
                     />
                     <p className="mt-2 text-center mx-auto">{t.hospital}</p>
                   </div>
+
+                  {/* Option 4 */}
+                  <div
+                    className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
+                      selected === "doctors"
+                        ? "border-2 border-blue-500"
+                        : "border border-gray-200"
+                    }`}
+                    onClick={() => handleSelect("doctors")}
+                  >
+                    <Image
+                      src="/Images/FilterHos.png"
+                      alt="Doctors"
+                      width={60}
+                      height={60}
+                      className="mx-auto"
+                    />
+                    <p className="mt-2 text-center mx-auto">{t.doctors}</p>
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -320,172 +482,587 @@ const Page = () => {
                     {t.errorLogin}
                   </div>
                 )}
-                <form onSubmit={handleSubmit} className="grid gap-4 ">
-                  <div
-                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
-                  >
-                    {/* Admin Name */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.adminName}
-                      </Label>
-                      <InputAdmin
-                        placeholder={t.adminName}
-                        icon={<User size={24} />}
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className={fieldErrors.name ? "border-red-500" : ""}
-                      />
-                      {fieldErrors.name && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.adminName}"
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Admin Last Name */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.adminLastName}
-                      </Label>
-                      <InputAdmin
-                        placeholder={t.adminLastName}
-                        icon={<User size={24} />}
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className={fieldErrors.lastName ? "border-red-500" : ""}
-                      />
-                      {fieldErrors.lastName && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.adminLastName}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
-                  >
-                    {/* Phone */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.phone}
-                      </Label>
-                      <InputAdmin
-                        icon={<Phone size={24} />}
-                        type="phone"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className={fieldErrors.phone ? "border-red-500" : ""}
-                      />
-                      {fieldErrors.phone && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.phone}"
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Email */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.email}
-                      </Label>
-                      <InputAdmin
-                        icon={<Mail size={24} />}
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={fieldErrors.email ? "border-red-500" : ""}
-                      />
-                      {fieldErrors.email && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.email}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
-                  >
-                    {/* Hospital Name */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.hospitalName}
-                      </Label>
-                      <InputAdmin
-                        placeholder={t.hospitalName}
-                        icon={<Building size={24} />}
-                        type="text"
-                        value={hospitalName}
-                        onChange={(e) => setHospitalName(e.target.value)}
-                        className={
-                          fieldErrors.hospitalName ? "border-red-500" : ""
-                        }
-                      />
-                      {fieldErrors.hospitalName && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.hospitalName}"
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Hospital Foreign Name */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.hospitalForgeinName}
-                      </Label>
-                      <InputAdmin
-                        placeholder={t.hospitalForgeinName}
-                        icon={<Building size={24} />}
-                        type="text"
-                        value={hospitalForeignName}
-                        onChange={(e) => setHospitalForeignName(e.target.value)}
-                        className={
-                          fieldErrors.hospitalForeignName
-                            ? "border-red-500"
-                            : ""
-                        }
-                      />
-                      {fieldErrors.hospitalForeignName && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.hospitalForgeinName}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
-                  >
-                    {/* Password */}
-                    <div className="grid gap-2 lg:w-1/2 w-full">
-                      <Label htmlFor="phone" className={textAlignment}>
-                        {t.password}
-                      </Label>
-                      <InputAdmin
-                        icon={<Lock size={24} />}
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={fieldErrors.password ? "border-red-500" : ""}
-                      />
-                      {fieldErrors.password && (
-                        <p className={`text-red-500 text-sm ${textAlignment}`}>
-                          {t.fillField} "{t.password}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {/* Submit Button */}
-                  <div className="flex justify-center">
-                    <Button
-                      type="submit"
-                      className="w-full bg-[#0575E6] h-[70px] rounded-[30px] lg:w-1/2 "
+                {selected !== "doctors" ? (
+                  <form onSubmit={handleSubmit} className="grid gap-4 ">
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
                     >
-                      {t.next}
-                    </Button>
-                  </div>
-                </form>
+                      {/* Admin Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.adminName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.adminName}
+                          icon={<User size={24} />}
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={fieldErrors.name ? "border-red-500" : ""}
+                        />
+                        {fieldErrors.name && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.adminName}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Admin Last Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.adminLastName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.adminLastName}
+                          icon={<User size={24} />}
+                          type="text"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.lastName ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.lastName && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.adminLastName}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Phone */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.phone}
+                        </Label>
+                        <InputAdmin
+                          icon={<Phone size={24} />}
+                          type="phone"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={fieldErrors.phone ? "border-red-500" : ""}
+                        />
+                        {fieldErrors.phone && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.phone}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.email}
+                        </Label>
+                        <InputAdmin
+                          icon={<Mail size={24} />}
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={fieldErrors.email ? "border-red-500" : ""}
+                        />
+                        {fieldErrors.email && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.email}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Hospital Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.hospitalName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.hospitalName}
+                          icon={<Building size={24} />}
+                          type="text"
+                          value={hospitalName}
+                          onChange={(e) => setHospitalName(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.hospitalName ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.hospitalName && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.hospitalName}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Hospital Foreign Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.hospitalForgeinName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.hospitalForgeinName}
+                          icon={<Building size={24} />}
+                          type="text"
+                          value={hospitalForeignName}
+                          onChange={(e) =>
+                            setHospitalForeignName(e.target.value)
+                          }
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.hospitalForeignName
+                              ? "border-red-500"
+                              : ""
+                          }
+                        />
+                        {fieldErrors.hospitalForeignName && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.hospitalForgeinName}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Password */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="phone" className={textAlignment}>
+                          {t.password}
+                        </Label>
+                        <InputAdmin
+                          icon={<Lock size={24} />}
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.password ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.password && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.password}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {/* Submit Button */}
+                    <div className="flex justify-center">
+                      <Button
+                        type="submit"
+                        className="w-full bg-[#0575E6] h-[70px] rounded-[30px] lg:w-1/2 "
+                      >
+                        {t.next}
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault(); // Prevent the page reload
+                      handleRegisterDoctor(); // Call the function
+                    }}
+                    className="grid gap-4"
+                  >
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* First Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="first_name" className={textAlignment}>
+                          {t.firstName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.firstName}
+                          icon={<User size={24} />}
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.firstName ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.firstName && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.firstName}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Last Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="last_name" className={textAlignment}>
+                          {t.lastName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.lastName}
+                          icon={<User size={24} />}
+                          type="text"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.lastName ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.lastName && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.lastName}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Doctor Phone */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="doctor_phone" className={textAlignment}>
+                          {t.doctorPhone}
+                        </Label>
+                        <InputAdmin
+                          icon={<Phone size={24} />}
+                          type="phone"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.doctorPhone ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.doctorPhone && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.doctorPhone}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="email" className={textAlignment}>
+                          {t.email}
+                        </Label>
+                        <InputAdmin
+                          icon={<Mail size={24} />}
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={fieldErrors.email ? "border-red-500" : ""}
+                        />
+                        {fieldErrors.email && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.email}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Specialty */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="specialty" className={textAlignment}>
+                          {t.specialty}
+                        </Label>
+                        <select
+                          id="specialty"
+                          value={speciality}
+                          onChange={(e) => setSpecialty(e.target.value)} // Update the specialty state on selection
+                          className={`border p-2 rounded ${
+                            fieldErrors.specialty ? "border-red-500" : ""
+                          }`}
+                        >
+                          <option value="" disabled>
+                            {language === "en"
+                              ? "Select a specialty"
+                              : "حدد التخصص"}
+                          </option>
+                          {specialties.map((specialtyOption) => (
+                            <option
+                              key={specialtyOption.id}
+                              value={specialtyOption.id}
+                            >
+                              {specialtyOption.name}
+                            </option>
+                          ))}
+                        </select>
+                        {fieldErrors.specialty && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.specialty}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* City */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="city" className={textAlignment}>
+                          {t.city}
+                        </Label>
+                        <select
+                          id="city"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)} // Update the city state on selection
+                          className={`border p-2 rounded ${
+                            fieldErrors.city ? "border-red-500" : ""
+                          }`}
+                        >
+                          <option value="" disabled>
+                            {language === "en"
+                              ? "Select a city"
+                              : "حدد المدينة"}
+                          </option>
+                          {cities.map((cityOption) => (
+                            <option key={cityOption.id} value={cityOption.id}>
+                              {cityOption.name}
+                            </option>
+                          ))}
+                        </select>
+                        {fieldErrors.city && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.city}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Medical Organization Phone */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label
+                          htmlFor="medical_org_phone"
+                          className={textAlignment}
+                        >
+                          {t.medicalOrgPhone}
+                        </Label>
+                        <InputAdmin
+                          icon={<Phone size={24} />}
+                          type="phone"
+                          value={medicalOrgPhone}
+                          onChange={(e) => setMedicalOrgPhone(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.medicalOrgPhone ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.medicalOrgPhone && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.medicalOrgPhone}"
+                          </p>
+                        )}
+                      </div>
+                      {/* Medical Organization Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label
+                          htmlFor="medical_org_name"
+                          className={textAlignment}
+                        >
+                          {t.medicalOrgName}
+                        </Label>
+                        <InputAdmin
+                          placeholder={t.medicalOrgName}
+                          icon={<Building size={24} />}
+                          type="text"
+                          value={medicalOrgName}
+                          onChange={(e) => setMedicalOrgName(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.medicalOrgName ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.medicalOrgName && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.medicalOrgName}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Medical Organization Phone */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label
+                          htmlFor="medical_org_phone"
+                          className={textAlignment}
+                        >
+                          {t.medicalOrgAddress}
+                        </Label>
+                        <InputAdmin
+                          icon={<Building size={24} />}
+                          type="phone"
+                          value={medicalOrgAddress}
+                          onChange={(e) => setMedicalOrgAddress(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.medicalOrgPhone ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.medicalOrgPhone && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.medicalOrgAddress}"
+                          </p>
+                        )}
+                      </div>
+                      {/* Medical Organization Name */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label
+                          htmlFor="medical_org_name"
+                          className={textAlignment}
+                        >
+                          {t.medicalOrgCity}
+                        </Label>
+                        <select
+                          id="medicalOrgCity"
+                          value={medicalOrgCity}
+                          onChange={(e) => setMedicalOrgCity(e.target.value)} // Update the city state on selection
+                          className={`border p-2 rounded ${
+                            fieldErrors.city ? "border-red-500" : ""
+                          }`}
+                        >
+                          <option value="" disabled>
+                            {language === "en"
+                              ? "Select a city"
+                              : "حدد المدينة"}
+                          </option>
+                          {cities.map((cityOption) => (
+                            <option key={cityOption.id} value={cityOption.id}>
+                              {cityOption.name}
+                            </option>
+                          ))}
+                        </select>
+                        {fieldErrors.medicalOrgCity && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.medicalOrgCity}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label
+                          htmlFor="medical_org_email"
+                          className={textAlignment}
+                        >
+                          {t.medicalOrgEmail}
+                        </Label>
+                        <InputAdmin
+                          icon={<Mail size={24} />}
+                          type="phone"
+                          value={medicalOrgEmail}
+                          onChange={(e) => setMedicalOrgEmail(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.medicalOrgEmail ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.medicalOrgEmail && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.medicalOrgEmail}"
+                          </p>
+                        )}
+                      </div>
+                      {/* Fixed Price */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="fixed_price" className={textAlignment}>
+                          {t.fixedPrice}
+                        </Label>
+                        <InputAdmin
+                          type="number"
+                          value={fixedPrice}
+                          onChange={(e) => setFixedPrice(e.target.value)}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-ignore
+                          className={
+                            fieldErrors.fixedPrice ? "border-red-500" : ""
+                          }
+                        />
+                        {fieldErrors.fixedPrice && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.fixedPrice}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <Button
+                        type="submit"
+                        className="w-full bg-[#0575E6] h-[70px] rounded-[30px] lg:w-1/2"
+                      >
+                        {t.next}
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           )}

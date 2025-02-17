@@ -208,9 +208,9 @@ const Page = () => {
 
   return (
     isLoading ? (
-<div className="bg-white flex items-center justify-center min-h-screen">
-  <LoadingDoctors />
-</div>
+      <div className="bg-white flex items-center justify-center min-h-screen">
+        <LoadingDoctors />
+      </div>
 
     ) : (
     <div className="bg-white pb-20">

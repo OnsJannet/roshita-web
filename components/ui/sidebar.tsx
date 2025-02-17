@@ -205,63 +205,29 @@ const dataDoctor: Data = {
     {
       title: "الرئسية",
       foreginTitle: "Dashboard",
-      url: "/dashboard/doctor-dashboard",
+      url: "/dashboard/doctors/dashboard",
       items: [],
       isActive: false,
       icon: "House" as IconNames,
     },
     {
-      title: "دكاترة",
-      foreginTitle: "Doctors",
-      url: "/dashboard/doctors",
+      title: "المواعيد",
+      foreginTitle: "Appointments",
+      url: "/dashboard/doctors/appointments",
       items: [],
       isActive: false,
-      icon: "Heart" as IconNames,
+      icon: "Folder" as IconNames,
     },
     {
       title: "الاستشارات",
       foreginTitle: "Consultations",
-      url: "/dashboard/doctor-consultations",
+      url: "/dashboard/doctors/consultations",
       items: [],
       isActive: false,
       icon: "Folder" as IconNames,
     },
   ],
 };
-
-/*let lab = false;
-let hospital = false;
-let xRays = false;
-let doctor = false;
-
-if (typeof window !== "undefined") {
-  const userString = localStorage.getItem("user");
-  console.log("useruseruser", userString);
-
-  if (userString) {
-    const user = JSON.parse(userString);
-
-    lab = user?.medical_organization_type === "Laboratory" && user?.user_type === "staff";
-    hospital = user?.medical_organization_type === "hospital" && (user?.user_type === "Admin" || user?.user_type === "staff");
-    xRays = user?.medical_organization_type === "Radiologic" && user?.user_type === "staff";
-    doctor = user?.medical_organization_type === "hospital" && user?.user_type === "Doctor";
-
-    console.log("Is Laboratory staff:", lab);
-    console.log("Is Hospital Admin or staff:", hospital);
-    console.log("Is Radiologic staff:", xRays);
-    console.log("Is Hospital Doctor:", doctor);
-  }
-}
-
-const dataToMap = lab === true
-  ? dataLabs
-  : hospital === true
-  ? data
-  : xRays === true
-  ? dataRadiologic
-  : dataDoctor;
-
-console.log("dataToMap", dataToMap);*/
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -521,7 +487,7 @@ const Sidebar = React.forwardRef<
               (user?.user_type === "Admin" || user?.user_type === "staff"),
             xRays: user?.medical_organization_type === "Radiologic",
             doctor:
-              user?.medical_organization_type === "hospital" &&
+              (user?.medical_organization_type === "hospital" ||  user?.medical_organization_type === "Doctor Hospital") &&
               user?.user_type === "Doctor",
           });
 
