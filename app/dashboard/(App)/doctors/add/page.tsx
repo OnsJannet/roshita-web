@@ -25,6 +25,7 @@ interface DoctorFormData {
   isConsultant: boolean;
   Image?: string;
   phoneNumber?: string;
+  payMethode?: string;
 }
 
 interface Specialty {
@@ -95,7 +96,7 @@ type Language = "ar" | "en";
 
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
-
+  const [payMethode, setPayMethode] = useState("");
   useEffect(() => {
     // @ts-ignore
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
@@ -145,6 +146,7 @@ export default function Page() {
     phoneNumber: "",
     rating: 0,
     isConsultant: false,
+    payMethode: "",
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
   // Handle input changes
@@ -171,6 +173,8 @@ export default function Page() {
           setErrorMessage("سعر الحجز يجب أن يكون رقمًا فقط");
           return prevData;
         }
+      } else if (field === "payMethode") {
+        value = e.target.value; // Handle payment method
       }
 
       return {
@@ -189,6 +193,7 @@ export default function Page() {
     if (!formData.fixedPrice) missingFields.push("سعر الحجز");
     if (!formData.rating) missingFields.push("التقييم");
     if (!formData.phoneNumber) missingFields.push("رقم التليفون");
+    if (!formData.phoneNumber) missingFields.push("طريقة الدفع");
     return missingFields;
   };
 
@@ -216,12 +221,13 @@ export default function Page() {
       setErrorMessage(`الحقول التالية مطلوبة: ${missingFields.join(", ")}`);
       return;
     }
+
     try {
       const accessToken =
         typeof window !== "undefined" && typeof localStorage !== "undefined"
           ? localStorage.getItem("access")
           : null;
-      console.log("formData", formData);
+
       const response = await fetch("/api/doctors/createDoctor", {
         method: "POST",
         headers: {
@@ -237,12 +243,12 @@ export default function Page() {
             staff_avatar: formData.Image,
           },
           doctor_phone: formData.phoneNumber,
-          specialty: Number(formData.specialty), // Ensure specialty is sent as a number
+          specialty: Number(formData.specialty),
           fixed_price: formData.fixedPrice,
-          rating: Number(formData.rating), // Ensure rating is sent as a number
-          is_consultant: formData.isConsultant, // This will be a boolean
+          rating: Number(formData.rating),
+          is_consultant: formData.isConsultant,
           appointment_dates: appointmentDates,
-          //Image: formData.Image,
+          pay_method: formData.payMethode, // Use formData.payMethode
         }),
       });
 
@@ -491,6 +497,30 @@ export default function Page() {
                         </select>
                       </td>
                       <td className="py-3 px-2 text-gray-500 p-4">المدينة</td>
+                    </tr>
+                    <tr className="border-t p-4">
+                      <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                        <div className="flex justify-center">
+                          <MoveRight className="h-4 w-4" />
+                        </div>
+                      </td>
+                      <td className="py-3 px-2 text-gray-700 p-4">
+                        <select
+                          value={formData.payMethode}
+                          onChange={(e) => handleFieldChange(e, "payMethode")}
+                          className="text-end border p-2 rounded w-[19%]"
+                        >
+                          <option value="">اختر طريقة الدفع</option>
+                          <option value="cash">الدفع نقدًا (Cash)</option>
+                          <option value="online">
+                            الدفع عبر الإنترنت (Online Payment)
+                          </option>
+                        </select>
+                      </td>
+
+                      <td className="py-3 px-2 text-gray-500 p-4">
+                        طريقة الدفع
+                      </td>
                     </tr>
                     <tr className="border-t p-4">
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">

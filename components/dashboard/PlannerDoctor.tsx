@@ -76,7 +76,7 @@ interface AppointmentSlot {
   price: string;
 }
 
-const Planner = ({ language = "en" }: { language?: string }) => {
+const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   const [selectedAppointment, setSelectedAppointment] = useState([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [page, setPage] = useState(1);
@@ -124,6 +124,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     const fetchAllAppointments = async () => {
       try {
         const token = localStorage.getItem("access");
+        const id = localStorage.getItem("userId");
         if (!token) {
           console.error("No access token found in localStorage");
           return;
@@ -134,7 +135,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         let hasMore = true;
 
         while (hasMore) {
-          const response = await fetch(`${API_URL}search/?page=${nextPage}`, {
+          const response = await fetch(`${API_URL}search/?page=${nextPage}&doctor_id=${id}`, {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
@@ -166,7 +167,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
             return (
               //appointmentDate >= today &&
-              status !== "Cancelled" && status !== "Completed"
+              status !== "Cancelled" &&
+              status !== "Completed"
             );
           })
           .sort((a, b) => {
@@ -494,73 +496,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     }
   };
 
-  const handleMarkNotAttend = async (appointmentId: number) => {
-    if (!appointmentId) {
-      console.error("Appointment ID not found");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("access");
-      if (!token) {
-        console.error("Access token not found in localStorage");
-        return;
-      }
-
-      const response = await fetch(
-        `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}`,
-        {
-          method: "POST",
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "X-CSRFToken":
-              "9htdjDGAaHSm5TKSyU7DoBSxj4PlVCSYt2yA1iOmGLIu2JXABwbrTe3rgvbCnG2U",
-          },
-          body: JSON.stringify({ appointmentId }),
-        }
-      );
-
-      if (response.ok) {
-        console.log("Marked as not attended successfully");
-        await logAction(
-          token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}`,
-          { appointmentId },
-          "success",
-          response.status
-        );
-      } else {
-        console.error("Failed to mark as not attended", response.statusText);
-        const errorData = await response.json();
-        await logAction(
-          token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}`,
-          { appointmentId },
-          "error",
-          response.status,
-          errorData.message || "Failed to mark as not attended"
-        );
-      }
-    } catch (error) {
-      console.error("Error marking as not attended:", error);
-      const token = localStorage.getItem("access");
-      if (token) {
-        await logAction(
-          token,
-          `https://www.test-roshita.net/api/mark-not-attend/`,
-          { appointmentId },
-          "error",
-          //@ts-ignore
-          error.response?.status || 500,
-          //@ts-ignore
-          error.message || "An unknown error occurred"
-        );
-      }
-    }
-  };
-
   const handleEndSlot = async (index: number) => {
     const url =
       "https://test-roshita.net/api/complete-appointment-reservations/";
@@ -705,11 +640,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                 {appointment.reservation.reservation_payment_status !==
                 "pendings" ? (
                   <TableCell className="text-center">
-                    <Button
-                      variant="outline"
-                      className="mr-2"
-                      onClick={() => handleMarkNotAttend(appointment.id)}
-                    >
+                    <Button variant="outline" className="mr-2">
                       {t.noShow}
                     </Button>
                     <Button
@@ -953,4 +884,4 @@ const Planner = ({ language = "en" }: { language?: string }) => {
   );
 };
 
-export default Planner;
+export default PlannerDoctor;

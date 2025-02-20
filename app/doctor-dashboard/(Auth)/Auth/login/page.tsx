@@ -92,7 +92,7 @@ const Page = () => {
   
         // Save user data to localStorage
         localStorage.setItem("refresh", data.refreshToken);
-        localStorage.setItem("userId", data.user.doctor_id);
+        localStorage.setItem("userId", data.user.user_id);
         localStorage.setItem("access", data.token);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userRole", data.user.user_type);
@@ -110,7 +110,7 @@ const Page = () => {
   
         // Redirect logic based on user_type
         if (data.user.user_type === "Doctor") {
-          router.push(`/doctor-dashboard`);
+          router.push(`/dashboard/doctors/dashboard`);
         } else if (redirectUrl) {
           router.push(redirectUrl); // Default redirect
         }

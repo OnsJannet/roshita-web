@@ -8,9 +8,10 @@ import { Input } from "../ui/input";
 interface FileUploaderProps {
   onFilesChange: (files: File[]) => void;
   language?: "en" | "ar"; // Make it optional with a default value
+  idPrefix: string; // Add an idPrefix prop to ensure unique ids
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ onFilesChange, language = "en" }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ onFilesChange, language = "en", idPrefix }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -59,10 +60,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesChange, language = "
   };
 
   const addFiles = (newFiles: File[]) => {
-    const validFiles = newFiles.filter(
-      (file) => file.size <= 4 * 1024 * 1024 // 4 MB limit
-    );
+    const validFiles = newFiles.filter((file) => file.size <= 4 * 1024 * 1024); // 4 MB limit
 
+    // Prevent exceeding the file limit
     if (files.length + validFiles.length > 4) {
       alert(
         validatedLanguage === "en"
@@ -72,6 +72,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesChange, language = "
       return;
     }
 
+    // Update files state properly
     const updatedFiles = [...files, ...validFiles];
     setFiles(updatedFiles);
     onFilesChange(updatedFiles); // Notify parent about the updated files
@@ -94,7 +95,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesChange, language = "
         onDrop={handleDrop}
         style={{ direction: validatedLanguage === "ar" ? "rtl" : "ltr" }} // Set text direction based on language
       >
-        <Label htmlFor="file-upload" className="cursor-pointer">
+        <Label htmlFor={`${idPrefix}-file-upload`} className="cursor-pointer">
           <p className="text-gray-600">
             {translations[validatedLanguage].dragAndDrop}{" "}
             <span className="text-blue-600 hover:text-blue-500">
@@ -106,7 +107,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesChange, language = "
           </p>
         </Label>
         <Input
-          id="file-upload"
+          id={`${idPrefix}-file-upload`}
           type="file"
           multiple
           onChange={handleFileChange}

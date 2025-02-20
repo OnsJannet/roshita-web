@@ -3,6 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Bell, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
 import AppointementsCard from "@/components/unique/AppointementsCard"; // Adjust the import path as needed
 import { useRouter } from "next/navigation";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination"; // Adjust the import path as needed
 
 type Language = "ar" | "en";
 
@@ -31,111 +39,94 @@ const translations = {
   },
 };
 
-/**
- * The main user page where users can manage their appointments, change settings,
- * and log out from their account. The page adapts to the selected language (Arabic or English).
- *
- * Key Features:
- * - Language support: The page dynamically switches between Arabic and English based on user preference.
- * - Appointment filtering: Users can view either upcoming or past appointments using filtering options.
- * - Navigation: The page includes clickable options for settings, password change, appointments, and logging out.
- * - Data handling: Appointments are fetched from `localStorage` and displayed based on the selected filter.
- * - Appointment Cards: Each appointment is displayed using the `AppointementsCard` component, which shows details
- *   like doctor name, specialty, price, and appointment date/time.
- * - User profile section: Displays the user's avatar and provides navigation links to settings and password change pages.
- * - Local storage integration: The user's language preference and appointment data are saved in `localStorage`, and changes
- *   are automatically reflected in the UI.
- * - The page is structured using a responsive layout to ensure a smooth user experience across devices.
- */
-
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
-  const [filterType, setFilterType] = useState<"previous" | "next">("next"); // New state for filtering
-  const router = useRouter(); // Initialize useRouter
+  const [filterType, setFilterType] = useState<"previous" | "next">("next");
   const [language, setLanguage] = useState<Language>("ar");
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(5); // Number of items per page
+
+  const router = useRouter();
 
   useEffect(() => {
-    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      setLanguage(storedLanguage as Language);
     } else {
-      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      setLanguage("ar");
     }
 
-    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        setLanguage((event.newValue as Language) || "ar");
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
 
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   useEffect(() => {
-    // Fetch the appointments from localStorage
-    const storedAppointments = localStorage.getItem("appointments");
-    if (storedAppointments) {
-      const parsedAppointments = JSON.parse(storedAppointments);
-      setAppointments(parsedAppointments);
-      filterAppointments(parsedAppointments, "next"); // Set default to show next appointments
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchAppointments = async () => {
+    const fetchAllAppointments = async () => {
       const token = localStorage.getItem("access");
-      try {
-        const response = await fetch(
-          "https://test-roshita.net/api/user-appointment-reservations/",
-          {
-            method: "GET",
-            headers: {
-              accept: "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          console.log("appointement data", data);
+      const userID = localStorage.getItem("userId");
 
-          // Use the `results` array for appointments
-          const results = data.results || [];
-          setAppointments(results);
-          filterAppointments(results, "next"); // Set default to show next appointments
-        } else {
-          console.error("Failed to fetch appointments:", response.statusText);
-        }
+      try {
+        let allAppointments: any[] = [];
+        let page = 1;
+        let totalPages = 1;
+
+        do {
+          const response = await fetch(
+            `https://test-roshita.net/api/user-appointment-reservations/filter-appointments/?user_id=${userID}&page=${page}`,
+            {
+              method: "GET",
+              headers: {
+                accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            allAppointments = allAppointments.concat(data.results || []);
+            totalPages = Math.ceil(data.count / itemsPerPage);
+            page++;
+          } else {
+            console.error("Failed to fetch appointments:", response.statusText);
+            break;
+          }
+        } while (page <= totalPages);
+
+        setAppointments(allAppointments);
+        setFilteredAppointments(allAppointments);
+        setTotalPages(totalPages);
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
     };
 
-    fetchAppointments();
+    fetchAllAppointments();
   }, []);
 
-  /*const filterAppointments = (appointments: any[], type: 'previous' | 'next') => {
-    const today = new Date();
-
-    if (type === 'next') {
-      // Show appointments where day > today
-      const nextAppointments = appointments.filter(appointment => new Date(appointment.day) > today);
-      setFilteredAppointments(nextAppointments);
-    } else {
-      // Show appointments where day <= today
-      const previousAppointments = appointments.filter(appointment => new Date(appointment.day) <= today);
-      setFilteredAppointments(previousAppointments);
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
     }
-  };*/
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
 
   const filterAppointments = (
     appointments: any[],
@@ -161,6 +152,7 @@ const Page = () => {
   const handleFilterChange = (type: "previous" | "next") => {
     setFilterType(type);
     filterAppointments(appointments, type);
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   const handleLogout = () => {
@@ -178,14 +170,13 @@ const Page = () => {
     router.push("/appointments");
   };
 
-
   const handleConsultationsClick = () => {
     router.push("/consultations");
   };
 
   const handleNotificationsClick = () => {
     router.push("/notifications");
-  }
+  };
 
   const handleSettingsPasswordClick = () => {
     router.push("/password-change");
@@ -194,10 +185,19 @@ const Page = () => {
   const handleError = (errorMessage: string) => {
     console.error("Error from child:", errorMessage);
     setErrorMessage(errorMessage);
-    // Handle the error (e.g., show a notification or update the state)
   };
 
-  console.log("filteredAppointments", filteredAppointments);
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredAppointments.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  console.log("currentItems", currentItems)
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
@@ -301,26 +301,26 @@ const Page = () => {
               </div>
             )}
             <div className="flex flex-col gap-4">
-              {filteredAppointments.length > 0 ? (
-                filteredAppointments.map((appointment) => (
+              {currentItems.length > 0 ? (
+                currentItems.map((appointment) => (
                   <AppointementsCard
-                    key={appointment.id} // Using `id` as a unique key
+                    key={appointment.id}
                     appointementId={appointment.id}
                     doctorID={appointment.doctor.id}
-                    name={`${appointment.doctor.name} ${appointment.doctor.last_name}`} // Doctor's full name
-                    specialty={appointment.doctor.specialty} // Doctor's specialty
-                    price={appointment.price} // Price of the appointment
-                    location="" // No location provided in the data
-                    imageUrl="" // No image URL provided in the data
+                    name={`${appointment.doctor.name} ${appointment.doctor.last_name}`}
+                    specialty={appointment.doctor.specialty}
+                    price={appointment.price}
+                    location=""
+                    imageUrl=""
                     day={new Date(
                       appointment.reservation.reservation_date
-                    ).toLocaleDateString(language)} // Format reservation date
+                    ).toLocaleDateString(language)}
                     time={new Date(
                       appointment.reservation.reservation_date
                     ).toLocaleTimeString(language, {
                       hour: "2-digit",
                       minute: "2-digit",
-                    })} // Format reservation time
+                    })}
                     appointementStatus={
                       appointment.reservation.reservation_status
                     }
@@ -334,6 +334,32 @@ const Page = () => {
                 </div>
               )}
             </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(index + 1)}
+                      isActive={currentPage === index + 1}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         </div>
       </div>

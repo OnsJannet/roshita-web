@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ViewVerticalIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { LogOut, Settings, House, Heart, Pill, TestTube, Folder } from "lucide-react";
+import { LogOut, Settings, House, Heart, Pill, TestTube, Folder, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import LanguageSwitcher from "../layout/LanguageSwitcher";
 
@@ -29,6 +29,7 @@ const iconMapping: Record<string, React.ComponentType<any>> = {
   TestTube,
   Settings,
   Folder,
+  Bell
 };
 
 type NavItem = {
@@ -74,7 +75,7 @@ function useSidebar() {
   return context;
 }
 
-type IconNames = "House" | "Heart" | "Pill" | "TestTube" | "Settings" | "Folder";
+type IconNames = "House" | "Heart" | "Pill" | "TestTube" | "Settings" | "Folder" | "Bell";
 
 // This is sample data.
 const data: Data = {
@@ -133,6 +134,14 @@ const data: Data = {
       items: [],
       isActive: false,
       icon: "Settings" as IconNames,
+    },
+    {
+      title: "الإشعارات",
+      foreginTitle: "Notifications",
+      url: "/dashboard/notifications",
+      items: [],
+      isActive: false,
+      icon: "Bell" as IconNames,
     },
   ],
 };
@@ -205,23 +214,32 @@ const dataDoctor: Data = {
     {
       title: "الرئسية",
       foreginTitle: "Dashboard",
-      url: "/dashboard/doctors/dashboard",
+      url: "/doctor-dashboard",
       items: [],
       isActive: false,
       icon: "House" as IconNames,
     },
     {
+      title: "الملف الشخصي",
+      foreginTitle: "Profile",
+      url: "/doctor-dashboard/doctors",
+      items: [],
+      isActive: false,
+      icon: "Heart" as IconNames,
+    },
+    /*{
       title: "المواعيد",
       foreginTitle: "Appointments",
-      url: "/dashboard/doctors/appointments",
+      url: "/doctor-dashboard/appointments",
       items: [],
       isActive: false,
       icon: "Folder" as IconNames,
-    },
+    },*/
+
     {
       title: "الاستشارات",
       foreginTitle: "Consultations",
-      url: "/dashboard/doctors/consultations",
+      url: "/doctor-dashboard/consultations",
       items: [],
       isActive: false,
       icon: "Folder" as IconNames,

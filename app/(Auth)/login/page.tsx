@@ -57,6 +57,7 @@ const Page = () => {
       // Save the tokens if login is successful
       localStorage.setItem("refresh", data.refresh);
       localStorage.setItem("access", data.access);
+      localStorage.setItem("userId", data.user.id);
       localStorage.setItem("isLoggedIn", "true");
 
       if (redirectUrl) {

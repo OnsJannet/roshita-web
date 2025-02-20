@@ -221,7 +221,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       price: price,
       pay_full_amount: payement === "full" ? true : false,
       payment: {
-        payment_method: paymentMethod?.word,
+        //payment_method: paymentMethod?.word,
         mobile_number: "0913632323",
         birth_year: 1990,
       },

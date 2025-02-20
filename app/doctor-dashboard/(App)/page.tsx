@@ -1,6 +1,10 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
+import { DoctorAreaChart } from "@/components/charts/DoctorAreaChart";
+import { DoctorBarChat } from "@/components/charts/DoctorBarChat";
+import { DoctorPieChart } from "@/components/charts/DoctorPieChart";
 import Planner from "@/components/dashboard/Planner";
+import PlannerDoctor from "@/components/dashboard/PlannerDoctor";
 import Breadcrumb from "@/components/layout/app-breadcrumb"; // Assuming your Breadcrumb component is here
 import { AreaChartDash } from "@/components/shared/AreaChartDash";
 import {
@@ -72,21 +76,20 @@ export default function Page() {
 
         {/* Main Content Section */}
         <div className=" p-4 flex  flex-col justify-center">
-        <div className="mb-4">
-            <Planner language={language} />
-          </div>
-          <div className="mb-4">
-            <AreaChartDash />
-          </div>
-          <div className="flex lg:flex-row flex-col justify-between gap-2 w-full">
-            <div className="lg:w-[40%] w-full">
-              <BarChartDash />
+          <div className="flex lg:flex-row flex-col justify-between gap-2 w-full mb-2">
+            <div className="lg:w-[50%] h-full w-full">
+              <DoctorBarChat />
             </div>
-            <div className="lg:w-[40%] w-full">
-              <PieChartDash />
+            <div className="lg:w-[50%] w-full">
+              <DoctorPieChart />
             </div>
-            <div className="lg:w-[40%] w-full">
-              <AddDoctorCard />
+            <div className="lg:w-[50%] w-full">
+              <DoctorAreaChart />
+            </div>
+          </div>
+          <div className=" p-4 flex  flex-col justify-center">
+            <div className="mb-4">
+              <PlannerDoctor language={language} />
             </div>
           </div>
         </div>

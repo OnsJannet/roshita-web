@@ -290,7 +290,6 @@ export default function Page() {
                 <div className="flex gap-4 items-center">
                   {/* Date Picker */}
                   <DatePicker
-                  //@ts-ignore
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     placeholder="Select a date"
