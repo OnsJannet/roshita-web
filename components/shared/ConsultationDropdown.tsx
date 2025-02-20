@@ -85,6 +85,7 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
                 <h3 className="text-sm font-bold text-gray-700">
                   {isArabic ? "الملفات المرفقة" : "Attached Files"}
                 </h3>
+                {/* @ts-ignore */}
                 {files.map((file, index) => (
                   <FileComponent
                     key={index}

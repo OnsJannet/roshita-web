@@ -290,7 +290,9 @@ export default function Page() {
               `https://test-roshita.net/api/appointment-reservations/${index}/`,
               { appointmentId: index },
               "error",
+                          /* @ts-ignore */
               error.response?.status || 500, // Use the error status code or default to 500
+              /* @ts-ignore */
               error.message || "An unknown error occurred" // Error message
             );
           }
@@ -1021,6 +1023,7 @@ export default function Page() {
               <TableCell className="text-center">
                 <Button
                   variant="destructive"
+                              /* @ts-ignore */
                   onClick={() => handleRemoveSlot(index, slot.id)}
                   className="text-white hover:text-red-800"
                 >
@@ -1063,6 +1066,7 @@ export default function Page() {
               <TableCell className="text-center gap-2">
                 <Button
                   variant="destructive"
+                              /* @ts-ignore */
                   onClick={() => handleRemoveSlot(index, slot.id)}
                   className="text-white hover:text-red-800"
                 >

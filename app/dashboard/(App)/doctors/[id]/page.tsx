@@ -80,6 +80,11 @@ interface Specialities {
   specialities: Specialty[];
 }
 
+interface Hospital {
+  id: string | number; // Adjust based on the actual type of 'id'
+  name: string;
+}
+
 type Appointment = {
   scheduled_date: string;
   start_time: string;
@@ -129,6 +134,7 @@ const translations = {
     submit: "Submit",
     selectHospital: "Select Hospital",
     selectDoctor: "Select Doctor",
+    selectAppointment: "Select Appointment", // Add this line
   },
   ar: {
     title: "مواعيد توفر الطبيب",
@@ -168,6 +174,7 @@ const translations = {
     submit: "إرسال",
     selectHospital: "اختر المستشفى",
     selectDoctor: "اختر الطبيب",
+    selectAppointment: "اختر الموعد", // Add this line
   },
   it: {
     title: "Disponibilità degli appuntamenti del medico",
@@ -270,7 +277,7 @@ export default function Page() {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     number | null
   >(null);
-  const [hospitals, setHospitals] = useState([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(
     null
   );
@@ -1386,6 +1393,7 @@ export default function Page() {
                     onValueChange={(value) => setSelectedAppointment(value)}
                   >
                     <SelectTrigger>
+                      
                       <SelectValue placeholder={t.selectAppointment} />
                     </SelectTrigger>
                     <SelectContent>

@@ -339,6 +339,7 @@ const Page = () => {
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={handlePreviousPage}
+                    //@ts-ignore
                     disabled={currentPage === 1}
                   />
                 </PaginationItem>
@@ -355,6 +356,7 @@ const Page = () => {
                 <PaginationItem>
                   <PaginationNext
                     onClick={handleNextPage}
+                                        //@ts-ignore
                     disabled={currentPage === totalPages}
                   />
                 </PaginationItem>

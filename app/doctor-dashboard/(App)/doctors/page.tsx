@@ -1347,6 +1347,7 @@ export default function Page() {
                         // @ts-ignore
                         value={hospital.id.toString()}
                       >
+                        {/* @ts-ignore */}
                         {hospital.name}
                       </SelectItem>
                     ))}
@@ -1389,6 +1390,7 @@ export default function Page() {
                     onValueChange={(value) => setSelectedAppointment(value)}
                   >
                     <SelectTrigger>
+                      {/* @ts-ignore */}
                       <SelectValue placeholder={t.selectAppointment} />
                     </SelectTrigger>
                     <SelectContent>

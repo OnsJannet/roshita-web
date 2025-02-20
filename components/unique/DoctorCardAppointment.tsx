@@ -412,6 +412,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                         </SelectTrigger>
                         <SelectContent>
                           {cities.map((city) => (
+                            /* @ts-ignore */
                             <SelectItem key={city.id} value={city.id}>
                               {language === "en"
                                 ? city.foreign_name

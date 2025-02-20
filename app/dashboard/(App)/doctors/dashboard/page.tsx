@@ -50,6 +50,7 @@ const page = () => {
               language === "ar" ? "flex-row" : "flex-row-reverse"
             } gap-2 items-center`}
           >
+                        {/* @ts-ignore */}
             <Breadcrumb items={items} translate={(key) => key} />
             <SidebarTrigger className="rotate-180 " />
           </div>

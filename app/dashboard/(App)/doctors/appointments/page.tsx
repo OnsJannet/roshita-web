@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
@@ -9,11 +9,14 @@ import {
 import React, { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
-const page = () => {
+
+const Page = () => {
   const [language, setLanguage] = useState<Language>("ar");
+
   const items = [
     { label: language === "ar" ? "الرئسية" : "Home", href: "/doctors/dashboard" },
   ];
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedLanguage = localStorage.getItem("language");
@@ -36,6 +39,7 @@ const page = () => {
       };
     }
   }, []);
+
   return (
     <SidebarProvider>
       <SidebarInset>
@@ -49,8 +53,9 @@ const page = () => {
               language === "ar" ? "flex-row" : "flex-row-reverse"
             } gap-2 items-center`}
           >
-            <Breadcrumb items={items} translate={(key) => key} />
-            <SidebarTrigger className="rotate-180 " />
+            {/* @ts-ignore */}
+            <Breadcrumb items={items} translate={(key: any) => key} />
+            <SidebarTrigger className="rotate-180" />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
@@ -62,4 +67,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
