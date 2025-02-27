@@ -131,21 +131,22 @@ const DoctorDetailsPage = () => {
     try {
       setIsLoading(true); // Start loading
       const response = await fetch(
-        `https://test-roshita.net/api/user-doctors/${id}`,
+        `https://test-roshita.net/api/user-doctors/${id}/`,
         {
           method: "GET",
           headers: {
             accept: "application/json",
-            'X-CSRFToken': 'rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg', // Include CSRF token if needed
+            "X-CSRFToken":
+              "rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg", // Include CSRF token if needed
           },
-          redirect: 'follow', // Automatically follow redirects
+          redirect: "follow", // Automatically follow redirects
         }
       );
-  
+
       if (response.ok) {
         const result = await response.json();
         console.log("response result result", result.data.doctors[0]);
-  
+
         setDoctor(result.data.doctors[0]);
       } else {
         console.error("Failed to fetch doctors", await response.json());
@@ -156,7 +157,6 @@ const DoctorDetailsPage = () => {
       setIsLoading(false); // End loading
     }
   };
-  
 
   useEffect(() => {
     fetchDoctors();
@@ -220,7 +220,7 @@ const DoctorDetailsPage = () => {
             ? "جاري تحميل تفاصيل الطبيب"
             : "Loading doctor details..."}
         </p>*/}
-        <LoadingDoctors/>
+        <LoadingDoctors />
       </div>
     );
   }
@@ -240,7 +240,6 @@ const DoctorDetailsPage = () => {
       </div>
     );
   }
-  
 
   // Function to get day of the week in Arabic
   const getDayOfWeekInLanguage = (dateString: string) => {
@@ -292,7 +291,11 @@ const DoctorDetailsPage = () => {
   };
 
   // Function to handle appointment booking
-  const handleBooking = (dateString: string, timeString: string, endDate: string) => {
+  const handleBooking = (
+    dateString: string,
+    timeString: string,
+    endDate: string
+  ) => {
     const appointmentDay = dateString;
     const appointmentTime = timeString;
     const appointmentEndTime = endDate;
@@ -341,7 +344,7 @@ const DoctorDetailsPage = () => {
 
       {/* Appointments Carousel */}
       <div className="max-w-[1280px] flex lg:flex-row-reverse gap-10 flex-col">
-        <div className="bg-white border-2 border-gray-200 rounded-lg lg:w-1/2 w-[90%] mx-auto mt-10 mb-10 text-end p-8">
+        <div className="bg-white border-2 border-gray-200 rounded-lg lg:w-full w-[90%] mx-auto mt-10 mb-10 text-end p-8">
           <h2
             className={`text-xl font-semibold mb-4 text-roshitaBlue ${
               language === "en" ? "text-start" : ""
@@ -353,11 +356,11 @@ const DoctorDetailsPage = () => {
             <Carousel>
               <CarouselPrevious className="bg-gray-300" />
               <CarouselNext className="bg-gray-300" />
-              <CarouselContent>
+              <CarouselContent className="flex justify-center">
                 {doctor.appointment_dates.map((appointment, index) => (
                   <CarouselItem
                     key={index}
-                    className="p-4 rounded-md md:basis-1/2 lg:basis-1/3"
+                    className="p-4 rounded-md md:basis-1/2 lg:basis-1/5"
                   >
                     <div className="p-1">
                       <Card className="rounded">
@@ -381,12 +384,12 @@ const DoctorDetailsPage = () => {
                               formatDate(appointment.scheduled_date),
                               formatTime(
                                 appointment.scheduled_date,
-                                appointment.start_time,
+                                appointment.start_time
                               ),
                               formatTime(
                                 appointment.scheduled_date,
-                                appointment.end_time,
-                              )                              
+                                appointment.end_time
+                              )
                             )
                           }
                           className="p-4 bg-roshitaBlue rounded text-white text-center font-bold flex justify-center"
@@ -409,7 +412,7 @@ const DoctorDetailsPage = () => {
         </div>
 
         {/* Working Hours */}
-        <div className="bg-white border-2 border-gray-200 rounded-lg lg:w-1/2 w-[90%] mx-auto mt-10 mb-10 text-end p-8">
+        {/*<div className="bg-white border-2 border-gray-200 rounded-lg lg:w-1/2 w-[90%] mx-auto mt-10 mb-10 text-end p-8">
           <h2
             className={`text-xl font-semibold mb-4 text-roshitaBlue ${
               language === "en" ? "text-start" : ""
@@ -427,7 +430,7 @@ const DoctorDetailsPage = () => {
                 } border-b border-dotted border-gray-300 pb-2`}
               >
                 <div className="text-gray-700 font-semibold text-2xl">
-                  {translations[language][day]} {/* Accessing day key */}
+                  {translations[language][day]}
                 </div>
                 <div className="text-gray-700 flex gap-2 flex-row-reverse items-center">
                   <Clock className="h-4 w-4 text-roshitaBlue" />
@@ -436,7 +439,7 @@ const DoctorDetailsPage = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div>*/}
       </div>
     </div>
   );

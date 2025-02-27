@@ -79,7 +79,7 @@ const Appointment = () => {
     // Fetch doctors data from the API using the correct endpoint
     const fetchDoctor = async () => {
       try {
-        const response = await fetch(`https://test-roshita.net/api/user-doctors/${id}`, {
+        const response = await fetch(`https://test-roshita.net/api/user-doctors/${id}/`, {
           method: "GET",
           headers: {
             accept: "application/json",

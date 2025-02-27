@@ -24,7 +24,7 @@ const fetchProfileDetails = async (): Promise<any> => {
     }
 
     const response = await fetch(
-      "https://test-roshita.net/api/account/profile/detail",
+      "https://test-roshita.net/api/account/profile/detail/",
       {
         method: "GET",
         headers: {
@@ -123,8 +123,8 @@ const NavBar = () => {
   };
 
   const handleClickConsultations = () => {
-  router.push("/consultations");
-  }
+    router.push("/consultations");
+  };
 
   return (
     <header
@@ -146,9 +146,10 @@ const NavBar = () => {
           ) : (
             <div>
               <h2
+                onClick={() => (window.location.href = "/")}
                 className={`${
                   language === "ar" ? "text-right" : "text-left"
-                } font-bold lg:text-[16px] text-[12px]`}
+                } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
               >
                 {language === "ar" ? "روشــــــــيتــــــا" : "Roshita"}
               </h2>
@@ -170,7 +171,7 @@ const NavBar = () => {
             src="/logos/ShortLogo.png"
             alt="roshita logo"
             className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
-            onClick={handleClickHome}
+            onClick={() => (window.location.href = "/")}
           />
         </div>
 
@@ -288,77 +289,77 @@ const NavBar = () => {
           onClick={toggleMobileMenu} // Toggle mobile menu visibility
         />
 
-
-{/* Mobile Menu Content */}
-{showMobileMenu && (
-  <div className="lg:hidden fixed inset-0 bg-gray-800 bg-opacity-50 z-[99999]">
-    <div className="flex flex-col items-center justify-start bg-white h-full pt-4"> {/* Add pt-4 to give space at the top */}
-      <img
-        src="/logos/ShortLogo.png"
-        alt="roshita logo"
-        className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer mb-10"
-        onClick={handleClickHome}
-      />
-      <Button
-        onClick={handleClickHome}
-        variant="link"
-        className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-      >
-        {language === "ar" ? "الرئيسية" : "Home"}
-      </Button>
-      {!isLoggedIn ? (
-        <>
-          <Button
-            onClick={handleClickLogin}
-            variant="link"
-            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-          >
-            {language === "ar" ? "تسجيل الدخول" : "Login"}
-          </Button>
-          <Button
-            onClick={handleClickRegister}
-            variant="link"
-            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-          >
-            {language === "ar" ? "تسجيل" : "Register"}
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button
-            onClick={handleClickSettings}
-            variant="link"
-            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-          >
-            {language === "ar" ? "الإعدادات" : "Settings"}
-          </Button>
-          <Button
-            onClick={handleClickAppointments}
-            variant="link"
-            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-          >
-            {language === "ar" ? "مواعيدي" : "My Appointments"}
-          </Button>
-          <Button
-            onClick={() => {
-              localStorage.removeItem("access");
-              localStorage.removeItem("refresh");
-              localStorage.removeItem("isLoggedIn");
-              setIsLoggedIn(false);
-              window.location.href = "/login";
-            }}
-            variant="link"
-            className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-          >
-            {language === "ar" ? "تسجيل الخروج" : "Logout"}
-          </Button>
-        </>
-      )}
-      <LanguageSwitcher />
-    </div>
-  </div>
-)}
-
+        {/* Mobile Menu Content */}
+        {showMobileMenu && (
+          <div className="lg:hidden fixed inset-0 bg-gray-800 bg-opacity-50 z-[99999]">
+            <div className="flex flex-col items-center justify-start bg-white h-full pt-4">
+              {" "}
+              {/* Add pt-4 to give space at the top */}
+              <img
+                src="/logos/ShortLogo.png"
+                alt="roshita logo"
+                className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer mb-10"
+                onClick={handleClickHome}
+              />
+              <Button
+                onClick={handleClickHome}
+                variant="link"
+                className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+              >
+                {language === "ar" ? "الرئيسية" : "Home"}
+              </Button>
+              {!isLoggedIn ? (
+                <>
+                  <Button
+                    onClick={handleClickLogin}
+                    variant="link"
+                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+                  >
+                    {language === "ar" ? "تسجيل الدخول" : "Login"}
+                  </Button>
+                  <Button
+                    onClick={handleClickRegister}
+                    variant="link"
+                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+                  >
+                    {language === "ar" ? "تسجيل" : "Register"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleClickSettings}
+                    variant="link"
+                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+                  >
+                    {language === "ar" ? "الإعدادات" : "Settings"}
+                  </Button>
+                  <Button
+                    onClick={handleClickAppointments}
+                    variant="link"
+                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+                  >
+                    {language === "ar" ? "مواعيدي" : "My Appointments"}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      localStorage.removeItem("access");
+                      localStorage.removeItem("refresh");
+                      localStorage.removeItem("isLoggedIn");
+                      setIsLoggedIn(false);
+                      window.location.href = "/login";
+                    }}
+                    variant="link"
+                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+                  >
+                    {language === "ar" ? "تسجيل الخروج" : "Logout"}
+                  </Button>
+                </>
+              )}
+              <LanguageSwitcher />
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

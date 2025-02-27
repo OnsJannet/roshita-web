@@ -58,6 +58,8 @@ const Page = () => {
       localStorage.setItem("refresh", data.refresh);
       localStorage.setItem("access", data.access);
       localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("patientId", data.user.patient_id);
+
       localStorage.setItem("isLoggedIn", "true");
 
       if (redirectUrl) {

@@ -39,6 +39,7 @@ type DoctorCardAppointmentProps = {
   payement: string;
   formData: any;
   familymember: boolean;
+  familymemberType: string;
 };
 
 type Language = "ar" | "en";
@@ -84,6 +85,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   payement,
   formData,
   familymember,
+  familymemberType,
   id,
 }) => {
   const [profileData, setProfileData] = useState({
@@ -100,9 +102,11 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     user_type: 0,
     address: "",
   });
-
+  
+  console.log("formData", formData)
   console.log("medical_organizations", medical_organizations);
   console.log("paymentMethod", paymentMethod);
+  console.log("endTime", endTime);
 
   const [language, setLanguage] = useState<Language>("ar");
   const [confirmModal, setConfirmModal] = useState(false);
@@ -172,121 +176,93 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       ? medical_organizations[0].id
       : 0;
 
-  const handleCreateAppointment = async () => {
-    const token = localStorage.getItem("access"); // Get the access token from localStorage
-
-    if (!token) {
-      console.error("No access token found");
-      return;
-    }
-
-    console.log("day", day);
-    console.log("time", time);
-    console.log("endTime", endTime);
-
-    // Convert the day and time to ISO 8601 format
-    const [dayPart, monthPart, yearPart] = day.split("/"); // Split day into DD/MM/YYYY
-    const formattedDate = `${yearPart}-${monthPart}-${dayPart}`; // Rearrange to YYYY-MM-DD
-    const reservationDate = `${formattedDate}T${time}:00Z`; // Combine date and time into ISO format
-    const formattedStartTime = `${time}:00`;
-    const formattedEndTime = `${endTime}:00`;
-    // Prepare the payload for the API
-    const newAppointment = {
-      reservation: {
-        patient: {
-          first_name:
-            familymember === true
-              ? formData.first_name
-              : profileData.user.first_name,
-          last_name:
-            familymember === true
-              ? formData.last_name
-              : profileData.user.last_name,
-          relative: familymember === true ? formData.relative : "",
-          phone:
-            familymember === true ? formData.phone : profileData.user.phone,
-          email:
-            familymember === true ? formData.email : profileData.user.email,
-          city: familymember === true ? formData.city : profileData.city || 2,
-          address:
-            familymember === true ? formData.address : profileData.address,
-        },
-        reservation_date: formattedDate, // Use correctly formatted ISO 8601 date
-        start_time: formattedStartTime,
-        end_time: formattedEndTime,
-      },
-      medical_organizations: organizationId || 0,
-      //confirmation_code: "CONFIRM123", // Replace with actual confirmation code if needed
-      doctor: id, // Replace with the actual doctor ID
-      price: price,
-      pay_full_amount: payement === "full" ? true : false,
-      payment: {
-        //payment_method: paymentMethod?.word,
-        mobile_number: "0913632323",
-        birth_year: 1990,
-      },
-    };
-
-    try {
-      // Send a POST request to your backend
-      const response = await fetch("/api/appointements/createAppointement", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-        },
-        body: JSON.stringify(newAppointment),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error reserving appointment:", errorData);
-        alert("Failed to book the appointment.");
-        return;
-      }
-
-      const responseData = await response.json();
-      console.log("Reservation successful:", responseData);
-      console.log(
-        "testing url",
-        responseData.payment_confirmation.result.redirect_url
-      );
-      // Handle response based on the payment method
-      if (
-        paymentMethod?.word?.toLowerCase() === "sadad" ||
-        paymentMethod?.word?.toLowerCase() === "adfali"
-      ) {
-        // Assuming the 'payment_confirmation' has necessary details
-        if (responseData.payment_confirmation) {
-          console.log(
-            "Payment Confirmation:",
-            responseData.payment_confirmation
-          );
-
-          // You can process the payment confirmation here
-          setProcessID(responseData.payment_confirmation.result.process_id);
-          setAmount(responseData.payment_confirmation.result.amount);
-          setPayementId(responseData.reservation_invoice_detail_id);
-          setConfirmModal(true);
-          setUrl(responseData.payment_confirmation.result.redirect_url);
+      const handleCreateAppointment = async () => {
+        const token = localStorage.getItem("access");
+    
+        if (!token) {
+          console.error("No access token found");
+          return;
         }
-      } else if (paymentMethod?.word?.toLowerCase() === "local bank card") {
-        // Redirect for local bank card payment
-        console.log(
-          "url2",
-          responseData.payment_confirmation.result.redirect_url
-        );
-        window.location.href =
-          responseData.payment_confirmation.result.redirect_url;
-      } else {
-        // Default redirect
-        window.location.href = "/appointments";
-      }
-    } catch (error) {
-      console.error("Error booking the appointment:", error);
-      alert("An error occurred while booking the appointment.");
-    }
-  };
+    
+        const [dayPart, monthPart, yearPart] = day.split("/");
+        const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
+        const formattedStartTime = `${time}:00`;
+        const formattedEndTime = `${endTime}:00`;
+    
+        const newAppointment = {
+          reservation: {
+            patient: familymember
+              ? familymemberType === "newFamilyMember"
+                ? {
+                    first_name: formData.first_name,
+                    last_name: formData.last_name,
+                    relative: formData.relative,
+                    phone: formData.phone,
+                    email: formData.email,
+                    city: formData.city,
+                    address: formData.address,
+                  }
+                : { id: formData.id}
+                //@ts-ignore
+              : { id: profileData.user.id },
+            reservation_date: formattedDate,
+            start_time: formattedStartTime,
+            end_time: formattedEndTime,
+          },
+          medical_organizations: organizationId || 0,
+          doctor: id,
+          price: price,
+          pay_full_amount: payement === "full" ? true : false,
+          payment: {
+            payment_method: paymentMethod?.word,
+            mobile_number: "0913632323",
+            birth_year: 1990,
+          },
+        };
+    
+        try {
+          const response = await fetch("/api/appointements/createAppointement", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(newAppointment),
+          });
+    
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error reserving appointment:", errorData);
+            alert("Failed to book the appointment.");
+            return;
+          }
+    
+          const responseData = await response.json();
+          console.log("Reservation successful:", responseData);
+    
+          if (
+            paymentMethod?.word?.toLowerCase() === "sadad" ||
+            paymentMethod?.word?.toLowerCase() === "adfali"
+          ) {
+            if (responseData.payment_confirmation) {
+              setProcessID(responseData.payment_confirmation.result.process_id);
+              setAmount(responseData.payment_confirmation.result.amount);
+              setPayementId(responseData.reservation_invoice_detail_id);
+              setConfirmModal(true);
+              setUrl(responseData.payment_confirmation.result.redirect_url);
+            }
+          } else if (paymentMethod?.word?.toLowerCase() === "local bank card") {
+            window.location.href =
+              responseData.payment_confirmation.result.redirect_url;
+          } else {
+            window.location.href = "/appointments";
+          }
+        } catch (error) {
+          console.error("Error booking the appointment:", error);
+          alert("An error occurred while booking the appointment.");
+        }
+      };
+    
 
   const handleOtpSubmit = async () => {
     const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`;

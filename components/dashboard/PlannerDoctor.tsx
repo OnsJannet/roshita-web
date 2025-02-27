@@ -246,9 +246,10 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
       const accessToken = localStorage.getItem("access");
+      const doctorId = localStorage.getItem("userId");
       try {
         const response = await fetch(
-          `/api/doctors/getDoctorById?id=${appointmentDoctorId}`,
+          `/api/doctors/getDoctorById?id=${doctorId}`,
           {
             method: "GET",
             headers: {

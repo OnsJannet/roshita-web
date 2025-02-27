@@ -694,8 +694,7 @@ export default function Page() {
     {
       label: language === "ar" ? "الأطباء" : "Doctors",
       href: "/dashboard/doctors",
-    },
-    { label: `${id}`, href: "#" },
+    }
   ];
 
   // Fetch doctor details and specialty information

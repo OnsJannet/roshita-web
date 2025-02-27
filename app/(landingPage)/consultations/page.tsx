@@ -7,6 +7,14 @@ import { fetchProfileDetails } from "@/lib/api";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import ConsultationDropdown from "@/components/shared/ConsultationDropdown";
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination"; // Import your pagination components
 
 type Language = "ar" | "en";
 
@@ -21,6 +29,7 @@ const translations = {
     next: "Next",
     previous: "Previous",
     noAppointments: "No appointments to display",
+    noConsultations: "No consultations to display",
   },
   ar: {
     settings: "الإعدادات",
@@ -32,6 +41,7 @@ const translations = {
     next: "التالي",
     previous: "السابق",
     noAppointments: "لا توجد مواعيد لعرضها",
+    noConsultations: "لا توجد استشارات لعرضها",
   },
 };
 
@@ -41,36 +51,28 @@ interface EditProfileData {
     last_name: string;
     email: string;
   };
-  gender: string; // "male", "female", etc.
-  service_country: number; // assuming this is an ID for a country
-  birthday: string; // ISO date string
-  city: number; // assuming this is an ID for the city
-  user_type: number; // assuming this is an ID for user type
+  gender: string;
+  service_country: number;
+  birthday: string;
+  city: number;
+  user_type: number;
   address: string;
 }
 
-/**
- * The main user page where users can manage their appointments, change settings,
- * and log out from their account. The page adapts to the selected language (Arabic or English).
- *
- * Key Features:
- * - Language support: The page dynamically switches between Arabic and English based on user preference.
- * - Appointment filtering: Users can view either upcoming or past appointments using filtering options.
- * - Navigation: The page includes clickable options for settings, password change, appointments, and logging out.
- * - Data handling: Appointments are fetched from `localStorage` and displayed based on the selected filter.
- * - Appointment Cards: Each appointment is displayed using the `AppointementsCard` component, which shows details
- *   like doctor name, specialty, price, and appointment date/time.
- * - User profile section: Displays the user's avatar and provides navigation links to settings and password change pages.
- * - Local storage integration: The user's language preference and appointment data are saved in `localStorage`, and changes
- *   are automatically reflected in the UI.
- * - The page is structured using a responsive layout to ensure a smooth user experience across devices.
- */
+interface Consultation {
+  id: number;
+  diagnosis_description_request: string;
+  patient: number;
+  specialty: number;
+  patient_files: any[];
+  status: string;
+}
 
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
-  const [filterType, setFilterType] = useState<"previous" | "next">("next"); // New state for filtering
-  const router = useRouter(); // Initialize useRouter
+  const [filterType, setFilterType] = useState<"previous" | "next">("next");
+  const router = useRouter();
   const [language, setLanguage] = useState<Language>("ar");
   const [errorMessage, setErrorMessage] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -89,72 +91,38 @@ const Page = () => {
     user_type: 0,
     address: "",
   });
-
-  const hospitalName = "مستشفى الحياة";
-  const notificationMessage = "تم قبول ورد على طلبك من قبل د. زياد";
-  const date = "11/1/2024";
-  const consultationType = "استشارة خاصة";
-  const doctorMessage = `
-مرحباً أحمد،
-تمت مراجعة استشارتك، وتم تشخيص حالتك بأنها التهاب في الجيوب الأنفية المزمن. نوصي بالبدء في العلاج الذي يتضمن:
-- بخاخ أنفي مضاد للاحتقان.
-- مضاد حيوي (إن استدعى الأمر) لمدة 10 أيام.
-- جلسات بخار يومية لمدة أسبوع لتخفيف الأعراض.
-
-التكلفة: 150 دينار ليبي (تشمل الاستشارة والعلاج المقترح).
-الوقت المقدر للعلاج الأولي: أسبوع إلى 10 أيام حسب استجابتك للعلاج.
-
-إذا كنت بحاجة إلى موعد متابعة أو إجراء فحص إضافي، يمكنك التواصل معنا.
-`;
-  const patientMessage = `
-مرحباً دكتور،
-أرغب في استشارتك بخصوص بعض الأعراض التي أعاني منها منذ حوالي شهر.
-أشعر بارهاق دائم، حتى بعد الحصول على نوم كافٍ، وأعاني من صداع متكرر خاصة في منطقة الجبهة وحول العينين. كما أشعر بصعوبة في التنفس، خاصة في الليل، مع احتقان دائم في الأنف. وأحياناً ترتفع درجة حرارتي بشكل طفيف.
-
-أنا أعاني من حساسية موسمية منذ سنوات، وأستخدم بخاخاً أنفياً بشكل دوري، لكن هذه الأعراض مختلفة ومستمرة بشكل مزعج. هل يمكن أن تكون مرتبطة بالتهاب الجيوب الأنفية؟ وهل أحتاج إلى إجراء فحوصات أو تغيير العلاج؟
-
-شكراً جزيلاً لوقتك، وأنتظر نصيحتك.
-مع التحية،
-أحمد
-`;
-
-  const files = [
-    { name: "Diagnosis", url: "/Images/drahmed.png" },
-    { name: "Treatment", url: "/Images/drahmed.png" },
-    { name: "Therapy Images", url: "/Images/drahmed.png" },
-  ];
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [itemsPerPage, setItemsPerPage] = useState(5); // Items per page
+  const [totalPages, setTotalPages] = useState(0); // Total pages based on count
 
   useEffect(() => {
-    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      setLanguage(storedLanguage as Language);
     } else {
-      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      setLanguage("ar");
     }
 
-    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        setLanguage((event.newValue as Language) || "ar");
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
 
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   useEffect(() => {
-    // Fetch the appointments from localStorage
     const storedAppointments = localStorage.getItem("appointments");
     if (storedAppointments) {
       const parsedAppointments = JSON.parse(storedAppointments);
       setAppointments(parsedAppointments);
-      filterAppointments(parsedAppointments, "next"); // Set default to show next appointments
+      filterAppointments(parsedAppointments, "next");
     }
   }, []);
 
@@ -162,11 +130,6 @@ const Page = () => {
     const loadProfileData = async () => {
       try {
         const data = await fetchProfileDetails();
-
-        // Check the structure of the fetched data
-        console.log("Fetched profile data:", data);
-
-        // Update profileData with the fetched data
         setProfileData({
           user: {
             first_name: data.user?.first_name || "",
@@ -174,9 +137,9 @@ const Page = () => {
             email: data.user?.email || "",
           },
           gender: data.gender || "",
-          service_country: data.service_country || 2, // Ensure default values are not 0
+          service_country: data.service_country || 2,
           birthday: data.birthday || "",
-          city: data.city || 1, // Ensure default values are not 0
+          city: data.city || 1,
           user_type: data.user_type || 0,
           address: data.address || "",
         });
@@ -187,6 +150,40 @@ const Page = () => {
 
     loadProfileData();
   }, []);
+
+  useEffect(() => {
+    const fetchConsultations = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("access");
+        const response = await fetch(
+          `https://test-roshita.net/api/consultation-requests/?page=${currentPage}&page_size=${itemsPerPage}`,
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch consultations");
+        }
+
+        const data = await response.json();
+        setConsultations(data.results);
+        setTotalPages(Math.ceil(data.count / itemsPerPage)); // Calculate total pages
+      } catch (error) {
+        console.error("Error fetching consultations:", error);
+        setError("Failed to fetch consultations. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConsultations();
+  }, [currentPage, itemsPerPage]); // Fetch consultations when page changes
 
   const filterAppointments = (
     appointments: any[],
@@ -235,12 +232,12 @@ const Page = () => {
   const handleError = (errorMessage: string) => {
     console.error("Error from child:", errorMessage);
     setErrorMessage(errorMessage);
-    // Handle the error (e.g., show a notification or update the state)
   };
 
-  console.log("filteredAppointments", filteredAppointments);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-  // Render loading or error states after all hooks are called
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -253,7 +250,11 @@ const Page = () => {
     return <div>Error: {error}</div>;
   }
 
-  return (
+  return loading ? (
+    <div className="bg-white flex items-center justify-center min-h-screen">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
         <div
@@ -341,16 +342,66 @@ const Page = () => {
                   : "إنشاء استشارة جديدة"}
               </Button>
             </div>
-            <ConsultationDropdown
-              hospitalName={hospitalName}
-              notificationMessage={notificationMessage}
-              date={date}
-              consultationType={consultationType}
-              doctorMessage={doctorMessage}
-              patientMessage={patientMessage}
-              language={language}
-              files={files}
-            />
+            {consultations.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {consultations.map((consultation) => (
+                  <ConsultationDropdown
+                    key={consultation.id}
+                    hospitalName=""
+                    notificationMessage=""
+                    date=""
+                    consultationType="استشارة خاصة"
+                    doctorMessage=""
+                    patientMessage={consultation.diagnosis_description_request}
+                    language={language}
+                    files={consultation.patient_files}
+                    consultationStatus={consultation.status}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">
+                {translations[language].noConsultations}
+              </p>
+            )}
+            {/* Pagination Controls */}
+            <Pagination className="mt-6">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => {
+                      if (currentPage > 1) handlePageChange(currentPage - 1);
+                    }}
+                    className={
+                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                    }
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <PaginationItem key={index + 1}>
+                    <PaginationLink
+                      isActive={currentPage === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => {
+                      if (currentPage < totalPages)
+                        handlePageChange(currentPage + 1);
+                    }}
+                    className={
+                      currentPage === totalPages
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         </div>
       </div>

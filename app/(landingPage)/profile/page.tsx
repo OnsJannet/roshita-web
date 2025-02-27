@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 
 type Language = "ar" | "en";
 
@@ -152,6 +153,7 @@ const Profile = () => {
   const [image, setImage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const cities = [
     { id: 1, country: 2, name: "تونس العاصمة", foreign_name: "Tunis" },
@@ -210,6 +212,7 @@ const Profile = () => {
 
   useEffect(() => {
     const loadProfileData = async () => {
+      setLoading(true); // Start loading
       try {
         const data = await fetchProfileDetails();
 
@@ -217,7 +220,6 @@ const Profile = () => {
         console.log("Fetched profile data:", data);
 
         // Update profileData with the fetched data
-
         setProfileData({
           user: {
             first_name: data.user?.first_name || "",
@@ -238,6 +240,8 @@ const Profile = () => {
         }
       } catch (error) {
         console.error("Error loading profile data", error);
+      } finally {
+        setLoading(false); // Stop loading
       }
     };
 
@@ -293,7 +297,11 @@ const Profile = () => {
     router.push("/consultations");
   };
 
-  return (
+  return loading ? (
+    <div className="bg-white flex items-center justify-center min-h-screen">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
         <div

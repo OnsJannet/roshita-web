@@ -51,6 +51,11 @@ interface EditProfileData {
   address: string;
 }
 
+interface Specialty {
+  id: string;
+  name: string;
+}
+
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
@@ -65,6 +70,8 @@ const Page = () => {
   const [type, setType] = useState("with");
   const [responseMessage, setResponseMessage] = useState<string>("");
   const [responses, setResponses] = useState<string[]>([]);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
       first_name: "",
@@ -80,24 +87,22 @@ const Page = () => {
   });
 
   const [uploadedXRaysFiles, setUploadedXRaysFiles] = useState<File[]>([]);
-  const [uploadedMedicalReportFiles, setUploadedMedicalReportFiles] = useState<
-    File[]
-  >([]);
+  const [uploadedMedicalReportFiles, setUploadedMedicalReportFiles] = useState<File[]>([]);
 
   const handleFilesChangeXRays = (files: File[]) => {
-    console.log("X-ray files:", files); // Check if files are X-rays
+    console.log("X-ray files:", files);
     setUploadedXRaysFiles(files);
   };
 
   const handleFilesChangeMedicalReport = (files: File[]) => {
-    console.log("Medical report files:", files); // Check if files are medical reports
+    console.log("Medical report files:", files);
     setUploadedMedicalReportFiles(files);
   };
 
   const handleSendResponse = async () => {
     const token = localStorage.getItem("access");
-    const patient_id = localStorage.getItem("userId") || "";
-    
+    const patient_id = localStorage.getItem("patient_id") || "";
+  
     if (responseMessage.trim() === "") {
       setErrorMessage("Please enter a response message.");
       return;
@@ -108,34 +113,27 @@ const Page = () => {
   
     try {
       const formData = new FormData();
-      formData.append("patient_id", patient_id); // Now this will be a string, not null
+      formData.append("patient_id", patient_id || "9"); // Use the patient_id from localStorage or a default value
       formData.append("diagnosis_description_request", responseMessage);
-      formData.append("specialty_id", "5"); // Replace with dynamic specialty ID if needed
-  
-      // Append X-Ray files
-      uploadedXRaysFiles.forEach((file, index) => {
-        formData.append(`uploaded_files[${index}]`, file);
-        formData.append(
-          `file_metadata[${index}]`,
-          JSON.stringify({
-            content_file_type: "X-Ray",
-            description: `X-Ray file ${index + 1}`,
-          })
-        );
-      });
+      formData.append("specialty_id", selectedSpecialty); // Use the selected specialty
+      formData.append("type", type);
   
       // Append Medical Report files
       uploadedMedicalReportFiles.forEach((file, index) => {
-        const fileIndex = uploadedXRaysFiles.length + index; // Ensure unique index
-        formData.append(`uploaded_files[${fileIndex}]`, file);
-        formData.append(
-          `file_metadata[${fileIndex}]`,
-          JSON.stringify({
-            content_file_type: "Medical Report",
-            description: `Medical Report file ${index + 1}`,
-          })
-        );
+        formData.append("medicalReports", file); // Use the same field name as the mobile app
       });
+  
+      // Append X-Ray files
+      uploadedXRaysFiles.forEach((file, index) => {
+        formData.append("xRays", file); // Use the same field name as the mobile app
+      });
+  
+
+      //@ts-ignore
+      // Log FormData entries for debugging
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ":", pair[1]);
+      }
   
       const response = await fetch(
         "https://test-roshita.net/api/consultation-requests/",
@@ -163,14 +161,11 @@ const Page = () => {
       setStep(1); // Reset to the first step after successful submission
     } catch (error) {
       console.error("Error creating consultation request:", error);
-      setErrorMessage(
-        "Failed to create consultation request. Please try again."
-      );
+      setErrorMessage("Failed to create consultation request. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   const handleLogout = () => {
     localStorage.removeItem("access");
@@ -194,6 +189,26 @@ const Page = () => {
   const handleConsultationsClick = () => {
     router.push("/consultations");
   };
+
+  useEffect(() => {
+    const fetchSpecialties = async () => {
+      try {
+        const specialtiesResponse = await fetch(
+          "https://test-roshita.net/api/specialty-list/"
+        );
+        const specialtiesData: Specialty[] = await specialtiesResponse.json();
+        if (specialtiesResponse.ok) {
+          setSpecialties(specialtiesData);
+        } else {
+          console.error("Error fetching specialties");
+        }
+      } catch (error) {
+        console.error("Error fetching specialties:", error);
+      }
+    };
+
+    fetchSpecialties();
+  }, []);
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
@@ -416,29 +431,47 @@ const Page = () => {
                       </p>
 
                       <div className="p-4">
+                        {/* Specialty Dropdown */}
+                        <div className="mt-6 mb-6">
+                          <Label>
+                            {language === "ar" ? "اختر التخصص" : "Select Specialty"}
+                          </Label>
+                          <div className="mt-4">
+                            <select
+                              value={selectedSpecialty}
+                              onChange={(e) => setSelectedSpecialty(e.target.value)}
+                              className="w-full p-2 border border-gray-300 rounded-md"
+                              style={{ direction: language === "ar" ? "rtl" : "ltr" }}
+                            >
+                              <option value="">
+                                {language === "ar" ? "اختر التخصص" : "Select Specialty"}
+                              </option>
+                              {specialties.map((specialty) => (
+                                <option key={specialty.id} value={specialty.id}>
+                                  {specialty.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
                         <textarea
                           value={responseMessage}
                           onChange={(e) => setResponseMessage(e.target.value)}
                           placeholder={
-                            language === "ar"
-                              ? "اكتب رسالتك..."
-                              : "Write your message..."
+                            language === "ar" ? "اكتب رسالتك..." : "Write your message..."
                           }
                           className="w-full p-2 border border-gray-300 rounded-md h-80"
-                          style={{
-                            direction: language === "ar" ? "rtl" : "ltr",
-                          }}
+                          style={{ direction: language === "ar" ? "rtl" : "ltr" }}
                         />
 
                         <div className="mt-6 mb-6">
                           <Label className="mt-4 mb-4">
-                            {language === "ar"
-                              ? "تحميل صور الأشعة"
-                              : "Upload X-ray Images"}
+                            {language === "ar" ? "تحميل صور الأشعة" : "Upload X-ray Images"}
                           </Label>
                           <div className="mt-4">
                             <FileUploader
-                            idPrefix="uploader1"
+                              idPrefix="uploader1"
                               onFilesChange={handleFilesChangeXRays}
                               language={language}
                             />
@@ -447,13 +480,11 @@ const Page = () => {
 
                         <div className="mt-6 mb-6">
                           <Label>
-                            {language === "ar"
-                              ? "تحميل التقرير الطبي"
-                              : "Upload Medical Report"}
+                            {language === "ar" ? "تحميل التقرير الطبي" : "Upload Medical Report"}
                           </Label>
                           <div className="mt-4">
                             <FileUploader
-                            idPrefix="uploader2"
+                              idPrefix="uploader2"
                               onFilesChange={handleFilesChangeMedicalReport}
                               language={language}
                             />
@@ -461,9 +492,7 @@ const Page = () => {
                         </div>
 
                         {errorMessage && (
-                          <p className="text-red-500 text-sm mt-2">
-                            {errorMessage}
-                          </p>
+                          <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
                         )}
                         <div className="flex justify-center w-full gap-2">
                           <button
@@ -499,24 +528,42 @@ const Page = () => {
                       </p>
 
                       <div className="p-4">
+                        {/* Specialty Dropdown */}
+                        <div className="mt-6 mb-6">
+                          <Label>
+                            {language === "ar" ? "اختر التخصص" : "Select Specialty"}
+                          </Label>
+                          <div className="mt-4">
+                            <select
+                              value={selectedSpecialty}
+                              onChange={(e) => setSelectedSpecialty(e.target.value)}
+                              className="w-full p-2 border border-gray-300 rounded-md"
+                              style={{ direction: language === "ar" ? "rtl" : "ltr" }}
+                            >
+                              <option value="">
+                                {language === "ar" ? "اختر التخصص" : "Select Specialty"}
+                              </option>
+                              {specialties.map((specialty) => (
+                                <option key={specialty.id} value={specialty.id}>
+                                  {specialty.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
                         <textarea
                           value={responseMessage}
                           onChange={(e) => setResponseMessage(e.target.value)}
                           placeholder={
-                            language === "ar"
-                              ? " اكتب رسالتك..."
-                              : "Write your message..."
+                            language === "ar" ? " اكتب رسالتك..." : "Write your message..."
                           }
                           className="w-full p-2 border border-gray-300 rounded-md h-80"
-                          style={{
-                            direction: language === "ar" ? "rtl" : "ltr",
-                          }}
+                          style={{ direction: language === "ar" ? "rtl" : "ltr" }}
                         />
 
                         {errorMessage && (
-                          <p className="text-red-500 text-sm mt-2">
-                            {errorMessage}
-                          </p>
+                          <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
                         )}
                         <div className="flex justify-center w-full gap-2">
                           <button

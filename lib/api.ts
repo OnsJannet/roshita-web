@@ -320,7 +320,7 @@ export const fetchProfileDetails = async (): Promise<any> => {
     }
 
     // Make the API request with Bearer token in the Authorization header
-    const response = await fetch("https://test-roshita.net/api/account/profile/detail", {
+    const response = await fetch("https://test-roshita.net/api/account/profile/detail/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

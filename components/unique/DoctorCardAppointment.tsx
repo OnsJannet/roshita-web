@@ -63,6 +63,15 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   const [selectedPaiementOption, setSelectedPaiementOption] = useState("");
   const [selectedFamilyOption, setSelectedFamilyOption] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [familyPatientId, setFamilyPatientId] = useState(false);
+  const [existingFamilyMember, setExistingFamilyMember] = useState(false);
+  const [newFamilyMember, setNewFamilyMember] = useState(false);
+  const [patientID, setPatientID] = useState("");
+  const [isExistingFamilyViewOpen, setIsExistingFamilyViewOpen] =
+    useState(false);
+  const [isNewFamilyMemberModalOpen, setIsNewFamilyMemberModalOpen] =
+    useState(false);
   const [cities, setCities] = useState<City[]>([]);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -73,38 +82,68 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
     city: "",
     address: "",
   });
+  const [patients, setPatients] = useState([]); // State to store patients from profile
 
-  const fetchCities = async () => {
+  // Fetch the user's profile using the access token from localStorage
+  const fetchProfile = async () => {
     try {
-      const response = await fetch("https://test-roshita.net/api/cities-list/");
-      const citiesData: City[] = await response.json();
-      if (response.ok) {
-        setCities(citiesData);
-      } else {
-        console.error("Error fetching cities");
+      const accessToken = localStorage.getItem("access");
+      const response = await fetch(
+        "https://test-roshita.net/api/account/profile/detail/",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.error("Error fetching profile:", errorResponse);
+        return errorResponse;
       }
+
+      const profileData = await response.json();
+      setPatientID(profileData.user.patient_id);
+      //setPatients(profileData.patients);
+      return profileData;
     } catch (error) {
-      console.error("Error fetching cities:", error);
+      console.error("Network or other error occurred:", error);
+      //@ts-ignore
+      return { error: error.message };
     }
   };
 
   useEffect(() => {
-    fetchCities();
+    fetchProfile().then((profileData) => {
+      if (profileData && !profileData.error) {
+        console.log("Profile Data:", profileData);
+
+        // Remove duplicates from the patients array
+        const uniquePatients = profileData.patients.filter(
+          //@ts-ignore
+          (patient, index, self) =>
+            //@ts-ignore
+            index === self.findIndex((p) => p.id === patient.id)
+        );
+
+        // Set the unique patients in the state
+        setPatients(uniquePatients || []);
+      } else {
+        console.error("Error fetching profile:", profileData.error);
+      }
+    });
   }, []);
 
-  const handleSubmit = () => {
-    console.log("Form Data:", formData);
-    setIsModalOpen(false);
-    // Add your form submission logic here
-  };
+  console.log("patients", patients);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleCheckboxChange = (id: any) => {
-    setSelectedPaiementOption(selectedPaiementOption === id ? "" : id); // Toggle selection
+  const handleSubmit = () => {
+    console.log("Form Data:", formData);
+    setIsNewFamilyMemberModalOpen(false);
   };
 
   const handleCheckboxFamilyChange = () => {
@@ -135,96 +174,6 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
-
-  const callTransactionAPI = async (
-    service: string,
-    action: string,
-    payload: any
-  ) => {
-    try {
-      const response = await fetch(`/api/transaction?service=${service}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, payload }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "API request failed");
-      return data;
-    } catch (error: any) {
-      console.error("API error:", error.message);
-      alert(error.message);
-      return null;
-    }
-  };
-
-  const handleVerifyTransaction = async () => {
-    if (!selectedId) {
-      alert(
-        language === "en"
-          ? "Please select a payment method"
-          : "يرجى اختيار طريقة الدفع"
-      );
-      return;
-    }
-
-    const selectedPaymentMethod = paiement.find(
-      (option) => option.id === selectedId
-    );
-    if (selectedPaymentMethod) {
-      const verifyPayload = {
-        payment_method: selectedPaymentMethod.name,
-        mobile_number: "0913632323", // Replace with dynamic user input
-        ...(selectedPaymentMethod.name === "sadad" && { birth_year: "1998" }), // Example for Sadad
-      };
-
-      const verifyResponse = await callTransactionAPI(
-        selectedPaymentMethod.name,
-        "verify",
-        verifyPayload
-      );
-      if (verifyResponse?.status === 200) {
-        setProcessId(verifyResponse.result.process_id);
-        alert(
-          language === "en"
-            ? "Verification successful! Enter OTP to confirm."
-            : "تم التحقق بنجاح! أدخل رمز التحقق للتأكيد."
-        );
-      }
-    }
-  };
-
-  const handleConfirmTransaction = async () => {
-    if (!processId || !otpCode) {
-      alert(
-        language === "en"
-          ? "Please complete verification and enter the OTP."
-          : "يرجى إكمال التحقق وإدخال رمز التحقق."
-      );
-      return;
-    }
-
-    const selectedPaymentMethod = paiement.find(
-      (option) => option.id === selectedId
-    );
-    if (selectedPaymentMethod) {
-      const confirmPayload = {
-        process_id: processId,
-        code: otpCode,
-        amount: price, // Ensure this is numeric
-      };
-
-      const confirmResponse = await callTransactionAPI(
-        selectedPaymentMethod.name,
-        "confirm",
-        confirmPayload
-      );
-      if (confirmResponse?.status === 200) {
-        alert(language === "en" ? "Payment successful!" : "تم الدفع بنجاح!");
-        setStep(3); // Proceed to next step
-      }
-    }
-  };
 
   return (
     <div className="shadow-lg py-10 mt-2 max-w-[1280px] rounded-2xl">
@@ -285,43 +234,6 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                 {time} {day}
               </p>
 
-              <div className="flex gap-2">
-                {/* Full Payment Option */}
-                <div className="flex items-center space-x-2 mt-4 mb-2">
-                  <input
-                    type="checkbox"
-                    id="full"
-                    checked={selectedPaiementOption === "full"}
-                    onChange={() => handleCheckboxChange("full")}
-                    className="w-4 h-4" // Add appropriate styling
-                  />
-                  <label
-                    htmlFor="full"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {language === "en" ? "Pay full amount" : "دفع المبلغ كاملا"}
-                  </label>
-                </div>
-
-                {/* Roshita Option */}
-                <div className="flex items-center space-x-2 mt-4 mb-2">
-                  <input
-                    type="checkbox"
-                    id="roshita"
-                    checked={selectedPaiementOption === "roshita"}
-                    onChange={() => handleCheckboxChange("roshita")}
-                    className="w-4 h-4" // Add appropriate styling
-                  />
-                  <label
-                    htmlFor="roshita"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {language === "en"
-                      ? "Pay Doctor's Fee in Cash and Settle Roshita's Fee"
-                      : "دفع أتعاب الطبيب نقدًا وتسديد رسوم روشيتا"}
-                  </label>
-                </div>
-              </div>
               <div>
                 <div className="flex items-center space-x-2 mt-4 mb-2">
                   <input
@@ -342,95 +254,176 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                 </div>
               </div>
 
+              {/* First Modal: Choose between Existing or New Family Member */}
               {isModalOpen && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      {language === "en"
-                        ? "Add Family Member"
-                        : "إضافة أحد أفراد العائلة"}
-                    </Button>
-                  </DialogTrigger>
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-center">
                         {language === "en"
                           ? "Family Member Details"
                           : "تفاصيل أحد أفراد العائلة"}
                       </DialogTitle>
                     </DialogHeader>
+                    <div className=" flex justify-center gap-4">
+                      <Button
+                        onClick={() => {
+                          setIsModalOpen(false);
+                          setIsSelectionModalOpen(true);
+                          setExistingFamilyMember(true);
+                        }}
+                      >
+                        {language === "en"
+                          ? "Existing Family Member"
+                          : "فرد عائلة موجود"}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsModalOpen(false);
+                          setIsNewFamilyMemberModalOpen(true);
+                          setNewFamilyMember(true);
+                        }}
+                      >
+                        {language === "en"
+                          ? "New Family Member"
+                          : "فرد عائلة جديد"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {/* Second Modal: Existing Family Member Selection */}
+              {isSelectionModalOpen && (
+                <Dialog
+                  open={isSelectionModalOpen}
+                  onOpenChange={setIsSelectionModalOpen}
+                >
+                  <DialogContent className="h-[90%] flex flex-col">
+                    <DialogHeader>
+                      <DialogTitle className="text-center">
+                        {language === "en"
+                          ? "Select a Family Member"
+                          : "اختر فرد العائلة"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 overflow-y-auto max-h-[80vh] p-2">
+                      {patients.map((patient) => (
+                        <div
+                          /*@ts-ignore*/
+                          key={patient.id}
+                          className="p-2 border rounded cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            console.log("Selected Patient:", patient);
+                            //@ts-ignore
+                            setFamilyPatientId(patient.id);
+                            setIsSelectionModalOpen(false);
+                          }}
+                        >
+                          <p>
+                            {/*@ts-ignore*/}
+                            {patient.first_name} {patient.last_name} -{" "}
+                            {/*@ts-ignore*/}
+                            {patient.relative}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {/* Third Modal: New Family Member Form */}
+              {isNewFamilyMemberModalOpen && (
+                <Dialog
+                  open={isNewFamilyMemberModalOpen}
+                  onOpenChange={setIsNewFamilyMemberModalOpen}
+                >
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="text-center">
+                        {language === "en"
+                          ? "New Family Member"
+                          : "فرد عائلة جديد"}
+                      </DialogTitle>
+                    </DialogHeader>
                     <div className="space-y-4">
                       <Input
-                        placeholder={
-                          language === "en" ? "First Name" : "الاسم الأول"
-                        }
+                        placeholder={language === "en" ? "First Name" : "الاسم"}
                         name="first_name"
                         value={formData.first_name}
                         onChange={handleInputChange}
                       />
                       <Input
-                        placeholder={
-                          language === "en" ? "Last Name" : "اسم العائلة"
-                        }
+                        placeholder={language === "en" ? "Last Name" : "اللقب"}
                         name="last_name"
                         value={formData.last_name}
                         onChange={handleInputChange}
                       />
-                      <Input
-                        placeholder={
-                          language === "en" ? "Relative" : "صلة القرابة"
-                        }
-                        name="relative"
-                        value={formData.relative}
-                        onChange={handleInputChange}
-                      />
-                      <Input
-                        placeholder={language === "en" ? "Phone" : "رقم الهاتف"}
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                      />
-                      <Input
-                        placeholder={
-                          language === "en" ? "Email" : "البريد الإلكتروني"
-                        }
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                      />
+                      {/* Dropdown for Relative */}
                       <Select
                         onValueChange={(value) =>
-                          setFormData({ ...formData, city: value })
+                          setFormData({ ...formData, relative: value })
                         }
+                        value={formData.relative}
                       >
                         <SelectTrigger>
                           <SelectValue
                             placeholder={
-                              language === "en" ? "Select City" : "اختر مدينة"
+                              language === "en"
+                                ? "Select Relative"
+                                : "اختر صلة القرابة"
                             }
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {cities.map((city) => (
-                            /* @ts-ignore */
-                            <SelectItem key={city.id} value={city.id}>
-                              {language === "en"
-                                ? city.foreign_name
-                                : city.name}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="Father">
+                            {language === "en" ? "Father" : "أب"}
+                          </SelectItem>
+                          <SelectItem value="Mother">
+                            {language === "en" ? "Mother" : "أم"}
+                          </SelectItem>
+                          <SelectItem value="Daughter">
+                            {language === "en" ? "Daughter" : "ابنة"}
+                          </SelectItem>
+                          <SelectItem value="Son">
+                            {language === "en" ? "Son" : "ابن"}
+                          </SelectItem>
+                          <SelectItem value="Grandfather">
+                            {language === "en" ? "Grandfather" : "جد"}
+                          </SelectItem>
+                          <SelectItem value="Grandmother">
+                            {language === "en" ? "Grandmother" : "جدة"}
+                          </SelectItem>
+                          <SelectItem value="Brother">
+                            {language === "en" ? "Brother" : "أخ"}
+                          </SelectItem>
+                          <SelectItem value="Sister">
+                            {language === "en" ? "Sister" : "أخت"}
+                          </SelectItem>
+                          <SelectItem value="Uncle">
+                            {language === "en" ? "Uncle" : "عم / خال"}
+                          </SelectItem>
+                          <SelectItem value="Aunt">
+                            {language === "en" ? "Aunt" : "عمة / خالة"}
+                          </SelectItem>
+                          <SelectItem value="Cousin">
+                            {language === "en" ? "Cousin" : "ابن عم / ابن خال"}
+                          </SelectItem>
+                          <SelectItem value="Husband">
+                            {language === "en" ? "Husband" : "زوج"}
+                          </SelectItem>
+                          <SelectItem value="Wife">
+                            {language === "en" ? "Wife" : "زوجة"}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
-
-                      <Input
-                        placeholder={language === "en" ? "Address" : "العنوان"}
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                      />
                     </div>
                     <div className="mt-4 flex justify-end gap-2">
-                      <Button variant="outline">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsNewFamilyMemberModalOpen(false)}
+                      >
                         {language === "en" ? "Cancel" : "إلغاء"}
                       </Button>
                       <Button onClick={handleSubmit}>
@@ -542,16 +535,23 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               endTime={endTime}
               medical_organizations={medical_organizations}
               payement={selectedPaiementOption}
-              formData={{
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                phone: formData.phone,
-                email: formData.email,
-                address: formData.address,
-                city: formData.city,
-                relative: formData.relative,
-              }}
+              formData={
+                selectedFamilyOption
+                  ? newFamilyMember
+                    ? {
+                        first_name: formData.first_name,
+                        last_name: formData.last_name,
+                        phone: formData.phone,
+                        email: formData.email,
+                        address: formData.address,
+                        city: formData.city,
+                        relative: formData.relative,
+                      }
+                    : { id: familyPatientId, relative: "isForFamilyMember" }
+                  : { id: patientID || "", relative: "Myself" }
+              }
               familymember={selectedFamilyOption}
+              familymemberType={newFamilyMember ? "newFamilyMember" : "existingFamilyMember"}
               paymentMethod={
                 selectedId
                   ? paiement.find((option) => option.id === selectedId)

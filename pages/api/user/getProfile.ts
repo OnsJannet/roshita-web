@@ -48,7 +48,7 @@ export default async function getProfileDetails(
     console.log("authToken", authToken);
 
     // Send the GET request to the API with the CSRF token
-    const response = await fetch("https://test-roshita.net/api/account/profile/detail/", {
+    const response = await fetch("https://test-roshita.net/api/account/profile/detail//", {
       method: "GET",
       headers: {
         accept: "application/json",

@@ -1,4 +1,5 @@
 "use client"
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -52,7 +53,7 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
     if (loading) {
       return (
         <div className="flex justify-center items-center h-screen text-lg font-semibold">
-          {language === "ar" ? "جاري التحميل..." : "Loading..."}
+          <LoadingDoctors />
         </div>
       ); // You can customize this as needed
     }
