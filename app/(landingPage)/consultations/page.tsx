@@ -156,8 +156,9 @@ const Page = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("access");
+        const patientId = localStorage.getItem("patientId");
         const response = await fetch(
-          `https://test-roshita.net/api/consultation-requests/?page=${currentPage}&page_size=${itemsPerPage}`,
+          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/`,
           {
             method: "GET",
             headers: {
@@ -172,8 +173,8 @@ const Page = () => {
         }
 
         const data = await response.json();
-        setConsultations(data.results);
-        setTotalPages(Math.ceil(data.count / itemsPerPage)); // Calculate total pages
+        setConsultations(data); // Store all consultations
+        setTotalPages(Math.ceil(data.length / itemsPerPage)); // Calculate total pages
       } catch (error) {
         console.error("Error fetching consultations:", error);
         setError("Failed to fetch consultations. Please try again.");
@@ -183,7 +184,12 @@ const Page = () => {
     };
 
     fetchConsultations();
-  }, [currentPage, itemsPerPage]); // Fetch consultations when page changes
+  }, []); // Fetch consultations only once
+
+  // Slice consultations to display only the current page's items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentConsultations = consultations.slice(indexOfFirstItem, indexOfLastItem);
 
   const filterAppointments = (
     appointments: any[],
@@ -342,11 +348,12 @@ const Page = () => {
                   : "إنشاء استشارة جديدة"}
               </Button>
             </div>
-            {consultations.length > 0 ? (
+            {currentConsultations.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {consultations.map((consultation) => (
+                {currentConsultations.map((consultation) => (
                   <ConsultationDropdown
                     key={consultation.id}
+                    requestId={consultation.id}
                     hospitalName=""
                     notificationMessage=""
                     date=""

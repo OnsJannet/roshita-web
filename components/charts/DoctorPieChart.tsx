@@ -79,8 +79,10 @@ export function DoctorPieChart() {
   }, []);
 
   return (
-    <Card className="flex flex-col pb-[30px]">
-      <CardHeader className="pb-0 flex flex-col justify-start">
+    <Card className="flex flex-col pb-[32px]">
+<CardHeader className="pb-0 flex flex-col justify-start mb-[4px] lg:mb-[4px] 2xl:mb-[106px]">
+
+
       <CardTitle className={language === "ar" ? "text-end" : ""}>
           {language === "ar" ? "رسم بياني دائري" : "Pie Chart"}
         </CardTitle>

@@ -80,10 +80,10 @@ export default function Page() {
             <div className="lg:w-[50%] h-full w-full">
               <DoctorBarChat />
             </div>
-            <div className="lg:w-[50%] w-full">
+            <div className="lg:w-[50%] h-full w-full">
               <DoctorPieChart />
             </div>
-            <div className="lg:w-[50%] w-full">
+            <div className="lg:w-[50%] h-full w-full">
               <DoctorAreaChart />
             </div>
           </div>

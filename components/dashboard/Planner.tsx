@@ -1,6 +1,7 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import { startOfWeek, format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { ClipLoader } from 'react-spinners';
 import {
   Table,
   TableHeader,
@@ -32,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import LoadingDoctors from "../layout/LoadingDoctors";
 
 const API_URL = "https://www.test-roshita.net/api/appointment-reservations/";
 
@@ -122,17 +124,18 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   useEffect(() => {
     const fetchAllAppointments = async () => {
+      setIsLoading(true); // Set loading to true when fetching starts
       try {
         const token = localStorage.getItem("access");
         if (!token) {
           console.error("No access token found in localStorage");
           return;
         }
-
+  
         let allAppointments: Appointment[] = [];
         let nextPage = 1;
         let hasMore = true;
-
+  
         while (hasMore) {
           const response = await fetch(`${API_URL}search/?page=${nextPage}`, {
             method: "GET",
@@ -140,30 +143,30 @@ const Planner = ({ language = "en" }: { language?: string }) => {
               Authorization: `Bearer ${token}`,
             },
           });
-
+  
           if (!response.ok) throw new Error("Failed to fetch appointments");
-
+  
           const data = await response.json();
           console.log("data", data);
           allAppointments = [...allAppointments, ...data.results];
-
+  
           if (data.next) {
             nextPage += 1;
           } else {
             hasMore = false;
           }
         }
-
+  
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
+  
         const filteredAppointments = allAppointments
           .filter((appointment) => {
             const appointmentDate = new Date(
               appointment.reservation.reservation_date
             );
             const status = appointment.reservation.reservation_payment_status;
-
+  
             return (
               //appointmentDate >= today &&
               status !== "Cancelled" && status !== "Completed"
@@ -175,16 +178,18 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             //@ts-ignore
             return dateA - dateB;
           });
-
+  
         setAppointments(filteredAppointments);
         setTotalPages(
           Math.ceil(filteredAppointments.length / APPOINTMENTS_PER_PAGE)
         );
       } catch (error) {
         console.error("Error fetching appointments:", error);
+      } finally {
+        setIsLoading(false); // Set loading to false when fetching is complete
       }
     };
-
+  
     fetchAllAppointments();
   }, []);
 
@@ -243,6 +248,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
+      setIsLoading(true);
       const accessToken = localStorage.getItem("access");
       try {
         const response = await fetch(
@@ -260,6 +266,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         setError("An error occurred while fetching doctor data");
         console.error(error);
       } finally {
+        setIsLoading(false);
         setLoading(false);
       }
     };
@@ -655,6 +662,12 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   return (
     <div className="p-4 border rounded-md shadow">
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <LoadingDoctors />
+        </div>
+      ) : (
+        <>
       {followUpError && (
         <p className="text-red-500 text-center">{followUpError}</p>
       )}
@@ -707,14 +720,14 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                   <TableCell className="text-center">
                     <Button
                       variant="outline"
-                      className="mr-2"
+                      className="mr-2 bg-yellow-500 text-white"
                       onClick={() => handleMarkNotAttend(appointment.id)}
                     >
                       {t.noShow}
                     </Button>
                     <Button
                       variant="outline"
-                      className="mr-2"
+                      className="mr-2 bg-green-500 text-white"
                       onClick={() =>
                         handleDoneClick(
                           appointment.id,
@@ -729,6 +742,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                     </Button>
                     <Button
                       variant="outline"
+                      className="bg-red-500 text-white"
                       onClick={() => handleRemoveSlot(appointment.id)}
                     >
                       {t.cancel}
@@ -949,6 +963,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
+      </>
+      )}
     </div>
   );
 };

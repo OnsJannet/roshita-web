@@ -33,6 +33,7 @@ interface Doctor {
     foreign_name: string;
   };
   appointments: {
+    id: number; // Add this field
     scheduled_date: string;
     start_time: string;
     end_time: string;
@@ -51,7 +52,8 @@ export function ConsultationTransfer({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null); // Track selected doctor
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<Doctor["appointments"][0] | null>(null); // Track selected appointment
 
   const limit = 5;
 
@@ -60,15 +62,14 @@ export function ConsultationTransfer({
     submitButton: language === "ar" ? "إرسال" : "Submit",
   };
 
-  //@ts-ignore
-  function handleAppointmentClick(appointment) {
-    console.log(appointment);
-  }
-
   const direction = language === "ar" ? "rtl" : "ltr";
 
   // Utility function to group appointments by date
   const groupAppointmentsByDate = (appointments: Doctor["appointments"]) => {
+    if (!appointments || appointments.length === 0) {
+      return {};
+    }
+
     return appointments.reduce((acc, appointment) => {
       const date = appointment.scheduled_date;
       if (!acc[date]) {
@@ -79,7 +80,7 @@ export function ConsultationTransfer({
     }, {} as Record<string, Doctor["appointments"]>);
   };
 
-  const fetchDoctors = async (pageNumber: number) => {
+  const fetchDoctors = async (page: number) => {
     if (!hasMore || loading) return;
 
     setLoading(true);
@@ -93,7 +94,7 @@ export function ConsultationTransfer({
       }
 
       const response = await fetch(
-        `/api/doctors/getDoctors?page=${pageNumber}&limit=${limit}`,
+        `/api/doctors/getDoctors?page=${page}&limit=${limit}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -112,9 +113,14 @@ export function ConsultationTransfer({
       if (data.success && Array.isArray(data.data)) {
         const total = data.total || 0;
         const calculatedTotalPages = Math.ceil(total / limit);
-        setDoctors((prev) => [...prev, ...data.data]);
+
+        console.log("total", total); // Log total number of doctors
+        console.log("limit", limit); // Log limit
+        console.log("calculatedTotalPages", calculatedTotalPages); // Log calculated total pages
+
+        setDoctors(data.data);
         setTotalPages(calculatedTotalPages);
-        setHasMore(pageNumber < calculatedTotalPages);
+        setHasMore(page < calculatedTotalPages);
       } else {
         console.error("Unexpected response format:", data);
       }
@@ -141,14 +147,60 @@ export function ConsultationTransfer({
     }
   };
 
-  // Open modal with appointments for the selected doctor
   const handleDoctorClick = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
+    setSelectedAppointment(null); // Reset selected appointment when a new doctor is selected
   };
 
-  // Close the appointments modal
   const closeAppointmentsModal = () => {
     setSelectedDoctor(null);
+    setSelectedAppointment(null); // Reset selected appointment when modal is closed
+  };
+
+  const handleAppointmentClick = (appointment: Doctor["appointments"][0]) => {
+    setSelectedAppointment(appointment);
+  };
+
+  const handleAcceptAppointment = async () => {
+    if (!selectedDoctor || !selectedAppointment) return;
+
+    try {
+      const accessToken = localStorage.getItem("access");
+
+      if (!accessToken) {
+        console.error("Access token not found");
+        return;
+      }
+
+      const response = await fetch(
+        `https://test-roshita.net/api/accept-consultations/${selectedAppointment.id}/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            doctor_id: selectedDoctor.id,
+            doctor_appointment_date_id: selectedAppointment.id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to accept appointment:", data.error);
+        alert("Failed to accept appointment. Please try again.");
+        return;
+      }
+
+      alert("Appointment accepted successfully!");
+      closeAppointmentsModal(); // Close the modal after successful acceptance
+    } catch (error) {
+      console.error("Error accepting appointment:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -184,7 +236,7 @@ export function ConsultationTransfer({
               {doctors.length === 0 && !loading && (
                 <p className="text-center p-2">No doctors found</p>
               )}
-              <Carousel className="w-full max-w-[1100px] relative ">
+              <Carousel className="w-full max-w-[1100px] relative">
                 <CarouselContent>
                   {doctors.map((doctor) => (
                     <CarouselItem
@@ -193,22 +245,15 @@ export function ConsultationTransfer({
                     >
                       <div className="p-1">
                         <Card
-                          onClick={() => handleDoctorClick(doctor)} // Open modal on click
-                          className="cursor-pointer" // Add pointer cursor
+                          onClick={() => handleDoctorClick(doctor)}
+                          className="cursor-pointer"
                         >
                           <CardContent className="aspect-square items-center justify-center p-6">
                             <div className="flex justify-center">
                               <img
                                 src={
-                                  doctor.staff.staff_avatar &&
-                                  !doctor.staff.staff_avatar.startsWith(
-                                    "/media/media/"
-                                  ) &&
-                                  !doctor.staff.staff_avatar.startsWith(
-                                    "/avatar/"
-                                  )
-                                    ? doctor.staff.staff_avatar
-                                    : "/Images/default-doctor.jpeg"
+                                  doctor.staff.staff_avatar ||
+                                  "/Images/default-doctor.jpeg"
                                 }
                                 alt={`${doctor.staff.first_name} ${doctor.staff.last_name}`}
                                 className="w-20 h-20 rounded-full object-cover"
@@ -274,13 +319,8 @@ export function ConsultationTransfer({
               <div className="text-center">
                 <img
                   src={
-                    selectedDoctor.staff.staff_avatar &&
-                    !selectedDoctor.staff.staff_avatar.startsWith(
-                      "/media/media/"
-                    ) &&
-                    !selectedDoctor.staff.staff_avatar.startsWith("/avatar/")
-                      ? selectedDoctor.staff.staff_avatar
-                      : "/Images/default-doctor.jpeg"
+                    selectedDoctor.staff.staff_avatar ||
+                    "/Images/default-doctor.jpeg"
                   }
                   alt={`${selectedDoctor.staff.first_name} ${selectedDoctor.staff.last_name}`}
                   className="w-20 h-20 rounded-full object-cover mx-auto"
@@ -295,31 +335,45 @@ export function ConsultationTransfer({
                 </p>
               </div>
               <div className="mt-4 grid grid-cols-4 gap-4">
-  {selectedDoctor.appointments.length > 0 ? (
-    Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
-      ([date, appointments]) => (
-        <div key={date} className="mb-4">
-          <p className="font-semibold text-lg text-center">{date}</p>
-          <div className="grid grid-cols-1 gap-2">
-            {appointments.map((appointment, index) => (
-              <button
-                key={index}
-                className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm text-center"
-                onClick={() => handleAppointmentClick(appointment)}
-              >
-                {appointment.start_time} - {appointment.end_time}
-              </button>
-            ))}
-          </div>
-        </div>
-      )
-    )
-  ) : (
-    <p className="text-center col-span-4">
-      {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
-    </p>
-  )}
-</div>
+                {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
+                  Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
+                    ([date, appointments]) => (
+                      <div key={date} className="mb-4">
+                        <p className="font-semibold text-lg text-center">{date}</p>
+                        <div className="grid grid-cols-1 gap-2">
+                          {appointments.map((appointment, index) => (
+                            <button
+                              key={index}
+                              className={`p-2 rounded-lg text-sm text-center ${
+                                selectedAppointment?.id === appointment.id
+                                  ? "bg-[#1588C8] text-white"
+                                  : "bg-gray-200 hover:bg-gray-300"
+                              }`}
+                              onClick={() => handleAppointmentClick(appointment)}
+                            >
+                              {appointment.start_time} - {appointment.end_time}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )
+                ) : (
+                  <p className="text-center col-span-4">
+                    {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
+                  </p>
+                )}
+              </div>
+              {selectedAppointment && (
+                <div className="flex justify-center mt-6">
+                  <Button
+                    onClick={handleAcceptAppointment}
+                    className="bg-[#1588C8] text-white"
+                  >
+                    {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

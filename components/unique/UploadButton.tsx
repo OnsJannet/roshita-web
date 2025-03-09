@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X, Camera } from "lucide-react";
 
 interface UploadButtonProps {
-  onUpload?: (filePath: string) => void; 
+  onUpload?: (file: File) => void; // Pass the File object instead of the file path
   picture: string;
 }
 
@@ -18,27 +18,8 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUpload, picture }) => {
       const file = event.target.files[0];
       setPreview(URL.createObjectURL(file)); // Preview image
 
-      // Upload to backend
-      const formData = new FormData();
-      formData.append("image", file);
-
-      try {
-        setUploading(true);
-        const response = await fetch("/api/upload/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const data = await response.json();
-        if (data.success) {
-          onUpload?.(data.path); // Pass the file path to parent
-        } else {
-          console.error("Failed to upload image");
-        }
-      } catch (error) {
-        console.error("Error uploading file:", error);
-      } finally {
-        setUploading(false);
-      }
+      // Pass the File object to the parent component
+      onUpload?.(file);
 
       if (inputRef.current) {
         inputRef.current.value = ""; // Reset input
@@ -48,6 +29,8 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUpload, picture }) => {
 
   const handleDelete = () => {
     setPreview(null);
+    //@ts-ignore
+    onUpload?.(null); // Clear the file in the parent component
   };
 
   return (

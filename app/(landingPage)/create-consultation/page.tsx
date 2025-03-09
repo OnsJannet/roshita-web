@@ -118,25 +118,29 @@ const Page = () => {
       formData.append("specialty_id", selectedSpecialty); // Use the selected specialty
       formData.append("type", type);
   
-      // Append Medical Report files
-      uploadedMedicalReportFiles.forEach((file, index) => {
-        formData.append("medicalReports", file); // Use the same field name as the mobile app
-      });
-  
-      // Append X-Ray files
+      // Append X-Ray files with metadata
       uploadedXRaysFiles.forEach((file, index) => {
-        formData.append("xRays", file); // Use the same field name as the mobile app
+        formData.append(`uploaded_files`, file); // Append the file
+        formData.append(`uploaded_files[${index}][content_file_type]`, "X-Ray"); // Append metadata
+        formData.append(`uploaded_files[${index}][description]`, "Lung X-ray Report"); // Append metadata
       });
   
-
-      //@ts-ignore
+      // Append Medical Report files with metadata
+      uploadedMedicalReportFiles.forEach((file, index) => {
+        const offsetIndex = uploadedXRaysFiles.length + index; // Adjust index for metadata
+        formData.append(`uploaded_files`, file); // Append the file
+        formData.append(`uploaded_files[${offsetIndex}][content_file_type]`, "Medical Report"); // Append metadata
+        formData.append(`uploaded_files[${offsetIndex}][description]`, "Blood test results"); // Append metadata
+      });
+  
       // Log FormData entries for debugging
+      //@ts-ignore
       for (let pair of formData.entries()) {
         console.log(pair[0] + ":", pair[1]);
       }
   
       const response = await fetch(
-        "https://test-roshita.net/api/consultation-requests/",
+        "https://www.test-roshita.net/api/user-consultation-requests/",
         {
           method: "POST",
           headers: {

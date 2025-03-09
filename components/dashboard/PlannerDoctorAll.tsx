@@ -76,7 +76,7 @@ interface AppointmentSlot {
   price: string;
 }
 
-const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
+const PlannerDoctorAll = ({ language = "en" }: { language?: string }) => {
   const [selectedAppointment, setSelectedAppointment] = useState([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [page, setPage] = useState(1);
@@ -162,18 +162,6 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         today.setHours(0, 0, 0, 0);
 
         const filteredAppointments = allAppointments
-          .filter((appointment) => {
-            const appointmentDate = new Date(
-              appointment.reservation.reservation_date
-            );
-            const status = appointment.reservation.reservation_payment_status;
-
-            return (
-              //appointmentDate >= today &&
-              status !== "Cancelled"
-              //&& status !== "Completed"
-            );
-          })
           .sort((a, b) => {
             const dateA = new Date(a.reservation.reservation_date);
             const dateB = new Date(b.reservation.reservation_date);
@@ -896,4 +884,4 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   );
 };
 
-export default PlannerDoctor;
+export default PlannerDoctorAll;

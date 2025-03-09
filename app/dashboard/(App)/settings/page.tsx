@@ -51,13 +51,13 @@ type Language = "ar" | "en";
 
 /**
  * Settings Page Component
- * 
+ *
  * This page allows the user to view and update their profile settings, such as personal information
- * (name, email, phone, address), city, birthday, and avatar. The doctor profile is fetched from 
+ * (name, email, phone, address), city, birthday, and avatar. The doctor profile is fetched from
  * an API, and the user can upload a new avatar, update fields like name, phone, email, and birthday,
- * and change the city. The settings are persisted through API calls and localStorage. 
+ * and change the city. The settings are persisted through API calls and localStorage.
  * The page also supports switching between Arabic ("ar") and English ("en") for localization.
- * 
+ *
  * Key features:
  * - Fetches doctor data (name, email, phone, etc.) from an API using a provided access token.
  * - Allows updating doctor profile information (phone number, city, birthday, email, address).
@@ -67,17 +67,16 @@ type Language = "ar" | "en";
  * - The page layout and UI elements are adapted for both Arabic and English languages.
  * - Updates to the profile are sent to the server using a POST request to update the profile.
  * - Error handling is implemented to show relevant error messages if the data fetch or update fails.
- * 
+ *
  * Components used:
  * - `AppSidebar`: Sidebar component for navigation.
  * - `Breadcrumb`: A breadcrumb navigation component that dynamically displays the page path.
  * - `InformationUserCard`: Displays and allows modification of personal information fields.
  * - `Button`: A UI button to save the updated profile.
  * - `SidebarInset`, `SidebarTrigger`, `SidebarProvider`: UI components for handling sidebar behavior.
- * 
+ *
  * @component
  */
-
 
 export default function Page() {
   const params = useParams();
@@ -91,35 +90,45 @@ export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [formData, setFormData] = useState<{ Image?: File }>({});
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const handleFileUpload = (file: File) => {
+  /*const handleFileUpload = (file: File) => {
     setFormData((prev) => ({ ...prev, Image: file }));
     console.log("Uploaded file received in parent:", file);
+  };*/
+
+  const handleFileUpload = (file: File | null) => {
+    if (file) {
+      setImageFile(file); // Store the File object
+      setImage(URL.createObjectURL(file)); // Set the image preview URL
+    } else {
+      setImageFile(null); // Clear the File object
+      setImage("/Images/default-doctor.jpeg"); // Reset to the default image
+    }
   };
 
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }
-}, []);
+      window.addEventListener("storage", handleStorageChange);
 
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
+  }, []);
 
   const items = [
     { label: language === "ar" ? "الرئسية" : "Home", href: "/dashboard" },
@@ -147,13 +156,13 @@ useEffect(() => {
     const fetchDoctorAndSpecialty = async () => {
       const accessToken =
         typeof window !== "undefined" ? localStorage.getItem("access") : null;
-  
+
       try {
         if (!accessToken) {
           setError("Access token not found");
           return;
         }
-  
+
         const response = await fetch(`/api/user/getProfile/`, {
           method: "GET",
           headers: {
@@ -161,15 +170,22 @@ useEffect(() => {
           },
         });
         const doctorData = await response.json();
-  
+
         if (doctorData.success) {
           setDoctor(doctorData.data);
-  
+
+          // Set the avatar image if it exists, otherwise use the default image
+          if (doctorData.data.avatar) {
+            setImage(`https://www.test-roshita.net/${doctorData.data.avatar}`); // Set the avatar URL from the API
+          } else {
+            setImage("/Images/default-doctor.jpeg"); // Use the default image
+          }
+
           const specialtiesResponse = await fetch(
             "https://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
-  
+
           if (specialtiesResponse.ok) {
             const specialty = specialtiesData.find(
               (item) => item.id === doctorData.data.specialty
@@ -188,7 +204,7 @@ useEffect(() => {
         setLoading(false);
       }
     };
-  
+
     const fetchCities = async () => {
       try {
         const response = await fetch(
@@ -204,57 +220,70 @@ useEffect(() => {
         console.error("Error fetching cities:", error);
       }
     };
-  
+
     fetchDoctorAndSpecialty();
     fetchCities();
   }, [id]);
-  
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
 
-    console.log("image", image);
+    // Create a FormData object
+    const formData = new FormData();
 
-    // Use the provided image if it exists, else fallback to the current avatar
-    const updatedAvatar = image || "/Images/default-doctor.jpeg";
+    // Append user details
+    formData.append("user[first_name]", doctor.user.first_name);
+    formData.append("user[last_name]", doctor.user.last_name);
+    formData.append("user[email]", doctor.user.email);
+    if (doctor.user.phone) {
+      formData.append("user[phone]", doctor.user.phone);
+    }
 
-    // Create the updated doctor object based on the structure of the Doctor interface
-    const updatedDoctor: Doctor = {
-      ...doctor, // Copy all existing properties from the doctor object
-      user: {
-        ...doctor.user, // Retain current user properties
-        first_name: doctor.user.first_name, // You may want to allow updating this
-        last_name: doctor.user.last_name, // Same for last name
-        email: doctor.user.email, // Same for email
-        phone: doctor.user.phone, // Same for phone
-      },
-      gender: doctor.gender, // Retain the gender or update if needed
-      birthday: doctor.birthday, // Retain the birthday or update if needed
-      avatar: updatedAvatar, // Update avatar if a new image is provided
-      city: doctor.city
-        ? typeof doctor.city === "string"
-          ? parseInt(doctor.city.replace(/\D/g, ""), 10) || doctor.city
-          : doctor.city
-        : null, // Handle null city
+    // Append other fields
+    if (doctor.gender) {
+      formData.append("gender", doctor.gender);
+    }
+    if (doctor.birthday) {
+      formData.append("birthday", doctor.birthday);
+    }
+    if (doctor.city) {
+      formData.append("city", doctor.city.toString());
+    }
+    formData.append("user_type", doctor.user_type.toString());
+    if (doctor.address) {
+      formData.append("address", doctor.address);
+    }
 
-      user_type: doctor.user_type, // Retain user type
-      address: doctor.address, // Update the address directly here
-    };
+    // Append the avatar file if it exists
+    if (imageFile) {
+      formData.append("avatar", imageFile); // Append the File object
+    }
 
     try {
       const accessToken = localStorage.getItem("access");
-      const response = await fetch(`/api/user/editProfile/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(updatedDoctor),
-      });
+      if (!accessToken) {
+        setError("Access token not found");
+        return;
+      }
+
+      // Send the request directly to the external API
+      const response = await fetch(
+        "https://www.test-roshita.net/api/account/profile/edit/",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
+        }
+      );
 
       const result = await response.json();
-      if (result.success) {
-        setDoctor(updatedDoctor); // Update the doctor state with the updated information
+      if (response.ok) {
+        setDoctor({
+          ...doctor,
+          avatar: image || "/Images/default-doctor.jpeg", // Update the avatar in the state
+        });
         window.location.reload(); // Refresh the page after successful update
       } else {
         setError(result.message || "Error updating doctor information");
@@ -284,9 +313,9 @@ useEffect(() => {
         case 3:
           updatedDoctor.user.email = value; // Update email
           break;
-          case 4:
-            updatedDoctor.address = value; 
-            break;          
+        case 4:
+          updatedDoctor.address = value;
+          break;
         default:
           break;
       }
@@ -339,7 +368,6 @@ useEffect(() => {
                     (language === "ar" ? "غير محدد" : "Not specified")
                   ).toString(),
                 },
-
                 {
                   label: language === "ar" ? "عيد ميلاد" : "Birthday",
                   value:
@@ -359,17 +387,9 @@ useEffect(() => {
                     (language === "ar" ? "غير محدد" : "Not specified"),
                 },
               ]}
-              picture={"/Images/default-doctor.jpeg"}
-              photoUploadHandler={(file: File | string) => {
-                const filePath = file instanceof File ? file.name : file;
-                setImage(filePath);
-
-                setDoctor((prev) =>
-                  prev
-                    ? { ...prev, user: { ...prev.user, avatar: filePath } }
-                    : prev
-                );
-              }}
+              picture={image} // Use the `image` state
+              //@ts-ignore
+              photoUploadHandler={handleFileUpload} // Pass the File object
               onNameChange={(name) =>
                 setDoctor((prev) =>
                   prev
