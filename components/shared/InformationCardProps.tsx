@@ -5,11 +5,13 @@ import { MoveRight } from "lucide-react";
 interface InformationCardProps {
   title: string;
   name: string;
+  lastName: string;
   picture: string;
   fields: { isDropdown?: boolean; label: string; value: string }[];
   photoUploadHandler?: (file: File | string) => void;
   onFieldChange?: (index: number, value: string) => void;
   onNameChange?: (value: string) => void;
+  onLastNameChange?: (value: string) => void;
   cities?: { id: number; name?: string; foreign_name: string }[];
   onCityChange?: (newCityId: string) => void;
   specialities?: { id: number; name?: string; foreign_name: string }[];
@@ -23,10 +25,12 @@ const InformationCard: React.FC<InformationCardProps> = ({
   title,
   fields,
   name,
+  lastName,
   photoUploadHandler,
   picture,
   onFieldChange,
   onNameChange,
+  onLastNameChange,
   cities,
   onCityChange,
   specialities,
@@ -35,8 +39,10 @@ const InformationCard: React.FC<InformationCardProps> = ({
   type,
 }) => {
   const [editableName, setEditableName] = useState<string>(name);
+  const [editableLastName, setEditableLastName] = useState<string>(lastName);
   const [editableFields, setEditableFields] = useState(fields);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingLastName, setIsEditingLastName] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
 
   console.log("specialities", specialities);
@@ -69,6 +75,12 @@ const InformationCard: React.FC<InformationCardProps> = ({
   }, [name, isEditingName]);
 
   useEffect(() => {
+    if (!isEditingLastName) {
+      setEditableLastName(lastName);
+    }
+  }, [lastName, isEditingLastName]);
+
+  useEffect(() => {
     setEditableFields(fields);
   }, [fields]);
 
@@ -76,6 +88,12 @@ const InformationCard: React.FC<InformationCardProps> = ({
     const newName = event.target.value;
     setEditableName(newName);
     onNameChange?.(newName);
+  };
+
+  const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = event.target.value;
+    setEditableLastName(newName);
+    onLastNameChange?.(newName);
   };
 
   const handleFieldChange = (
@@ -86,6 +104,9 @@ const InformationCard: React.FC<InformationCardProps> = ({
     newFields[index].value = event.target.value;
     setEditableFields(newFields);
     onFieldChange?.(index, event.target.value);
+  
+    // Log the updated fields
+    console.log("Updated editableFields:", newFields);
   };
 
   const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -138,10 +159,11 @@ const InformationCard: React.FC<InformationCardProps> = ({
 
   const translate = (key: string) => {
     const translations: Record<
-      "الإســــــم" | "اختر مدينة" | "مكان",
+      "اللقب" | "الإســــــم" | "اختر مدينة" | "مكان",
       { ar: string; en: string }
     > = {
       الإســــــم: { ar: "الإســــــم", en: "Name" },
+      اللقب: { ar: "اللقب", en: "Last Name" },
       "اختر مدينة": { ar: "اختر مدينة", en: "Choose a city" },
       مكان: { ar: "مكان", en: "Place" },
     };
@@ -192,6 +214,21 @@ const InformationCard: React.FC<InformationCardProps> = ({
             } ${getBorderClass()}  rounded`}
           />
         </div>
+        <div className="flex flex-col">
+          <h4 className={`${language === "ar" ? "text-end" : "text-start"}`}>
+            {translate("اللقب")}
+          </h4>
+          <input
+            type="text"
+            value={editableLastName}
+            onChange={handleLastNameChange}
+            onFocus={() => setIsEditingLastName(true)}
+            onBlur={() => setIsEditingLastName(false)}
+            className={`${
+              language === "ar" ? "text-end p-2" : "text-start"
+            } ${getBorderClass()}  rounded`}
+          />
+        </div>
       </div>
       <table className="w-full text-right p-4">
         <tbody>
@@ -204,18 +241,18 @@ const InformationCard: React.FC<InformationCardProps> = ({
                       <MoveRight className="h-4 w-4" />
                     </div>
                   </td>
-                  <td className="py-3 px-2 text-gray-700 p-4 flex justify-end ">
-                    {index === 0 ? (
-                      // Editable phone number input
+                  <td className="py-3 px-2 text-gray-700 p-4 flex justify-end">
+                    {index === 0 || index === 3 ? ( // Check if index is 0 (phone) or 3 (booking price)
+                      // Editable input for phone number (index 0) or booking price (index 3)
                       <input
                         type="text"
                         value={field.value}
                         onChange={(event) => handleFieldChange(index, event)}
                         className={`${
-                          language === "ar" ? "text-end p-2 " : "text-end"
+                          language === "ar" ? "text-end p-2" : "text-start"
                         } ${getBorderClass()} rounded`}
                       />
-                    ) : field.isDropdown ? (
+                    ) : field.isDropdown ? ( // Check if the field is a dropdown
                       // Dropdown for city or specialty
                       <select
                         value={field.value}
@@ -237,6 +274,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                         )}
                       </select>
                     ) : (
+                      // Display the field value if it's not editable or a dropdown
                       field.value
                     )}
                   </td>
@@ -285,9 +323,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                         )}
                       </select>
                     ) : (
-                      <p className="pl-4">
-                      {field.value}
-                      </p>
+                      <p className="pl-4">{field.value}</p>
                     )}
                   </td>
                   <td className="py-3 px-2 text-gray-500 p-4 text-center">

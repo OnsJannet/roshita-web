@@ -183,6 +183,8 @@ export default function Page() {
     address: "",
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
   const handleSlotsChange = (slots: Slot[]) => {
     setBackendSlots(slots);
     console.log("Updated slots:", slots);
@@ -372,9 +374,14 @@ export default function Page() {
     };
   });
 
-  const handleFileUpload = (file: File) => {
-    setFormData((prev) => ({ ...prev, Image: file }));
-    console.log("Uploaded file received in parent:", file);
+  const handleFileUpload = (file: File | null) => {
+    if (file) {
+      setImageFile(file); // Store the File object
+      setImage(URL.createObjectURL(file)); // Set the image preview URL
+    } else {
+      setImageFile(null); // Clear the File object
+      setImage("/Images/default-doctor.jpeg"); // Reset to the default image
+    }
   };
 
   useEffect(() => {
@@ -612,52 +619,88 @@ export default function Page() {
             newAppointment.appointment_status
       );
     });
-    // @ts-ignore
-    // Create an updatedDoctor object with only changes to specialty and city if necessary
-    const updatedDoctor = {
-      ...doctor,
-      // @ts-ignore
-      specialty:
-        // @ts-ignore
-        selectedSpecialityId !== null &&
-        // @ts-ignore
-        selectedSpecialityId !== doctor.specialty.id
-          ? selectedSpecialityId
-          : // @ts-ignore
-            doctor.specialty.id, // Only update if the specialty ID has changed
-      staff: {
-        ...doctor.staff,
-        // @ts-ignore
-        city:
-          // @ts-ignore
-          selectedCityId !== null && selectedCityId !== doctor.staff.city
-            ? selectedCityId
-            : // @ts-ignore
-              doctor.staff.city.id, // Only update if the city ID has changed
-      },
-      appointments: [...updatedAppointments, ...newAppointments],
+
+    // Create the `data` object for appointment dates
+    const data = {
+      appointment_dates: [
+        ...updatedAppointments.map((appointment) => ({
+          scheduled_date: appointment.scheduled_date,
+          start_time: appointment.start_time,
+          end_time: appointment.end_time,
+          appointment_status: appointment.appointment_status,
+          //@ts-ignore
+          price: appointment.price,
+        })),
+        ...newAppointments.map((appointment) => ({
+          scheduled_date: appointment.scheduled_date,
+          start_time: appointment.start_time,
+          end_time: appointment.end_time,
+          appointment_status: appointment.appointment_status,
+          price: appointment.price,
+        })),
+      ],
     };
+
+    // Create the `staff` object for staff information
+    const staff = {
+      first_name: doctor.staff.first_name,
+      last_name: doctor.staff.last_name,
+      //@ts-ignore
+      email: doctor.staff.email,
+      city: doctor.staff.city.id, // Include city ID
+    };
+
+    // Log the data and staff objects
+    console.log("Data:", JSON.stringify(data));
+    console.log("Staff:", JSON.stringify(staff));
+
+    // Create FormData object
+    const formData = new FormData();
+
+    // Append the `data` object as a JSON string
+    formData.append("data", JSON.stringify(data));
+
+    // Append the `staff` object as a JSON string
+    formData.append("staff", JSON.stringify(staff));
+
+    // Add the image file to FormData if it exists
+    //@ts-ignore
+    if (imageFile) {
+      //@ts-ignore
+      formData.append("staff_avatar", imageFile); // Append the file directly if it exists
+      //@ts-ignore
+      console.log("Image file being sent:", imageFile);
+    }
+
+    // Log the FormData content
+    formData.forEach((value, key) => {
+      console.log("FormData -", key, value);
+    });
 
     try {
       const accessToken = localStorage.getItem("access");
+
+      // Send the request to the backend
       const response = await fetch(
-        `/api/doctors/updateDoctorById?id=${doctor.id}`,
+        `https://test-roshita.net/api/doctors/${doctor.id}/`,
         {
-          method: "POST",
+          method: "PUT", // Use PUT for updating
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(updatedDoctor),
+          body: formData, // Send FormData
         }
       );
 
       const result = await response.json();
-      window.location.reload(); 
-      if (result.success) {
-        // @ts-ignore
-        setDoctor(updatedDoctor);
+
+      if (response.ok) {
+        // Handle success
+        console.log("Doctor updated successfully:", result);
+        window.location.reload(); // Reload the page or update the state as needed
       } else {
+        // Handle error
+        console.error("Error updating doctor:", result);
         setError(result.message || "Error updating doctor information");
       }
     } catch (error) {
@@ -884,25 +927,12 @@ export default function Page() {
                 },
               ]}
               picture={
-                doctor?.staff.staff_avatar ?? "/Images/default-doctor.jpg"
+                doctor?.staff.staff_avatar
+                  ? doctor.staff.staff_avatar.replace("http://", "https://")
+                  : "/Images/default-doctor.jpg"
               }
-              photoUploadHandler={(file: File | string) => {
-                console.log("file: ", file);
-
-                // Generate a URL or use the file path string if already provided
-                const filePath = file instanceof File ? file.name : file;
-                console.log("Uploaded photo path in parent:", filePath);
-                setImage(filePath);
-
-                setDoctor((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        staff: { ...prev.staff, staff_avatar: filePath },
-                      }
-                    : prev
-                );
-              }}
+              //@ts-ignore
+              photoUploadHandler={handleFileUpload}
               onNameChange={(name) =>
                 setDoctor(
                   (prev) =>
