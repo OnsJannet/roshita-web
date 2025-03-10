@@ -363,6 +363,7 @@ export default function Page() {
               >
                 <UploadButton
                   onUpload={(file) => {
+                    //@ts-ignore
                     setFormData((prevData) => ({ ...prevData, Image: file }));
                     console.log("Uploaded image path:", file);
                   }}

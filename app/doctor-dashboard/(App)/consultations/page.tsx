@@ -358,7 +358,7 @@ export default function Page() {
                     requestDate={item.requestDate}
                     speciality={item.speciality}
                     language={language}
-                    doctors={tableData}
+                    //doctors={tableData}
                     userType="hospital"
                   />
                 ))}

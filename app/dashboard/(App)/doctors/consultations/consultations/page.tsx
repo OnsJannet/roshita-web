@@ -358,6 +358,7 @@ export default function Page() {
                     requestDate={item.requestDate}
                     speciality={item.speciality}
                     language={language}
+                    //@ts-ignore
                     doctors={tableData}
                     userType="hospital"
                   />
