@@ -22,16 +22,23 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Folder } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs component
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define the types for the data you're expecting from the API
 interface Consultation {
   id: number;
   diagnosis_description_request: string;
-  patient: number;
-  specialty: number;
+  patient: {
+    id: number;
+    full_name: string;
+  };
+  specialty: {
+    id: number;
+    name: string;
+  };
   patient_files: any[];
   status: string;
+  requestDate?: string; // Add this field if available in the API response
 }
 
 interface APIResponse {
@@ -46,17 +53,24 @@ type Language = "ar" | "en";
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [loading, setLoading] = useState<boolean>(true);
-  const [consultations, setConsultations] = useState<Consultation[]>([]); // Initialize as an empty array
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); // Number of items per page
+  const [itemsPerPage] = useState(5);
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedDate, setSelectedDate] = useState<Date | null | undefined>(
-    null
-  );
-
+  const [selectedDate, setSelectedDate] = useState<Date | null | undefined>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"all" | "my">("all"); // Track active tab
-  const [hospitalId, setHospitalId] = useState<string | null>(null); // Store hospital ID
+  const [activeTab, setActiveTab] = useState<"all" | "my">("all");
+  const [hospitalId, setHospitalId] = useState<string | null>(null);
+  const [specialties, setSpecialties] = useState<
+    { id: number; name: string; foreign_name: string }[]
+  >([]);
+
+  // Helper function to check if a date string is valid
+  const isValidDate = (dateString: string | undefined): boolean => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()); // Check if the date is valid
+  };
 
   // Fetch all consultations from the API
   const fetchAllConsultations = async () => {
@@ -64,7 +78,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `https://test-roshita.net/api/consultation-requests/?page=${currentPage}&page_size=${itemsPerPage}`,
+        `https://test-roshita.net/api/consultation-requests/unreviewing_consultation/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -79,34 +93,16 @@ export default function Page() {
       }
 
       const data: APIResponse = await response.json();
-      console.log("this is the data", data)
-      //@ts-ignore
-      setConsultations(data || []); // Ensure results is an array
-      setTotalPages(Math.ceil(data.count / itemsPerPage)); // Calculate total pages
+      console.log("API Response Data:", data);
+      setConsultations(data.results || []);
+      setTotalPages(Math.ceil(data.count / itemsPerPage));
     } catch (error) {
       console.error("Error fetching consultations:", error);
-      setConsultations([]); // Set consultations to an empty array on error
+      setConsultations([]);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log("Active Tab Changed:", activeTab);
-  }, [activeTab]);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user"); // Get the whole user object
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser); // Parse it to an object
-      const storedHospitalId = parsedUser?.medical_organization?.id; // Access the nested ID
-      console.log("storedHospitalId", storedHospitalId);
-      setHospitalId(storedHospitalId)
-    } else {
-      console.log("No user data in localStorage");
-    }
-  }, []);
-  
 
   // Fetch hospital-specific consultations from the API
   const fetchHospitalConsultations = async () => {
@@ -114,20 +110,18 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const storedUser = localStorage.getItem("user");
-  
+
       if (!storedUser) {
         throw new Error("User data not found in localStorage");
       }
-  
+
       const parsedUser = JSON.parse(storedUser);
       const hospitalId = parsedUser?.medical_organization?.id;
-  
-      console.log("Fetched hospitalId from localStorage:", hospitalId);
-  
+
       if (!hospitalId) {
         throw new Error("Hospital ID not found");
       }
-  
+
       const response = await fetch(
         `https://test-roshita.net/api/user-consultation-requests/by_hospital/${hospitalId}/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
@@ -138,22 +132,47 @@ export default function Page() {
           },
         }
       );
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch hospital consultations");
       }
-  
+
       const data: APIResponse = await response.json();
-      setConsultations(data.results || []); // Ensure results is an array
-      setTotalPages(Math.ceil(data.count / itemsPerPage)); // Calculate total pages
+      setConsultations(data.results || []);
+      setTotalPages(Math.ceil(data.count / itemsPerPage));
     } catch (error) {
       console.error("Error fetching hospital consultations:", error);
-      setConsultations([]); // Set consultations to an empty array on error
+      setConsultations([]);
     } finally {
       setLoading(false);
     }
   };
-  
+
+  // Fetch specialties from the API
+  const fetchSpecialties = async () => {
+    try {
+      const token = localStorage.getItem("access");
+      const response = await fetch(
+        "https://test-roshita.net/api/specialty-list/",
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch specialties");
+      }
+
+      const data = await response.json();
+      setSpecialties(data);
+    } catch (error) {
+      console.error("Error fetching specialties:", error);
+    }
+  };
 
   // Fetch consultations based on the active tab
   useEffect(() => {
@@ -162,9 +181,12 @@ export default function Page() {
     } else if (activeTab === "my") {
       fetchHospitalConsultations();
     }
-  }, [currentPage, itemsPerPage, activeTab]); // Re-fetch when page or tab changes
+  }, [currentPage, itemsPerPage, activeTab]);
 
-  console.log("activeTab", activeTab);
+  // Fetch specialties when the component mounts
+  useEffect(() => {
+    fetchSpecialties();
+  }, []);
 
   // Handle language change
   useEffect(() => {
@@ -204,11 +226,33 @@ export default function Page() {
     },
   ];
 
-  // Debugging: Log consultations to ensure it's populated correctly
-  useEffect(() => {
-    console.log("Consultations:", consultations);
-    console.log("consultations.length", consultations.length)
-  }, [consultations]);
+  // Filter consultations based on selected date and specialty
+  const filterConsultations = (consultations: Consultation[]) => {
+    let filteredConsultations = consultations;
+
+    // Filter by selected date (if available)
+    if (selectedDate) {
+      filteredConsultations = filteredConsultations.filter((consultation) => {
+        // Check if the requestDate is valid
+        if (!isValidDate(consultation.requestDate)) return false;
+
+        const consultationDate = new Date(consultation.requestDate!); // Safe to use ! because we checked validity
+        return (
+          consultationDate.toISOString().split("T")[0] ===
+          selectedDate.toISOString().split("T")[0]
+        );
+      });
+    }
+
+    // Filter by selected specialty (if available)
+    if (selectedSpecialty) {
+      filteredConsultations = filteredConsultations.filter(
+        (consultation) => consultation.specialty.name === selectedSpecialty
+      );
+    }
+
+    return filteredConsultations;
+  };
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -258,35 +302,25 @@ export default function Page() {
                   </Tabs>
 
                   {/* Date Picker */}
-                  <DatePicker
-                    /* @ts-ignore */
+                  {/*<DatePicker
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     placeholder="Select a date"
-                  />
+                  />*/}
 
                   {/* Specialty Dropdown */}
                   <Select onValueChange={setSelectedSpecialty}>
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select specialty" />
+                      <SelectValue placeholder={language === "ar" ? "اختر التخصص" : "Select specialty"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Cardiology">Cardiology</SelectItem>
-                      <SelectItem value="Dermatology">Dermatology</SelectItem>
-                      <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                      <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                      <SelectItem value="Neurology">Neurology</SelectItem>
-                      <SelectItem value="Oncology">Oncology</SelectItem>
-                      <SelectItem value="Radiology">Radiology</SelectItem>
-                      <SelectItem value="Gynecology">Gynecology</SelectItem>
-                      <SelectItem value="Urology">Urology</SelectItem>
-                      <SelectItem value="Psychiatry">Psychiatry</SelectItem>
-                      <SelectItem value="Endocrinology">
-                        Endocrinology
-                      </SelectItem>
-                      <SelectItem value="Gastroenterology">
-                        Gastroenterology
-                      </SelectItem>
+                      {specialties.map((specialty) => (
+                        <SelectItem key={specialty.id} value={specialty.name}>
+                          {language === "ar"
+                            ? specialty.name
+                            : specialty.foreign_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
 
@@ -319,14 +353,14 @@ export default function Page() {
                 </div>
 
                 {/* Request Cards */}
-                {consultations.length > 0 ? (
-                  consultations.map((consultation) => (
+                {filterConsultations(consultations).length > 0 ? (
+                  filterConsultations(consultations).map((consultation) => (
                     <RequestCard
                       key={consultation.id}
                       requestNumber={consultation.id.toString()}
-                      patientName={`Patient ${consultation.patient}`}
+                      patientName={consultation.patient.full_name}
                       requestDate={"2025-10-01"} // Replace with actual date if available
-                      speciality={`Specialty ${consultation.specialty}`}
+                      speciality={consultation.specialty.name}
                       language={language}
                       userType="hospital"
                     />
@@ -339,7 +373,7 @@ export default function Page() {
                   </div>
                 )}
 
-                {consultations.length > 0 && (
+                {filterConsultations(consultations).length > 0 && (
                   <PaginationDemo
                     currentPage={currentPage}
                     totalPages={totalPages}

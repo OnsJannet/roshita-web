@@ -8,7 +8,7 @@ interface RequestCardProps {
   speciality: string;
   userType: string;
   language: "ar" | "en";
-  doctors: any;
+  //doctors: any;
 }
 
 const RequestCard: React.FC<RequestCardProps> = ({
@@ -18,7 +18,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
   language,
   speciality,
   userType,
-  doctors,
+  //doctors,
 }) => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false); // State to control modal
 
@@ -39,6 +39,11 @@ const RequestCard: React.FC<RequestCardProps> = ({
   const handleTransferClick = () => {
     setIsTransferModalOpen(true);
   };
+
+    // Function to navigate to the details page
+    const handleDetailsClick = () => {
+      window.location.href=`/dashboard/consultations/${requestNumber}`;
+    };
 
   return (
     <div
@@ -85,7 +90,10 @@ const RequestCard: React.FC<RequestCardProps> = ({
           language === "ar" ? "flex-row-reverse  justify-start" : "flex-row "
         } `}
       >
-        <button className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+        <button
+          className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          onClick={handleDetailsClick} // Navigate to details page
+        >
           {content.detailsButton}
         </button>
         <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2">
@@ -113,6 +121,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}
         language={language}
+        consultationID={requestNumber}
       />
     </div>
   );

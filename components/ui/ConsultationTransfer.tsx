@@ -19,6 +19,7 @@ interface ConsultationTransferProps {
   isOpen: boolean;
   onClose: () => void;
   language: "ar" | "en";
+  consultationID: string;
 }
 
 interface Doctor {
@@ -33,12 +34,13 @@ interface Doctor {
     foreign_name: string;
   };
   appointments: {
-    id: number; // Add this field
+    id: number;
     scheduled_date: string;
     start_time: string;
     end_time: string;
     appointment_status: string;
     price: string;
+    consultationID: string;
   }[];
 }
 
@@ -46,6 +48,7 @@ export function ConsultationTransfer({
   isOpen,
   onClose,
   language,
+  consultationID,
 }: ConsultationTransferProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [page, setPage] = useState(1);
@@ -53,7 +56,7 @@ export function ConsultationTransfer({
   const [hasMore, setHasMore] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<Doctor["appointments"][0] | null>(null); // Track selected appointment
+  const [selectedAppointment, setSelectedAppointment] = useState<Doctor["appointments"][0] | null>(null);
 
   const limit = 5;
 
@@ -64,7 +67,6 @@ export function ConsultationTransfer({
 
   const direction = language === "ar" ? "rtl" : "ltr";
 
-  // Utility function to group appointments by date
   const groupAppointmentsByDate = (appointments: Doctor["appointments"]) => {
     if (!appointments || appointments.length === 0) {
       return {};
@@ -114,10 +116,6 @@ export function ConsultationTransfer({
         const total = data.total || 0;
         const calculatedTotalPages = Math.ceil(total / limit);
 
-        console.log("total", total); // Log total number of doctors
-        console.log("limit", limit); // Log limit
-        console.log("calculatedTotalPages", calculatedTotalPages); // Log calculated total pages
-
         setDoctors(data.data);
         setTotalPages(calculatedTotalPages);
         setHasMore(page < calculatedTotalPages);
@@ -149,12 +147,12 @@ export function ConsultationTransfer({
 
   const handleDoctorClick = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    setSelectedAppointment(null); // Reset selected appointment when a new doctor is selected
+    setSelectedAppointment(null);
   };
 
   const closeAppointmentsModal = () => {
     setSelectedDoctor(null);
-    setSelectedAppointment(null); // Reset selected appointment when modal is closed
+    setSelectedAppointment(null);
   };
 
   const handleAppointmentClick = (appointment: Doctor["appointments"][0]) => {
@@ -173,7 +171,7 @@ export function ConsultationTransfer({
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/accept-consultations/${selectedAppointment.id}/`,
+        `https://test-roshita.net/api/accept-consultations/${consultationID}/`,
         {
           method: "POST",
           headers: {
@@ -196,7 +194,7 @@ export function ConsultationTransfer({
       }
 
       alert("Appointment accepted successfully!");
-      closeAppointmentsModal(); // Close the modal after successful acceptance
+      closeAppointmentsModal();
     } catch (error) {
       console.error("Error accepting appointment:", error);
       alert("An error occurred. Please try again.");
@@ -210,7 +208,7 @@ export function ConsultationTransfer({
           dir={direction}
           className={`max-w-[1200px] ${
             language === "ar" ? "text-right h-[80vh]" : "text-left h-[80vh]"
-          } py-4 `}
+          } py-4`}
         >
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">
@@ -218,7 +216,7 @@ export function ConsultationTransfer({
             </DialogTitle>
           </DialogHeader>
 
-          <div className="">
+          <div>
             <div className="text-center">
               <p
                 dir={direction}
@@ -278,21 +276,22 @@ export function ConsultationTransfer({
                   ))}
                 </CarouselContent>
 
-                {loading && <p className="text-center p-2">Loading...</p>}
-                {!hasMore && doctors.length > 0 && (
-                  <p className="text-center p-2">No more doctors</p>
-                )}
-
                 <div className="absolute top-1/2 left-2 transform -translate-y-1/2 z-10">
-                  <CarouselPrevious onClick={handlePrevious} />
+                  <CarouselPrevious
+                    onClick={handlePrevious}
+                    disabled={page === 1} // Disable Previous button on the first page
+                  />
                 </div>
                 <div className="absolute top-1/2 right-2 transform -translate-y-1/2 z-10">
-                  <CarouselNext onClick={handleNext} />
+                  <CarouselNext
+                    onClick={handleNext}
+                    disabled={page >= totalPages} // Disable Next button on the last page
+                  />
                 </div>
               </Carousel>
             </div>
 
-            <div className="flex justify-center items-center mt-6 ">
+            <div className="flex justify-center items-center mt-6">
               <Button type="submit" className="bg-[#1588C8] text-white w-1/2 h-10">
                 {content.submitButton}
               </Button>
@@ -367,7 +366,7 @@ export function ConsultationTransfer({
               {selectedAppointment && (
                 <div className="flex justify-center mt-6">
                   <Button
-                    onClick={handleAcceptAppointment}
+                    onClick={() => handleAcceptAppointment()}
                     className="bg-[#1588C8] text-white"
                   >
                     {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
