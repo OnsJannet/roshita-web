@@ -186,14 +186,13 @@ export function ConsultationTransfer({
       );
 
       const data = await response.json();
-
       if (!response.ok) {
         console.error("Failed to accept appointment:", data.error);
         alert("Failed to accept appointment. Please try again.");
         return;
       }
 
-      alert("Appointment accepted successfully!");
+      window.location.reload()
       closeAppointmentsModal();
     } catch (error) {
       console.error("Error accepting appointment:", error);

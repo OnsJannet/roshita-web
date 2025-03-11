@@ -18,7 +18,16 @@ import {
 } from "@/components/ui/tooltip";
 import { ViewVerticalIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { LogOut, Settings, House, Heart, Pill, TestTube, Folder, Bell } from "lucide-react";
+import {
+  LogOut,
+  Settings,
+  House,
+  Heart,
+  Pill,
+  TestTube,
+  Folder,
+  Bell,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import LanguageSwitcher from "../layout/LanguageSwitcher";
 
@@ -29,7 +38,7 @@ const iconMapping: Record<string, React.ComponentType<any>> = {
   TestTube,
   Settings,
   Folder,
-  Bell
+  Bell,
 };
 
 type NavItem = {
@@ -75,7 +84,14 @@ function useSidebar() {
   return context;
 }
 
-type IconNames = "House" | "Heart" | "Pill" | "TestTube" | "Settings" | "Folder" | "Bell";
+type IconNames =
+  | "House"
+  | "Heart"
+  | "Pill"
+  | "TestTube"
+  | "Settings"
+  | "Folder"
+  | "Bell";
 
 // This is sample data.
 const data: Data = {
@@ -505,7 +521,8 @@ const Sidebar = React.forwardRef<
               (user?.user_type === "Admin" || user?.user_type === "staff"),
             xRays: user?.medical_organization_type === "Radiologic",
             doctor:
-              (user?.medical_organization_type === "hospital" ||  user?.medical_organization_type === "Doctor Hospital") &&
+              (user?.medical_organization_type === "hospital" ||
+                user?.medical_organization_type === "Doctor Hospital") &&
               user?.user_type === "Doctor",
           });
 
@@ -534,82 +551,102 @@ const Sidebar = React.forwardRef<
             data-sidebar="sidebar"
             data-mobile="true"
             className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={{
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              direction: language === "ar" ? "rtl" : "ltr",
-            } as React.CSSProperties}
-            
-
+            style={
+              {
+                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+                direction: language === "ar" ? "rtl" : "ltr",
+              } as React.CSSProperties
+            }
             side={side}
           >
             <div className="flex h-full w-full flex-col">
               <div className="flex flex-col h-full px-2">
                 <div className="h-[30%] pt-4 mx-auto">
-                  <div className="flex flex-row-reverse gap-2 items-center mt-4 ">
-                    <div className="">
-                      <h2 className="font-bold lg:text-[14px] text-[12px] text-start">
-                        Roshita
+                  <div
+                    className={`flex gap-2 items-center mt-4 ${
+                      language === "en" ? "flex-row" : "flex-row-reverse"
+                    }`}
+                  >
+                    <div>
+                      <h2
+                        onClick={() => (window.location.href = "/")}
+                        className={`${
+                          language === "ar" ? "text-right" : "text-left"
+                        } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
+                      >
+                        {language === "ar" ? "روشــــــــيتــــــا" : "Roshita"}
                       </h2>
-                      <p className="font-[500] lg:text-[13px] text-[12px]">
-                        Better Health{" "}
+                      <p
+                        className={`${
+                          language === "ar" ? "text-right" : "text-left"
+                        } font-[500] lg:text-[16px] text-[12px]`}
+                      >
+                        {language === "ar" ? "صحــة أفضل" : "Better Health"}{" "}
                         <span className="text-roshitaGreen">
-                          Faster Connections
-                        </span>{" "}
+                          {language === "ar"
+                            ? "تواصـــــل أســرع"
+                            : "Faster Communication"}
+                        </span>
                       </p>
                     </div>
+
                     <img
                       src="/logos/ShortLogo.png"
                       alt="roshita logo"
-                      className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px]"
+                      className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
+                      onClick={() => (window.location.href = "/")}
                     />
                   </div>
                 </div>
                 <div className="h-[70%]">
-                {dataToMap.navMain.map((item) => {
-                  const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
-                  return (
-                    <SidebarMenuItem
-                      key={item.title}
-                      style={{ listStyleType: "none" }}
-                      className="h-10"
-                    >
-                      <SidebarMenuButton asChild>
-                        <a href={item.url} className="font-medium ">
-                          {/* Dynamically render the icon */}
-                          {IconComponent && (
-                            <IconComponent className="mr-2 h-6 w-6 mb-1" />
-                          )}{" "}
-                          {/* Apply margin-right for spacing */}
-                          {language === "ar" ? item.title : item.foreginTitle}
-                        </a>
-                      </SidebarMenuButton>
-                      {item.items?.length ? (
-                        <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem
-                              key={subItem.title}
-                              style={{ listStyleType: "none" }}
-                            >
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={subItem.isActive}
+                  {dataToMap.navMain.map((item) => {
+                    const IconComponent = iconMapping[item.icon]; // Get the component based on the string name
+                    return (
+                      <SidebarMenuItem
+                        key={item.title}
+                        style={{ listStyleType: "none" }}
+                        className="h-10"
+                      >
+                        <SidebarMenuButton asChild>
+                          <a href={item.url} className="font-medium ">
+                            {/* Dynamically render the icon */}
+                            {IconComponent && (
+                              <IconComponent className="mr-2 h-6 w-6 mb-1" />
+                            )}{" "}
+                            {/* Apply margin-right for spacing */}
+                            {language === "ar" ? item.title : item.foreginTitle}
+                          </a>
+                        </SidebarMenuButton>
+                        {item.items?.length ? (
+                          <SidebarMenuSub>
+                            {item.items.map((subItem) => (
+                              <SidebarMenuSubItem
+                                key={subItem.title}
+                                style={{ listStyleType: "none" }}
                               >
-                                <a href={subItem.url}>{subItem.title}</a>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      ) : null}
-                    </SidebarMenuItem>
-                  );
-                })}
-              </div>
-              <div className="h-[10%] flex justify-between items-center px-2">
-                <div onClick={handleLogout} className="h-4 w-4 cursor-pointer">
-                  <LogOut className="h-4 w-4 cursor-pointer" />
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={subItem.isActive}
+                                >
+                                  <a href={subItem.url}>{subItem.title}</a>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        ) : null}
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </div>
-                <LanguageSwitcher />
-              </div>
+                <div className="h-[10%] flex justify-between items-center px-2">
+                  <div
+                    onClick={handleLogout}
+                    className="h-4 w-4 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 cursor-pointer" />
+                  </div>
+                  <LanguageSwitcher />
+                </div>
               </div>
             </div>
           </SheetContent>
@@ -658,24 +695,41 @@ const Sidebar = React.forwardRef<
           >
             <div className="flex flex-col h-full px-2">
               <div className="h-[30%] pt-4 mx-auto">
-                <div className="flex flex-row-reverse gap-2 items-center mt-4 ">
-                  <div className="">
-                    <h2 className="font-bold lg:text-[14px] text-[12px] text-start">
-                      Roshita
-                    </h2>
-                    <p className="font-[500] lg:text-[13px] text-[12px]">
-                      Better Health{" "}
-                      <span className="text-roshitaGreen">
-                        Faster Connections
-                      </span>{" "}
-                    </p>
+              <div
+                    className={`flex gap-2 items-center mt-4 ${
+                      language === "en" ? "flex-row" : "flex-row-reverse"
+                    }`}
+                  >
+                    <div>
+                      <h2
+                        onClick={() => (window.location.href = "/")}
+                        className={`${
+                          language === "ar" ? "text-right" : "text-left"
+                        } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
+                      >
+                        {language === "ar" ? "روشــــــــيتــــــا" : "Roshita"}
+                      </h2>
+                      <p
+                        className={`${
+                          language === "ar" ? "text-right" : "text-left"
+                        } font-[500] lg:text-[16px] text-[12px]`}
+                      >
+                        {language === "ar" ? "صحــة أفضل" : "Better Health"}{" "}
+                        <span className="text-roshitaGreen">
+                          {language === "ar"
+                            ? "تواصـــــل أســرع"
+                            : "Faster Communication"}
+                        </span>
+                      </p>
+                    </div>
+
+                    <img
+                      src="/logos/ShortLogo.png"
+                      alt="roshita logo"
+                      className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
+                      onClick={() => (window.location.href = "/")}
+                    />
                   </div>
-                  <img
-                    src="/logos/ShortLogo.png"
-                    alt="roshita logo"
-                    className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px]"
-                  />
-                </div>
               </div>
               <div className="h-[70%]">
                 {dataToMap.navMain.map((item) => {

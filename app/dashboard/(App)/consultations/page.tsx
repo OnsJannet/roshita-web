@@ -80,7 +80,7 @@ export default function Page() {
       const response = await fetch(
         `https://test-roshita.net/api/consultation-requests/unreviewing_consultation/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
-          method: "GET",
+          method: "POST",
           headers: {
             accept: "application/json",
             Authorization: `Bearer ${token}`,
