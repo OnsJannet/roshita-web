@@ -40,10 +40,14 @@ const RequestCard: React.FC<RequestCardProps> = ({
     setIsTransferModalOpen(true);
   };
 
-    // Function to navigate to the details page
-    const handleDetailsClick = () => {
-      window.location.href=`/dashboard/consultations/${requestNumber}`;
-    };
+// Function to navigate to the details page
+const handleDetailsClick = () => {
+  const url =
+    userType === "doctor"
+      ? `/doctor-dashboard/consultations/${requestNumber}`
+      : `/dashboard/consultations/${requestNumber}`;
+  window.location.href = url;
+};
 
   return (
     <div

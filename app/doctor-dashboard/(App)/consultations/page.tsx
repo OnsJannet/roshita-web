@@ -1,11 +1,9 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
-import StatCard from "@/components/dashboard/StatCard";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import PaginationDemo from "@/components/shared/PaginationDemo";
 import RequestCard from "@/components/shared/RequestCard";
-
 import {
   SidebarInset,
   SidebarProvider,
@@ -18,161 +16,131 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // Import Select
+} from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Button } from "@/components/ui/button";
-import { format } from 'date-fns'; // Import format function from date-fns
-import { Folder } from "lucide-react";
+import { format } from "date-fns";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define the types for the data you're expecting from the API
-interface DoctorStaff {
-  first_name: string;
-  last_name: string;
-  staff_avatar: string;
-  medical_organization: string;
-  city: string;
-  address: string;
-}
-
-interface Doctor {
+interface Consultation {
   id: number;
-  staff: DoctorStaff;
-  specialty?: number;
-  fixed_price?: string;
-  rating?: number;
-  is_consultant: boolean;
-  create_date: Date;
+  diagnosis_description_request: string;
+  patient: {
+    id: number;
+    full_name: string;
+  };
+  specialty: {
+    id: number;
+    name: string;
+  };
+  patient_files: any[];
+  status: string;
+  requestDate?: string; // Add this field if available in the API response
 }
 
 interface APIResponse {
-  success: boolean;
-  data: Doctor[]; // The correct property is `data`, not `results`
-  total: number;
-  nextPage: string | null;
-  previousPage: string | null;
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Consultation[];
 }
-
-// Define the Payment type
-export type Payment = {
-  img: string;
-  id: string;
-  دكاترة: string;
-  "تاريخ الانضمام": Date;
-  التقييم: number;
-};
 
 type Language = "ar" | "en";
 
 export default function Page() {
-  const [tableData, setTableData] = useState<Payment[]>([]); // Now using Payment[] type
   const [language, setLanguage] = useState<Language>("ar");
-  const [lengthData, setLengthData] = useState(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [requestsPerPage] = useState(10); // Number of requests to display per page
-  const [selectedDate, setSelectedDate] = useState<Date | null | undefined>(null); // State for date filter
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>(""); // State for specialty filter
+  const [itemsPerPage] = useState(5);
+  const [totalPages, setTotalPages] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | null | undefined>(null);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"all" | "my">("all");
+  const [specialties, setSpecialties] = useState<
+    { id: number; name: string; foreign_name: string }[]
+  >([]);
 
-  const data = [
-    {
-      requestNumber: "1222233",
-      patientName: "علي احمد",
-      requestDate: "2025-10-01",
-      speciality: "Cardiology",
-    },
-    {
-      requestNumber: "1222234",
-      patientName: "محمد خالد",
-      requestDate: "2025-10-02",
-      speciality: "Dermatology",
-    },
-    {
-      requestNumber: "1222235",
-      patientName: "فاطمة علي",
-      requestDate: "2025-10-03",
-      speciality: "Orthopedics",
-    },
-    {
-      requestNumber: "1222236",
-      patientName: "ليلى محمد",
-      requestDate: "2025-10-04",
-      speciality: "Pediatrics",
-    },
-    {
-      requestNumber: "1222237",
-      patientName: "أحمد سعيد",
-      requestDate: "2025-10-05",
-      speciality: "Neurology",
-    },
-    {
-      requestNumber: "1222238",
-      patientName: "سارة عبدالله",
-      requestDate: "2025-10-06",
-      speciality: "Oncology",
-    },
-    {
-      requestNumber: "1222239",
-      patientName: "خالد حسن",
-      requestDate: "2025-10-07",
-      speciality: "Radiology",
-    },
-    {
-      requestNumber: "1222240",
-      patientName: "نورة علي",
-      requestDate: "2025-10-08",
-      speciality: "Gynecology",
-    },
-    {
-      requestNumber: "1222241",
-      patientName: "عبدالرحمن سليمان",
-      requestDate: "2025-10-09",
-      speciality: "Urology",
-    },
-    {
-      requestNumber: "1222242",
-      patientName: "مريم خالد",
-      requestDate: "2025-10-10",
-      speciality: "Psychiatry",
-    },
-    {
-      requestNumber: "1222243",
-      patientName: "يوسف أحمد",
-      requestDate: "2025-10-11",
-      speciality: "Endocrinology",
-    },
-    {
-      requestNumber: "1222244",
-      patientName: "حسن محمد",
-      requestDate: "2025-10-12",
-      speciality: "Gastroenterology",
-    },
-  ];
-
-  // Filter data based on selected date and specialty
-  const filteredData = data.filter((item) => {
-    const matchesDate = selectedDate
-      ? new Date(item.requestDate).toDateString() ===
-        selectedDate.toDateString()
-      : true;
-    const matchesSpecialty = selectedSpecialty
-      ? item.speciality === selectedSpecialty
-      : true;
-    return matchesDate && matchesSpecialty;
-  });
-
-  // Pagination logic for RequestCard
-  const indexOfLastRequest = currentPage * requestsPerPage;
-  const indexOfFirstRequest = indexOfLastRequest - requestsPerPage;
-  const currentRequests = filteredData.slice(
-    indexOfFirstRequest,
-    indexOfLastRequest
-  );
-
-  const totalPages = Math.ceil(filteredData.length / requestsPerPage);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  // Helper function to check if a date string is valid
+  const isValidDate = (dateString: string | undefined): boolean => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()); // Check if the date is valid
   };
 
+  // Fetch consultations for a specific doctor
+  const fetchDoctorConsultations = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("access");
+      const userId = localStorage.getItem("userId")
+      const response = await fetch(
+        `https://test-roshita.net/api/consultation-requests/by_doctor/${userId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch consultations");
+      }
+
+      const data: APIResponse = await response.json();
+      console.log("API Response Data:", data);
+      setConsultations(data.results || []);
+      setTotalPages(Math.ceil(data.count / itemsPerPage));
+    } catch (error) {
+      console.error("Error fetching consultations:", error);
+      setConsultations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch specialties from the API
+  const fetchSpecialties = async () => {
+    try {
+      const token = localStorage.getItem("access");
+      const response = await fetch(
+        "https://test-roshita.net/api/specialty-list/",
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch specialties");
+      }
+
+      const data = await response.json();
+      setSpecialties(data);
+    } catch (error) {
+      console.error("Error fetching specialties:", error);
+    }
+  };
+
+  // Fetch consultations based on the active tab
+  useEffect(() => {
+    if (activeTab === "all") {
+      fetchDoctorConsultations();
+    }
+  }, [currentPage, itemsPerPage, activeTab]);
+
+  // Fetch specialties when the component mounts
+  useEffect(() => {
+    fetchSpecialties();
+  }, []);
+
+  // Handle language change
   useEffect(() => {
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       const storedLanguage = localStorage.getItem("language");
@@ -196,58 +164,10 @@ export default function Page() {
     }
   }, []);
 
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // Fetch function
-  const fetchData = async () => {
-    try {
-      if (
-        typeof window !== "undefined" &&
-        typeof localStorage !== "undefined"
-      ) {
-        const accessToken = localStorage.getItem("access");
-
-        if (!accessToken) {
-          throw new Error("Access token not found");
-        }
-
-        const response = await fetch(
-          `/api/doctors/getDoctors?page=${currentPage}&limit=5`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) throw new Error("Failed to fetch data");
-
-        const result: APIResponse = await response.json();
-
-        console.log("result", result);
-        setLengthData(result.total);
-
-        const paymentData: Payment[] = result.data.map((doctor) => ({
-          img: doctor.staff.staff_avatar,
-          id: doctor.id.toString(),
-          دكاترة: `دكتور ${doctor.staff.first_name} ${doctor.staff.last_name}`,
-          "تاريخ الانضمام": new Date(doctor.create_date),
-          التقييم: doctor.rating || 0,
-        }));
-
-        setTableData(paymentData);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [currentPage]);
 
   // Breadcrumb items
   const items = [
@@ -257,6 +177,34 @@ export default function Page() {
       href: "/dashboard/consultations",
     },
   ];
+
+  // Filter consultations based on selected date and specialty
+  const filterConsultations = (consultations: Consultation[]) => {
+    let filteredConsultations = consultations;
+
+    // Filter by selected date (if available)
+    if (selectedDate) {
+      filteredConsultations = filteredConsultations.filter((consultation) => {
+        // Check if the requestDate is valid
+        if (!isValidDate(consultation.requestDate)) return false;
+
+        const consultationDate = new Date(consultation.requestDate!); // Safe to use ! because we checked validity
+        return (
+          consultationDate.toISOString().split("T")[0] ===
+          selectedDate.toISOString().split("T")[0]
+        );
+      });
+    }
+
+    // Filter by selected specialty (if available)
+    if (selectedSpecialty) {
+      filteredConsultations = filteredConsultations.filter(
+        (consultation) => consultation.specialty.name === selectedSpecialty
+      );
+    }
+
+    return filteredConsultations;
+  };
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -288,36 +236,33 @@ export default function Page() {
               <div className="p-4 flex flex-col gap-4">
                 {/* Filter Section */}
                 <div className="flex gap-4 items-center">
-                  {/* Date Picker */}
-                  <DatePicker
-                  /* @ts-ignore */
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    placeholder="Select a date"
-                  />
+                  {/* Tabs for All Requests and My Requests */}
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={(value) =>
+                      setActiveTab(value as "all" | "my")
+                    }
+                  >
+                    <TabsList>
+                      <TabsTrigger value="all">
+                        {language === "ar" ? "جميع الطلبات" : "All Requests"}
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
 
                   {/* Specialty Dropdown */}
                   <Select onValueChange={setSelectedSpecialty}>
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select specialty" />
+                      <SelectValue placeholder={language === "ar" ? "اختر التخصص" : "Select specialty"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Cardiology">Cardiology</SelectItem>
-                      <SelectItem value="Dermatology">Dermatology</SelectItem>
-                      <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                      <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                      <SelectItem value="Neurology">Neurology</SelectItem>
-                      <SelectItem value="Oncology">Oncology</SelectItem>
-                      <SelectItem value="Radiology">Radiology</SelectItem>
-                      <SelectItem value="Gynecology">Gynecology</SelectItem>
-                      <SelectItem value="Urology">Urology</SelectItem>
-                      <SelectItem value="Psychiatry">Psychiatry</SelectItem>
-                      <SelectItem value="Endocrinology">
-                        Endocrinology
-                      </SelectItem>
-                      <SelectItem value="Gastroenterology">
-                        Gastroenterology
-                      </SelectItem>
+                      {specialties.map((specialty) => (
+                        <SelectItem key={specialty.id} value={specialty.name}>
+                          {language === "ar"
+                            ? specialty.name
+                            : specialty.foreign_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
 
@@ -325,7 +270,7 @@ export default function Page() {
                   <div className="flex gap-2 items-center">
                     {selectedDate && (
                       <div className="px-3 py-1 bg-gray-100 rounded-md text-sm">
-                        Date: {format(selectedDate, 'yyyy-MM-dd')}
+                        Date: {format(selectedDate, "yyyy-MM-dd")}
                       </div>
                     )}
                     {selectedSpecialty && (
@@ -350,25 +295,33 @@ export default function Page() {
                 </div>
 
                 {/* Request Cards */}
-                {currentRequests.map((item, index) => (
-                  <RequestCard
-                    key={index}
-                    requestNumber={item.requestNumber}
-                    patientName={item.patientName}
-                    requestDate={item.requestDate}
-                    speciality={item.speciality}
-                    language={language}
-                    //doctors={tableData}
-                    userType="hospital"
-                  />
-                ))}
+                {filterConsultations(consultations).length > 0 ? (
+                  filterConsultations(consultations).map((consultation) => (
+                    <RequestCard
+                      key={consultation.id}
+                      requestNumber={consultation.id.toString()}
+                      patientName={consultation.patient.full_name}
+                      requestDate={"2025-10-01"} // Replace with actual date if available
+                      speciality={consultation.specialty.name}
+                      language={language}
+                      userType="doctor"
+                    />
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 mt-40">
+                    {language === "ar"
+                      ? "لا توجد استشارات لعرضها"
+                      : "No consultations to display"}
+                  </div>
+                )}
 
-                {/* Pagination */}
-                <PaginationDemo
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
+                {filterConsultations(consultations).length > 0 && (
+                  <PaginationDemo
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
               </div>
             )}
           </div>

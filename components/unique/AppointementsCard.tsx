@@ -42,6 +42,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
+  console.log("status222", status)
+
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
@@ -63,32 +65,37 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     };
   }, []);
 
+  console.log("reservationDate", day);
+
   const handleCancelClick = () => {
     // Sanitize the `day` string to remove any unwanted Unicode characters
-    const sanitizedDay = day.replace(/[^\x00-\x7F]/g, "");
+    const sanitizedDay = day.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
 
-    // Sanitize the `time` string to convert it into a 24-hour format
-    const sanitizedTime = time
-      .replace(/ص/g, "AM") // Replace Arabic "ص" with "AM"
-      .replace(/م/g, "PM"); // Replace Arabic "م" with "PM"
+    // Split the sanitized day into parts
+    const [dayPart, monthPart, yearPart] = sanitizedDay.split('/');
 
-    // Log the sanitized day and time for debugging
-    console.log("sanitizedDay", sanitizedDay);
-    console.log("sanitizedTime", sanitizedTime);
+    // Create a valid date string in the format YYYY-MM-DD
+    const formattedDate = `${yearPart}-${monthPart.padStart(2, '0')}-${dayPart.padStart(2, '0')}`;
 
-    // Create the appointment date using the sanitized day and time
-    const appointmentDate = new Date(`${sanitizedDay} ${sanitizedTime}`);
+    // Create a Date object for the reservation date (ignoring the time)
+    const reservationDateObj = new Date(formattedDate);
+
+    // Get the current date (ignoring the time)
     const currentDate = new Date();
-    const timeDifference = appointmentDate.getTime() - currentDate.getTime();
+    currentDate.setHours(0, 0, 0, 0); // Set time to 00:00:00 to ignore the time part
+
+    // Calculate the difference in milliseconds
+    const timeDifference = reservationDateObj.getTime() - currentDate.getTime();
+
+    // Convert the difference to hours
     const hoursDifference = timeDifference / (1000 * 60 * 60);
 
     // Log all values for debugging
-    console.log("day", day);
-    console.log("time", time);
-    console.log("hoursDifference", hoursDifference);
-    console.log("appointmentDate", appointmentDate);
+    console.log("sanitizedDay", sanitizedDay);
+    console.log("formattedDate", formattedDate);
+    console.log("reservationDateObj", reservationDateObj);
     console.log("currentDate", currentDate);
-    console.log("timeDifference", timeDifference);
+    console.log("hoursDifference", hoursDifference);
 
     // Set the modal message based on the time difference
     if (isNaN(hoursDifference)) {
@@ -124,6 +131,36 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
 
   const handleConfirmCancel = async () => {
     try {
+      // Sanitize the `day` string to remove any unwanted Unicode characters
+      const sanitizedDay = day.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
+
+      // Split the sanitized day into parts
+      const [dayPart, monthPart, yearPart] = sanitizedDay.split('/');
+
+      // Create a valid date string in the format YYYY-MM-DD
+      const formattedDate = `${yearPart}-${monthPart.padStart(2, '0')}-${dayPart.padStart(2, '0')}`;
+
+      // Create a Date object for the reservation date (ignoring the time)
+      const reservationDateObj = new Date(formattedDate);
+
+      // Get the current date (ignoring the time)
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Set time to 00:00:00 to ignore the time part
+
+      // Calculate the difference in milliseconds
+      const timeDifference = reservationDateObj.getTime() - currentDate.getTime();
+
+      // Convert the difference to hours
+      const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+      // Log all values for debugging
+      console.log("sanitizedDay", sanitizedDay);
+      console.log("formattedDate", formattedDate);
+      console.log("reservationDateObj", reservationDateObj);
+      console.log("currentDate", currentDate);
+      console.log("hoursDifference", hoursDifference);
+
+      // Send the cancellation request
       const url = `https://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
       const response = await fetch(url, {
         method: "DELETE",
@@ -136,6 +173,29 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       if (response.ok) {
         setStatus("canceled");
         setIsCancelModalOpen(false);
+
+        // Send a refund request if hoursDifference <= 48
+        if (hoursDifference <= 48) {
+          try {
+            const token = localStorage.getItem("access"); // Get the token from local storage
+            const refundResponse = await fetch("https://test-roshita.net/api/reservation/refund/", {
+              method: "POST",
+              headers: {
+                "accept": "application/json",
+                "X-CSRFToken": "VW6vgz0DcMQo9uu1fdvTgX9IGYZEQ0vSfHbSYe8pIQGw6kHJiPzHLAkCDplVi4FO", // Replace with your actual CSRF token
+                "Authorization": `Bearer ${token}`, // Include the bearer token
+              },
+            });
+
+            if (refundResponse.ok) {
+              console.log("Refund request successful");
+            } else {
+              console.error("Refund request failed:", refundResponse.statusText);
+            }
+          } catch (error) {
+            console.error("Error during refund request:", error);
+          }
+        }
       } else {
         const errorMsg =
           language === "ar"
@@ -258,7 +318,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
                   : "lg:justify-end justify-between"
               } mt-4`}
             >
-              {status === "canceled" ? (
+              {status === "Cancelled" ? (
                 <span className="text-red-500 text-lg">
                   {language === "ar" ? "تم الإلغاء" : "Canceled"}
                 </span>

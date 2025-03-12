@@ -300,40 +300,45 @@ const Page = () => {
                 {errorMessage}
               </div>
             )}
-            <div className="flex flex-col gap-4">
-              {currentItems.length > 0 ? (
-                currentItems.map((appointment) => (
-                  <AppointementsCard
-                    key={appointment.id}
-                    appointementId={appointment.id}
-                    doctorID={appointment.doctor.id}
-                    name={`${appointment.doctor.name} ${appointment.doctor.last_name}`}
-                    specialty={appointment.doctor.specialty}
-                    price={appointment.price}
-                    location=""
-                    imageUrl=""
-                    day={new Date(
-                      appointment.reservation.reservation_date
-                    ).toLocaleDateString(language)}
-                    time={new Date(
-                      appointment.reservation.reservation_date
-                    ).toLocaleTimeString(language, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                    appointementStatus={
-                      appointment.reservation.reservation_status
-                    }
-                    status={appointment.reservation_status || ""}
-                    onError={handleError}
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-500">
-                  {translations[language].noAppointments}
-                </div>
-              )}
-            </div>
+<div className="flex flex-col gap-4">
+  {currentItems.length > 0 ? (
+    currentItems.map((appointment) => {
+      // Log the current appointment item
+      console.log("Current Appointment:", appointment);
+
+      return (
+        <AppointementsCard
+          key={appointment.id}
+          appointementId={appointment.id}
+          doctorID={appointment.doctor.id}
+          name={`${appointment.doctor.name} ${appointment.doctor.last_name}`}
+          specialty={appointment.doctor.specialty}
+          price={appointment.price}
+          location=""
+          imageUrl=""
+          day={new Date(
+            appointment.reservation.reservation_date
+          ).toLocaleDateString(language)}
+          time={new Date(
+            appointment.reservation.reservation_date
+          ).toLocaleTimeString(language, {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          appointementStatus={
+            appointment.reservation.reservation_status
+          }
+          status={appointment.reservation.reservation_status}
+          onError={handleError}
+        />
+      );
+    })
+  ) : (
+    <div className="text-center text-gray-500">
+      {translations[language].noAppointments}
+    </div>
+  )}
+</div>
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
