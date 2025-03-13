@@ -15,10 +15,20 @@ import {
   Phone,
   Settings,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { paiement } from "@/constant";
+import { Separator } from "@/components/ui/separator";
 
 type Language = "ar" | "en";
 
@@ -154,6 +164,13 @@ const Profile = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [walletBalance, setWalletBalance] = useState<string | null>(null);
+
+  const handleClick = (id: number) => {
+    setSelectedId(id);
+  };
 
   const cities = [
     { id: 1, country: 2, name: "تونس العاصمة", foreign_name: "Tunis" },
@@ -183,6 +200,54 @@ const Profile = () => {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
+  }, []);
+
+  const fetchWalletBalance = async () => {
+    const token = localStorage.getItem("access");
+
+    if (!token) {
+      throw new Error("No token found. Please log in.");
+    }
+
+    try {
+      const response = await fetch(
+        "https://test-roshita.net/api/user-wallet/",
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            "X-CSRFToken":
+              "pv96AS6rTm7qURY7HtfGNONOhQa6JwJHJgetixedpqXyRHbPK5juirYIehwnbATD",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error fetching wallet balance: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      return data.balance; // Assuming the response contains a 'balance' field
+    } catch (error) {
+      console.error("Error fetching wallet balance:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const loadWalletBalance = async () => {
+      try {
+        const balance = await fetchWalletBalance();
+        setWalletBalance(balance);
+      } catch (error) {
+        console.error("Error loading wallet balance", error);
+      }
+    };
+
+    loadWalletBalance();
   }, []);
 
   const [profileData, setProfileData] = useState<EditProfileData>({
@@ -375,6 +440,72 @@ const Profile = () => {
             </div>
           </div>
           <div className="flex gap-10 text-end flex-col w-[80%] mx-auto bg-white p-4">
+            <div className="mt-4">
+              <h2
+                className={` ${
+                  language === "ar" ? "text-ent" : "text-start"
+                } text-[16px] font-bold mb-6`}
+              >
+                {language === "ar" ? "المحفظـة" : "Wallet"}
+              </h2>
+
+              {language === "ar" ? (
+                <Label className="text-start">القيمة الحالية</Label>
+              ) : (
+                <div className="w-full flex">
+                  <Label className="text-end pb-2">Wallet Balance</Label>
+                </div>
+              )}
+
+              <div
+                className={`flex ${
+                  language === "ar" ? "flex-row-reverse" : "flex-row"
+                } gap-2 items-center rounded-lg bg-gray-50 border px-4 mt-2`}
+              >
+                <div
+                  className={`flex ${
+                    language === "ar"
+                      ? "flex-row-reverse justify-start"
+                      : "flex-row justify-end"
+                  } items-center w-[80%] gap-0`}
+                >
+                  <Wallet
+                    className={`text-roshitaBlue ${
+                      language === "ar" ? "ml-2" : "mr-2"
+                    }`}
+                  />
+                  <Input
+                    value={walletBalance  || "0"}
+                    disabled
+                    placeholder={
+                      language === "ar" ? "القيمة الحالية" : "Wallet Balance"
+                    }
+                    className={`border-transparent shadow-none h-[50px]  ${
+                      language === "ar" ? "text-end" : "text-start"
+                    }`}
+                  />
+                </div>
+
+                <Button
+                  onClick={() => setShowPopup(true)}
+                  className="bg-roshitaDarkBlue text-white w-[20%]"
+                >
+                  {language === "ar" ? "شحن" : "Charge"}
+                </Button>
+              </div>
+            </div>
+
+            <Separator className="my-4 w-[90%] mx-auto" />
+
+            <h2
+              className={` ${
+                language === "ar" ? "text-ent" : "text-start"
+              } text-[16px] font-bold`}
+            >
+              {" "}
+              {language === "ar" ? "معلومات المستخدم" : "User Information"}
+            </h2>
+
             {successMessage && (
               <p className="text-green-400">{successMessage}</p>
             )}
@@ -634,6 +765,75 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <Dialog open={showPopup} onOpenChange={setShowPopup}>
+        <DialogTrigger asChild>
+          {/* Button already added in the wallet section */}
+        </DialogTrigger>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle
+              className={`text-center ${
+                language === "ar" ? "text-center" : "text-center"
+              }`}
+            >
+              {language === "ar" ? "شحن المحفظة" : "Charge Wallet"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <p
+              className={`${
+                language === "ar" ? "text-right" : "text-left"
+              } font-semibold`}
+            >
+              {language === "ar" ? "المبلغ" : "Amount"}
+            </p>
+            <Input
+              type="number"
+              placeholder={language === "ar" ? "المبلغ" : "Amount"}
+              className="mt-2 text-right"
+            />
+
+            {/* Payment Options */}
+            <div className="mt-4">
+              <p
+                className={`${
+                  language === "ar" ? "text-right" : "text-left"
+                } font-semibold`}
+              >
+                {language === "ar" ? "طرق الدفع" : "Payment Methods"}
+              </p>
+              <div className="flex flex-wrap gap-4 mt-2">
+                {paiement.map((option) => (
+                  <div
+                    key={option.id}
+                    className={`flex ${
+                      language === "en" ? "flex-row" : "flex-row-reverse"
+                    } justify-start gap-2 items-center p-4 rounded-lg cursor-pointer transition-colors w-full ${
+                      selectedId === option.id
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200"
+                    }`}
+                    onClick={() => handleClick(option.id)}
+                  >
+                    <img
+                      src={option.image}
+                      alt={language === "en" ? option.name_en : option.name}
+                      className="w-16 h-16 mb-2 object-contain"
+                    />
+                    <span className="text-lg font-semibold">
+                      {language === "en" ? option.name_en : option.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Button className="mt-4 bg-roshitaDarkBlue w-full">
+              {language === "ar" ? "شحن" : "Charge"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

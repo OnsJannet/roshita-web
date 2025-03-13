@@ -149,7 +149,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           const data = await response.json();
           console.log("data", data);
           allAppointments = [...allAppointments, ...data.results];
-  
+          
           if (data.next) {
             nextPage += 1;
           } else {
@@ -183,6 +183,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         setTotalPages(
           Math.ceil(filteredAppointments.length / APPOINTMENTS_PER_PAGE)
         );
+        
       } catch (error) {
         console.error("Error fetching appointments:", error);
       } finally {

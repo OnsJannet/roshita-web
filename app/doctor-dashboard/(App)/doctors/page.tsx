@@ -880,7 +880,7 @@ export default function Page() {
 
                 <div className=" p-4 flex  flex-col justify-center">
                   <div className="mb-4">
-                    <PlannerDoctorAll language={language} />
+                  <PlannerDoctor language={language} />
                   </div>
                 </div>
 

@@ -5,16 +5,6 @@ import AppointementsCard from "@/components/unique/AppointementsCard"; // Adjust
 import { useRouter } from "next/navigation";
 import { fetchProfileDetails } from "@/lib/api";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
-import ConsultationDropdown from "@/components/shared/ConsultationDropdown";
-import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination"; // Import your pagination components
 
 type Language = "ar" | "en";
 
@@ -29,7 +19,6 @@ const translations = {
     next: "Next",
     previous: "Previous",
     noAppointments: "No appointments to display",
-    noConsultations: "No consultations to display",
   },
   ar: {
     settings: "الإعدادات",
@@ -41,7 +30,6 @@ const translations = {
     next: "التالي",
     previous: "السابق",
     noAppointments: "لا توجد مواعيد لعرضها",
-    noConsultations: "لا توجد استشارات لعرضها",
   },
 };
 
@@ -50,39 +38,49 @@ interface EditProfileData {
     first_name: string;
     last_name: string;
     email: string;
+    id: string;
   };
-  gender: string;
-  service_country: number;
-  birthday: string;
-  city: number;
-  user_type: number;
+  gender: string; // "male", "female", etc.
+  service_country: number; // assuming this is an ID for a country
+  birthday: string; // ISO date string
+  city: number; // assuming this is an ID for the city
+  user_type: number; // assuming this is an ID for user type
   address: string;
 }
 
-interface Consultation {
-  id: number;
-  diagnosis_description_request: string;
-  patient: number;
-  specialty: number;
-  patient_files: any[];
-  status: string;
-}
+/**
+ * The main user page where users can manage their appointments, change settings,
+ * and log out from their account. The page adapts to the selected language (Arabic or English).
+ *
+ * Key Features:
+ * - Language support: The page dynamically switches between Arabic and English based on user preference.
+ * - Appointment filtering: Users can view either upcoming or past appointments using filtering options.
+ * - Navigation: The page includes clickable options for settings, password change, appointments, and logging out.
+ * - Data handling: Appointments are fetched from `localStorage` and displayed based on the selected filter.
+ * - Appointment Cards: Each appointment is displayed using the `AppointementsCard` component, which shows details
+ *   like doctor name, specialty, price, and appointment date/time.
+ * - User profile section: Displays the user's avatar and provides navigation links to settings and password change pages.
+ * - Local storage integration: The user's language preference and appointment data are saved in `localStorage`, and changes
+ *   are automatically reflected in the UI.
+ * - The page is structured using a responsive layout to ensure a smooth user experience across devices.
+ */
 
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
-  const [filterType, setFilterType] = useState<"previous" | "next">("next");
-  const router = useRouter();
+  const [filterType, setFilterType] = useState<"previous" | "next">("next"); // New state for filtering
+  const router = useRouter(); // Initialize useRouter
   const [language, setLanguage] = useState<Language>("ar");
   const [errorMessage, setErrorMessage] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
       first_name: "",
       last_name: "",
       email: "",
+      id: "",
     },
     gender: "",
     service_country: 2,
@@ -91,38 +89,40 @@ const Page = () => {
     user_type: 0,
     address: "",
   });
-  const [consultations, setConsultations] = useState<Consultation[]>([]);
-  const [currentPage, setCurrentPage] = useState(1); // Track current page
-  const [itemsPerPage, setItemsPerPage] = useState(5); // Items per page
-  const [totalPages, setTotalPages] = useState(0); // Total pages based on count
+
+  const patientId = "9";
 
   useEffect(() => {
+    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
+      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
     } else {
-      setLanguage("ar");
+      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
     }
 
+    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
 
+    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   useEffect(() => {
+    // Fetch the appointments from localStorage
     const storedAppointments = localStorage.getItem("appointments");
     if (storedAppointments) {
       const parsedAppointments = JSON.parse(storedAppointments);
       setAppointments(parsedAppointments);
-      filterAppointments(parsedAppointments, "next");
+      filterAppointments(parsedAppointments, "next"); // Set default to show next appointments
     }
   }, []);
 
@@ -130,16 +130,22 @@ const Page = () => {
     const loadProfileData = async () => {
       try {
         const data = await fetchProfileDetails();
+
+        // Check the structure of the fetched data
+        console.log("Fetched profile data:", data);
+
+        // Update profileData with the fetched data
         setProfileData({
           user: {
             first_name: data.user?.first_name || "",
             last_name: data.user?.last_name || "",
             email: data.user?.email || "",
+            id: data.user?.id || "",
           },
           gender: data.gender || "",
-          service_country: data.service_country || 2,
+          service_country: data.service_country || 2, // Ensure default values are not 0
           birthday: data.birthday || "",
-          city: data.city || 1,
+          city: data.city || 1, // Ensure default values are not 0
           user_type: data.user_type || 0,
           address: data.address || "",
         });
@@ -151,45 +157,54 @@ const Page = () => {
     loadProfileData();
   }, []);
 
-  useEffect(() => {
-    const fetchConsultations = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem("access");
-        const patientId = localStorage.getItem("patientId");
-        const response = await fetch(
-          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/`,
-          {
-            method: "GET",
-            headers: {
-              accept: "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-  
-        if (!response.ok) {
-          throw new Error("Failed to fetch consultations");
+  const fetchNotifications = async (patientId: string) => {
+    try {
+      const token = localStorage.getItem("access");
+      console.log("Access Token:", token); // Debugging
+
+      if (!token) {
+        throw new Error("No access token found. Please log in.");
+      }
+
+      const response = await fetch(
+        `http://test-roshita.net/api/notifications/${patientId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-  
-        const data = await response.json();
-        setConsultations(data.results); // Set consultations to the `results` array
-        setTotalPages(Math.ceil(data.count / itemsPerPage)); // Use `count` for total pages
-      } catch (error) {
-        console.error("Error fetching consultations:", error);
-        setError("Failed to fetch consultations. Please try again.");
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch notifications: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchNotifications(profileData.user.id);
+        setNotifications(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
     };
-  
-    fetchConsultations();
-  }, []);
 
-  // Slice consultations to display only the current page's items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentConsultations = consultations.slice(indexOfFirstItem, indexOfLastItem);
+    loadNotifications();
+  }, [patientId, profileData]);
 
   const filterAppointments = (
     appointments: any[],
@@ -238,12 +253,12 @@ const Page = () => {
   const handleError = (errorMessage: string) => {
     console.error("Error from child:", errorMessage);
     setErrorMessage(errorMessage);
+    // Handle the error (e.g., show a notification or update the state)
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  console.log("filteredAppointments", filteredAppointments);
 
+  // Render loading or error states after all hooks are called
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -256,11 +271,7 @@ const Page = () => {
     return <div>Error: {error}</div>;
   }
 
-  return loading ? (
-    <div className="bg-white flex items-center justify-center min-h-screen">
-      <LoadingDoctors />
-    </div>
-  ) : (
+  return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
         <div
@@ -333,82 +344,32 @@ const Page = () => {
               </div>
             </div>
           </div>
-          <div className="lg:w-[80%]">
+          <div className="flex gap-10 text-end flex-col w-[80%] mx-auto">
+            {/* New Card */}
             <div
-              className={`flex mb-4 ${
-                language === "ar" ? "lg:flex-row" : "lg:flex-row-reverse"
-              }`}
+              className="bg-white p-6 rounded-lg"
+              dir={language === "ar" ? "rtl" : "ltr"}
             >
-              <Button
-                className="bg-[#1584c5]"
-                onClick={() => (window.location.href = "/create-consultation")}
-              >
-                {language === "en"
-                  ? "Create New Consultation"
-                  : "إنشاء استشارة جديدة"}
-              </Button>
-            </div>
-            {currentConsultations.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {currentConsultations.map((consultation) => (
-                  <ConsultationDropdown
-                    key={consultation.id}
-                    requestId={consultation.id}
-                    hospitalName=""
-                    notificationMessage=""
-                    date=""
-                    consultationType="استشارة خاصة"
-                    doctorMessage=""
-                    patientMessage={consultation.diagnosis_description_request}
-                    language={language}
-                    files={consultation.patient_files}
-                    consultationStatus={consultation.status}
-                  />
-                ))}
+              <div className="flex justify-start gap-2 items-center">
+                <Bell className="mb-4 text-roshitaDarkBlue" />
+                <h2
+                  className={`text-xl font-bold text-gray-800 mb-4 ${
+                    language === "ar" ? "text-start" : "text-end"
+                  }`}
+                >
+                  {language === "ar"
+                    ? "تم قبول حالتك في مستشفى الصحة من قبل د زياد"
+                    : "Your case has been accepted at Al-Seha Hospital by Dr. Ziad"}
+                </h2>
               </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                {translations[language].noConsultations}
-              </p>
-            )}
-            {/* Pagination Controls */}
-            <Pagination className="mt-6">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => {
-                      if (currentPage > 1) handlePageChange(currentPage - 1);
-                    }}
-                    className={
-                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-                    }
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <PaginationItem key={index + 1}>
-                    <PaginationLink
-                      isActive={currentPage === index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => {
-                      if (currentPage < totalPages)
-                        handlePageChange(currentPage + 1);
-                    }}
-                    className={
-                      currentPage === totalPages
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+              <button
+                className={`text-white bg-roshitaDarkBlue border-none focus:outline-none py-2 px-4 rounded-md ${
+                  language === "ar" ? "text-start" : "text-end"
+                }`}
+              >
+                {language === "ar" ? "عرض" : "Show"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
