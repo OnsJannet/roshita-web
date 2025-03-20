@@ -353,71 +353,65 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                         name="first_name"
                         value={formData.first_name}
                         onChange={handleInputChange}
+                        className={
+                          language === "ar" ? "placeholder:text-right" : ""
+                        }
                       />
                       <Input
                         placeholder={language === "en" ? "Last Name" : "اللقب"}
                         name="last_name"
                         value={formData.last_name}
                         onChange={handleInputChange}
+                        className={
+                          language === "ar" ? "placeholder:text-right" : ""
+                        }
                       />
                       {/* Dropdown for Relative */}
                       <Select
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, relative: value })
-                        }
-                        value={formData.relative}
-                      >
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              language === "en"
-                                ? "Select Relative"
-                                : "اختر صلة القرابة"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Father">
-                            {language === "en" ? "Father" : "أب"}
-                          </SelectItem>
-                          <SelectItem value="Mother">
-                            {language === "en" ? "Mother" : "أم"}
-                          </SelectItem>
-                          <SelectItem value="Daughter">
-                            {language === "en" ? "Daughter" : "ابنة"}
-                          </SelectItem>
-                          <SelectItem value="Son">
-                            {language === "en" ? "Son" : "ابن"}
-                          </SelectItem>
-                          <SelectItem value="Grandfather">
-                            {language === "en" ? "Grandfather" : "جد"}
-                          </SelectItem>
-                          <SelectItem value="Grandmother">
-                            {language === "en" ? "Grandmother" : "جدة"}
-                          </SelectItem>
-                          <SelectItem value="Brother">
-                            {language === "en" ? "Brother" : "أخ"}
-                          </SelectItem>
-                          <SelectItem value="Sister">
-                            {language === "en" ? "Sister" : "أخت"}
-                          </SelectItem>
-                          <SelectItem value="Uncle">
-                            {language === "en" ? "Uncle" : "عم / خال"}
-                          </SelectItem>
-                          <SelectItem value="Aunt">
-                            {language === "en" ? "Aunt" : "عمة / خالة"}
-                          </SelectItem>
-                          <SelectItem value="Cousin">
-                            {language === "en" ? "Cousin" : "ابن عم / ابن خال"}
-                          </SelectItem>
-                          <SelectItem value="Husband">
-                            {language === "en" ? "Husband" : "زوج"}
-                          </SelectItem>
-                          <SelectItem value="Wife">
-                            {language === "en" ? "Wife" : "زوجة"}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+  onValueChange={(value) => setFormData({ ...formData, relative: value })}
+  value={formData.relative}
+>
+  <SelectTrigger
+    className={`w-full ${language === "ar" ? "text-right rtl" : "text-left"}`}
+  >
+    <SelectValue
+      placeholder={
+        language === "en" ? "Select Relative" : "اختر صلة القرابة"
+      }
+    />
+  </SelectTrigger>
+  <SelectContent
+    className={`absolute top-full w-[460px] mt-1 z-50 max-h-48 overflow-auto bg-white shadow-md border rounded-md 
+      ${language === "ar" ? "right-0" : "left-0"}`}
+  >
+    {[
+      { value: "Father", en: "Father", ar: "أب" },
+      { value: "Mother", en: "Mother", ar: "أم" },
+      { value: "Daughter", en: "Daughter", ar: "ابنة" },
+      { value: "Son", en: "Son", ar: "ابن" },
+      { value: "Grandfather", en: "Grandfather", ar: "جد" },
+      { value: "Grandmother", en: "Grandmother", ar: "جدة" },
+      { value: "Brother", en: "Brother", ar: "أخ" },
+      { value: "Sister", en: "Sister", ar: "أخت" },
+      { value: "Uncle", en: "Uncle", ar: "عم / خال" },
+      { value: "Aunt", en: "Aunt", ar: "عمة / خالة" },
+      { value: "Cousin", en: "Cousin", ar: "ابن عم / ابن خال" },
+      { value: "Husband", en: "Husband", ar: "زوج" },
+      { value: "Wife", en: "Wife", ar: "زوجة" },
+    ].map((item) => (
+      <SelectItem
+        key={item.value}
+        value={item.value}
+        className={`px-3 py-2 ${
+          language === "ar" ? "text-right" : "text-left"
+        }`}
+      >
+        {language === "en" ? item.en : item.ar}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
                     </div>
                     <div className="mt-4 flex justify-end gap-2">
                       <Button
@@ -551,7 +545,9 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   : { id: patientID || "", relative: "Myself" }
               }
               familymember={selectedFamilyOption}
-              familymemberType={newFamilyMember ? "newFamilyMember" : "existingFamilyMember"}
+              familymemberType={
+                newFamilyMember ? "newFamilyMember" : "existingFamilyMember"
+              }
               paymentMethod={
                 selectedId
                   ? paiement.find((option) => option.id === selectedId)

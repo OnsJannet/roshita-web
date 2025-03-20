@@ -522,7 +522,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}`,
+        `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
         {
           method: "POST",
           headers: {
@@ -540,7 +540,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         console.log("Marked as not attended successfully");
         await logAction(
           token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "success",
           response.status
@@ -550,7 +550,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           response.status,
@@ -563,7 +563,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `https://www.test-roshita.net/api/mark-not-attend/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           //@ts-ignore

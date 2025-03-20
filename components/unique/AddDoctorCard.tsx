@@ -147,7 +147,7 @@ const AddDoctorCard = () => {
       if (response.ok) {
         console.log(`Deleted doctor with ID: ${id}`);
         // Refresh the page or update the list to reflect the changes
-        window.location.reload();
+        //window.location.reload();
       } else {
         console.error("Failed to delete doctor");
       }
@@ -185,8 +185,9 @@ const AddDoctorCard = () => {
   const addDoctorText = translations[language].addDoctor;
   const cancelText = translations[language].cancel;
 
-  const onConfirm = () => {
-    handleDelete;
+  const onConfirm = (id: number) => {
+    console.log("entered on confirm with ID:", id);
+    handleDelete(id);
   };
 
   return (
@@ -253,7 +254,7 @@ const AddDoctorCard = () => {
                     <AlertDialogFooter>
                       <AlertDialogCancel>{cancelText}</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={onConfirm}
+                        onClick={() => onConfirm(parseInt(doctor.id))}
                         className="bg-red-600 hover:bg-red-400"
                       >
                         {buttonText}

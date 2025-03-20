@@ -80,10 +80,10 @@ export function DoctorPieChart() {
 
   return (
     <Card className="flex flex-col pb-[32px]">
-<CardHeader className="pb-0 flex flex-col justify-start mb-[4px] lg:mb-[4px] 2xl:mb-[106px]">
+<CardHeader className="pb-0 flex flex-col justify-start mb-10">
 
 
-      <CardTitle className={language === "ar" ? "text-end" : ""}>
+<CardTitle className={language === "ar" ? "text-end" : ""}>
           {language === "ar" ? "رسم بياني دائري" : "Pie Chart"}
         </CardTitle>
         <CardDescription className={language === "ar" ? "text-end" : ""}>
@@ -92,10 +92,10 @@ export function DoctorPieChart() {
             : "Statistics for the Last 6 Months"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
+          className="mx-auto aspect-square max-h-[183px]"
         >
           <RadialBarChart
             data={chartData}

@@ -120,6 +120,13 @@ const Carousel = React.forwardRef<
       }
     }, [api, onSelect])
 
+    // Reinitialize the carousel when the children change
+    React.useEffect(() => {
+      if (api) {
+        api.reInit()
+      }
+    }, [api, children])
+
     return (
       <CarouselContext.Provider
         value={{
@@ -212,7 +219,7 @@ const CarouselPrevious = React.forwardRef<
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}
-      //disabled={!canScrollPrev}
+      disabled={!canScrollPrev}
       onClick={scrollPrev}
       {...props}
     >
@@ -241,7 +248,7 @@ const CarouselNext = React.forwardRef<
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}
-      //disabled={!canScrollNext}
+      disabled={!canScrollNext}
       onClick={scrollNext}
       {...props}
     >

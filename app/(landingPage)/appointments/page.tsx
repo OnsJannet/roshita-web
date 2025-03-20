@@ -11,6 +11,7 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination"; // Adjust the import path as needed
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 
 type Language = "ar" | "en";
 
@@ -25,6 +26,7 @@ const translations = {
     next: "Next",
     previous: "Previous",
     noAppointments: "No appointments to display",
+    loading: "Loading...",
   },
   ar: {
     settings: "الإعدادات",
@@ -36,6 +38,7 @@ const translations = {
     next: "التالي",
     previous: "السابق",
     noAppointments: "لا توجد مواعيد لعرضها",
+    loading: "جاري التحميل...",
   },
 };
 
@@ -48,28 +51,31 @@ const Page = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(5); // Number of items per page
+  const [loading, setLoading] = useState(true); // Loading state
 
   const router = useRouter();
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+    if (typeof window !== "undefined") {
+      const storedLanguage = localStorage.getItem("language");
+      if (storedLanguage) {
+        setLanguage(storedLanguage as Language);
+      } else {
+        setLanguage("ar");
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language") {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -110,6 +116,9 @@ const Page = () => {
         setTotalPages(totalPages);
       } catch (error) {
         console.error("Error fetching appointments:", error);
+        setErrorMessage("Failed to fetch appointments");
+      } finally {
+        setLoading(false); // Set loading to false after fetching
       }
     };
 
@@ -195,9 +204,15 @@ const Page = () => {
     indexOfLastItem
   );
 
-  console.log("currentItems", currentItems)
-
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-lg font-semibold">
+        <LoadingDoctors />
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
@@ -300,45 +315,45 @@ const Page = () => {
                 {errorMessage}
               </div>
             )}
-<div className="flex flex-col gap-4">
-  {currentItems.length > 0 ? (
-    currentItems.map((appointment) => {
-      // Log the current appointment item
-      console.log("Current Appointment:", appointment);
+            <div className="flex flex-col gap-4">
+              {currentItems.length > 0 ? (
+                currentItems.map((appointment) => {
+                  // Log the current appointment item
+                  console.log("Current Appointment:", appointment);
 
-      return (
-        <AppointementsCard
-          key={appointment.id}
-          appointementId={appointment.id}
-          doctorID={appointment.doctor.id}
-          name={`${appointment.doctor.name} ${appointment.doctor.last_name}`}
-          specialty={appointment.doctor.specialty}
-          price={appointment.price}
-          location=""
-          imageUrl=""
-          day={new Date(
-            appointment.reservation.reservation_date
-          ).toLocaleDateString(language)}
-          time={new Date(
-            appointment.reservation.reservation_date
-          ).toLocaleTimeString(language, {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-          appointementStatus={
-            appointment.reservation.reservation_status
-          }
-          status={appointment.reservation.reservation_status}
-          onError={handleError}
-        />
-      );
-    })
-  ) : (
-    <div className="text-center text-gray-500">
-      {translations[language].noAppointments}
-    </div>
-  )}
-</div>
+                  return (
+                    <AppointementsCard
+                      key={appointment.id}
+                      appointementId={appointment.id}
+                      doctorID={appointment.doctor.id}
+                      name={`${appointment.doctor.name} ${appointment.doctor.last_name}`}
+                      specialty={appointment.doctor.specialty}
+                      price={appointment.price}
+                      location=""
+                      imageUrl=""
+                      day={new Date(
+                        appointment.reservation.reservation_date
+                      ).toLocaleDateString(language)}
+                      time={new Date(
+                        appointment.reservation.reservation_date
+                      ).toLocaleTimeString(language, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      appointementStatus={
+                        appointment.reservation.reservation_status
+                      }
+                      status={appointment.reservation.reservation_status}
+                      onError={handleError}
+                    />
+                  );
+                })
+              ) : (
+                <div className="text-center text-gray-500">
+                  {translations[language].noAppointments}
+                </div>
+              )}
+            </div>
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -361,7 +376,7 @@ const Page = () => {
                 <PaginationItem>
                   <PaginationNext
                     onClick={handleNextPage}
-                                        //@ts-ignore
+                    //@ts-ignore
                     disabled={currentPage === totalPages}
                   />
                 </PaginationItem>

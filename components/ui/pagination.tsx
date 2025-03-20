@@ -10,8 +10,12 @@ import { ButtonProps, buttonVariants } from "@/components/ui/button";
 
 // Helper function to get language from localStorage
 const getLanguage = () => {
-  return localStorage.getItem("language") || "en"; // Default to English if not set
+  console.log("language pagination", localStorage.getItem("language"))
+  return localStorage.getItem("language") || "en"; 
+  
 };
+
+
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
@@ -77,11 +81,15 @@ const PaginationPrevious = ({
     <PaginationLink
       aria-label="Go to previous page"
       size="default"
-      className={cn("gap-1 pl-2.5", className)}
+      className={cn("gap-1 pl-2.5 items-center", className)}
       {...props}
     >
-      <ChevronRightIcon className="h-4 w-4" />
-      <span>{language === "ar" ? "السابق" : "Previous"}</span> {/* Arabic or English text */}
+      {language === "ar" ? (
+        <ChevronLeftIcon className="h-4 w-4" />
+      ) : (
+        <ChevronLeftIcon className="h-4 w-4" />
+      )}
+      <span>{language === "ar" ? "السابق" : "Previous"}</span>
     </PaginationLink>
   );
 };
@@ -96,11 +104,15 @@ const PaginationNext = ({
     <PaginationLink
       aria-label="Go to next page"
       size="default"
-      className={cn("gap-1 pr-2.5", className)}
+      className={cn("gap-1 pr-2.5 items-center", className)}
       {...props}
     >
-      <span>{language === "ar" ? "التالي" : "Next"}</span> {/* Arabic or English text */}
-      <ChevronLeftIcon className="h-4 w-4" />
+      <span>{language === "ar" ? "التالي" : "Next"}</span>
+      {language === "ar" ? (
+        <ChevronRightIcon className="h-4 w-4" />
+      ) : (
+        <ChevronRightIcon className="h-4 w-4" />
+      )}
     </PaginationLink>
   );
 };

@@ -360,7 +360,7 @@ const DoctorDetailsPage = () => {
                 {doctor.appointment_dates.map((appointment, index) => (
                   <CarouselItem
                     key={index}
-                    className="p-4 rounded-md md:basis-1/2 lg:basis-1/5"
+                    className="p-4 rounded-md md:basis-1/2 lg:basis-1/6"
                   >
                     <div className="p-1">
                       <Card className="rounded">
@@ -392,7 +392,7 @@ const DoctorDetailsPage = () => {
                               )
                             )
                           }
-                          className="p-4 bg-roshitaBlue rounded text-white text-center font-bold flex justify-center"
+                          className="p-4 bg-roshitaBlue rounded cursor-pointer text-white text-center font-bold flex justify-center"
                         >
                           {translations[language].book}
                         </CardFooter>

@@ -68,7 +68,6 @@ const Appointment = () => {
     };
   }, []);
 
-
   // Parse doctor id from URL params
   const id = parseInt(
     Array.isArray(params?.id) ? params.id[0] : params?.id ?? "",
@@ -79,23 +78,27 @@ const Appointment = () => {
     // Fetch doctors data from the API using the correct endpoint
     const fetchDoctor = async () => {
       try {
-        const response = await fetch(`https://test-roshita.net/api/user-doctors/${id}/`, {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            'X-CSRFToken': 'rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg', // Include CSRF token if needed
-          },
-          redirect: 'follow', // Automatically follow redirects
-        });
-  
+        const response = await fetch(
+          `https://test-roshita.net/api/user-doctors/${id}/`,
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              "X-CSRFToken":
+                "rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg", // Include CSRF token if needed
+            },
+            redirect: "follow", // Automatically follow redirects
+          }
+        );
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to fetch doctor data");
         }
-  
+
         const data = await response.json();
         console.log("Doctor data:", data.data.doctors[0]);
-  
+
         // Find the doctor by ID
         const selectedDoctor = data.data.doctors[0];
         setDoctor(selectedDoctor || null);
@@ -105,9 +108,9 @@ const Appointment = () => {
         setLoading(false);
       }
     };
-  
+
     fetchDoctor();
-  
+
     // Fetch appointment preferences from localStorage
     const day = localStorage.getItem("appointmentDay") || "";
     const time = localStorage.getItem("appointmentTime") || "";
@@ -116,16 +119,15 @@ const Appointment = () => {
     setAppointmentTime(time);
     setAppointmentEndTime(endTime);
   }, [id]); // Re-run the effect whenever `id` changes
-  
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-lg font-semibold">
-        <LoadingDoctors/>
+        <LoadingDoctors />
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen text-lg  font-semibold">
@@ -133,7 +135,7 @@ const Appointment = () => {
       </div>
     );
   }
-  
+
   if (!doctor) {
     return (
       <div className="flex justify-center items-center h-screen text-lg  font-semibold">
@@ -141,7 +143,7 @@ const Appointment = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto p-4 max-w-[1280px]">
       {/* Doctor Details */}

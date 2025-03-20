@@ -4,7 +4,6 @@ import Breadcrumb from "@/components/layout/app-breadcrumb";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import PaginationDemo from "@/components/shared/PaginationDemo";
 import RequestCard from "@/components/shared/RequestCard";
-
 import {
   SidebarInset,
   SidebarProvider,
@@ -15,73 +14,88 @@ import { useParams } from "next/navigation";
 import InformationCardConsultation from "@/components/shared/InformationCardConsultation";
 import FileListConsultation from "@/components/shared/FileListConsultation";
 import ConsultationMessage from "@/components/shared/ConsultationMessage";
-import successModal from "../../../../../components/shared/successModal";
-import SuccessModal from "../../../../../components/shared/successModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define the types for the data you're expecting from the API
-interface DoctorStaff {
-  first_name: string;
-  last_name: string;
-  staff_avatar: string;
-  medical_organization: string;
-  city: string;
-  address: string;
-}
-
-type Params = {
-  id: string;
-};
-
-interface Doctor {
+interface Consultation {
   id: number;
-  staff: DoctorStaff;
-  specialty?: number;
-  fixed_price?: string;
-  rating?: number;
-  is_consultant: boolean;
-  create_date: Date;
+  diagnosis_description_request: string;
+  patient: {
+    id: number;
+    full_name: string;
+  };
+  specialty: {
+    id: number;
+    name: string;
+  };
+  patient_files: { name: string; url: string }[];
+  status: string;
+  requestDate?: string; // Add this field if available in the API response
+  doctor_appointment_date_id: number;
 }
-
-interface APIResponse {
-  success: boolean;
-  data: Doctor[]; // The correct property is `data`, not `results`
-  total: number;
-  nextPage: string | null;
-  previousPage: string | null;
-}
-
-// Define the Payment type
-export type Payment = {
-  img: string;
-  id: string;
-  دكاترة: string;
-  "تاريخ الانضمام": Date;
-  التقييم: number;
-};
 
 type Language = "ar" | "en";
 
 export default function Page() {
-  const params = useParams<Params>();
-  const id = params?.id;
+  const params = useParams<{ id: string }>();
+  const id = params?.id; // Get the dynamic ID from the URL
 
-  const [tableData, setTableData] = useState<Payment[]>([]); // Now using Payment[] type
+  const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
-  const [lengthData, setLengthData] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [requestsPerPage] = useState(10); // Number of requests to display per page
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // State for date filter
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>(""); // State for specialty filter
+  const [loading, setLoading] = useState<boolean>(true);
+  const [responseMessage, setResponseMessage] = useState<string>("");
+  const [responses, setResponses] = useState<string[]>([]);
+  const [serviceType, setServiceType] = useState("");
+  const [estimatedPrice, setEstimatedPrice] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const message = `مرحباً دكتور،\n  
-  أرغب في استشارتك بخصوص بعض الأعراض التي أعاني منها منذ حوالي شهر. أشعر بإرهاق دائم، حتى بعد الحصول على نوم كافٍ، وأعاني من صداع متكرر، خاصة في منطقة الجبهة وحول العينين. أحياناً أشعر بصعوبة في التنفس، خاصة في الليل، مع احتقان دائم في الأنف، وأحياناً ترتفع درجة حرارتي بشكل طفيف.\n  
-  \n  
-  أنا أعاني من حساسية موسمية منذ سنوات، وأستخدم بخاخاً أنفياً عند الحاجة، لكن هذه الأعراض مختلفة ومستمرة بشكل مزعج. هل يمكن أن تكون مرتبطة بالتهاب الجيوب الأنفية؟ وهل أحتاج إلى إجراء فحوصات أو تغيير العلاج؟\n  
-  \n  
-  شكراً جزيلاً لوقتك، وأنتظر نصيحتك.\n  
-  مع التحية،\n  
-  أحمد`;
+  // Fetch consultation details based on the ID
+  const fetchConsultationDetails = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        throw new Error("Access token not found");
+      }
 
+      const response = await fetch(
+        `https://test-roshita.net/api/consultation-requests/${id}/`,
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch consultation details");
+      }
+
+      const data: Consultation = await response.json();
+      setConsultation(data);
+    } catch (error) {
+      console.error("Error fetching consultation details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch consultation details when the component mounts or the ID changes
+  useEffect(() => {
+    if (id) {
+      fetchConsultationDetails();
+    }
+  }, [id]);
+
+  // Handle language change
   useEffect(() => {
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       const storedLanguage = localStorage.getItem("language");
@@ -105,23 +119,24 @@ export default function Page() {
     }
   }, []);
 
-  const files = [
-    { name: "Diagnosis", url: "/Images/drahmed.png" },
-    { name: "Treatment", url: "/Images/drahmed.png" },
-    { name: "Therapy Images", url: "/Images/drahmed.png" },
-  ];
-
-  const [loading, setLoading] = useState<boolean>(false);
-  const [responseMessage, setResponseMessage] = useState<string>("");
-  const [responses, setResponses] = useState<string[]>([]); // Store responses
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const openModal = () => {
-    setIsModalOpen(true);
+  // Handle response message change
+  const handleResponseChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setResponseMessage(e.target.value);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  // Handle sending a response
+  /*const handleSendResponse = () => {
+    if (responseMessage.trim() !== "") {
+      setResponses([...responses, responseMessage]);
+      setResponseMessage(""); // Clear the textarea after sending
+    }
+  };*/
+
+  // Handle estimated price change
+  const handleEstimatedPriceChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setEstimatedPrice(e.target.value);
   };
 
   // Breadcrumb items
@@ -137,16 +152,49 @@ export default function Page() {
     },
   ];
 
-  const handleResponseChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setResponseMessage(e.target.value);
-  };
+  // Handle sending a response
+const handleSendResponse = async () => {
+  if (responseMessage.trim() !== "") {
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        throw new Error("Access token not found");
+      }
 
-  const handleSendResponse = () => {
-    if (responseMessage.trim() !== "") {
+      const responseConsultationId = id; // Assuming `id` is the response-consultation-id
+
+      const response = await fetch(
+        `https://www.test-roshita.net/api/doctor-response-consultation/${responseConsultationId}/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            diagnosis_description_response: responseMessage,
+            estimated_cost: estimatedPrice,
+            service_type: serviceType,
+            doctor_appointment_date_id: consultation?.doctor_appointment_date_id
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send response");
+      }
+
+      const data = await response.json();
+      console.log("Response sent successfully:", data);
+
+      // Update the state to include the new response
       setResponses([...responses, responseMessage]);
       setResponseMessage(""); // Clear the textarea after sending
+    } catch (error) {
+      console.error("Error sending response:", error);
     }
-  };
+  }
+};
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -176,78 +224,178 @@ export default function Page() {
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
             ) : (
               <>
-                <div
-                  className={`p-4 flex flex-col ${
-                    language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
-                  } gap-4`}
-                >
-                  <div className="lg:w-[70%] w-full">
-                    <InformationCardConsultation
-                      key={1}
-                      requestNumber={"1222233"}
-                      patientName={"علي احمد"}
-                      requestDate={"2025-10-01"}
-                      speciality={"Cardiology"}
-                      language={language}
-                      userType="hospital"
-                      typeConsultation="نوع الاستشارة خاصة"
-                    />
-                  </div>
-                  <div className="lg:w-[30%] w-full">
-                    <FileListConsultation language={language} files={files} />
-                  </div>
-                </div>
-
-                {/* Consultation message */}
-                <div className="p-4">
-                  <ConsultationMessage message={message} />
-                </div>
-
-                {/* Displaying responses */}
-                <div className="p-4 mt-4">
-                  {responses.map((response, index) => (
+                {consultation && (
+                  <>
                     <div
-                      key={index}
-                      className="mb-4 p-4 bg-gray-100 rounded-md"
-                      style={{ whiteSpace: "pre-line" }}
+                      className={`p-4 flex flex-col ${
+                        language === "ar"
+                          ? "lg:flex-row-reverse"
+                          : "lg:flex-row"
+                      } gap-4`}
                     >
-                      <p>{response}</p>
+                      <div className="lg:w-[70%] w-full">
+                        <InformationCardConsultation
+                          key={consultation.id}
+                          requestNumber={consultation.id.toString()}
+                          patientName={consultation.patient.full_name}
+                          requestDate={consultation.requestDate || "N/A"}
+                          speciality={consultation.specialty.name}
+                          language={language}
+                          userType="doctor"
+                          typeConsultation="نوع الاستشارة خاصة"
+                        />
+                      </div>
+                      <div className="lg:w-[30%] w-full">
+                        <FileListConsultation
+                          language={language}
+                          files={consultation.patient_files}
+                        />
+                      </div>
                     </div>
-                  ))}
-                </div>
 
-                {/* Textarea for user response */}
-                <div className="p-4">
-                  <textarea
-                    value={responseMessage}
-                    onChange={handleResponseChange}
-                    placeholder={
-                      language === "ar"
-                        ? "اكتب ردك..."
-                        : "Write your response..."
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    style={{ direction: language === "ar" ? "rtl" : "ltr" }}
-                  />
-                  <div className="flex justify-center w-full">
-                    <button
-                      onClick={handleSendResponse}
-                      className="mt-2 bg-[#1588C8] text-white py-2 px-4 rounded-md w-1/4 mt-4"
-                    >
-                      {language === "ar" ? "إرسال" : "Send"}
-                    </button>
-                  </div>
-                </div>
+                    {/* Consultation message */}
+                    <div className="p-4">
+                      <ConsultationMessage
+                        message={consultation.diagnosis_description_request}
+                      />
+                    </div>
 
-                {/*<div>
-                  <button onClick={openModal}>Open Modal</button>
+                    {/* Displaying responses */}
+                    <div className="p-4 mt-4">
+                      {responses.map((response, index) => (
+                        <div
+                          key={index}
+                          className="mb-4 p-4 bg-gray-100 rounded-md"
+                          style={{ whiteSpace: "pre-line" }}
+                        >
+                          <p>{response}</p>
+                        </div>
+                      ))}
+                    </div>
 
-                  <SuccessModal
-                    isOpen={isModalOpen}
-                    onClose={closeModal}
-                    message="This is a success message!"
-                  />
-                </div>*/}
+                    {/* Service Type Selection Dropdown */}
+                    <div className="p-4">
+                      <label
+                        className={`block text-sm font-medium mb-2 ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      >
+                        {language === "ar" ? "نوع الخدمة" : "Service Type"}
+                      </label>
+                      <Select onValueChange={(value) => setServiceType(value)}>
+                        <SelectTrigger
+                          className={
+                            language === "ar"
+                              ? "text-right flex-row-reverse"
+                              : "text-left"
+                          }
+                        >
+                          <SelectValue
+                            placeholder={
+                              language === "ar"
+                                ? "اختر نوع الخدمة"
+                                : "Select Service Type"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent
+                          className={
+                            language === "ar"
+                              ? "text-right flex-row-reverse"
+                              : "text-left"
+                          }
+                        >
+                          <SelectItem
+                            value="Shelter"
+                            className={
+                              language === "ar"
+                                ? "text-right flex-row-reverse"
+                                : "text-left"
+                            }
+                          >
+                            {language === "ar" ? "مأوى" : "Shelter"}
+                          </SelectItem>
+                          <SelectItem
+                            value="Shelter_Operation"
+                            className={
+                              language === "ar"
+                                ? "text-right flex-row-reverse"
+                                : "text-left"
+                            }
+                          >
+                            {language === "ar"
+                              ? "عملية مأوى"
+                              : "Shelter Operation"}
+                          </SelectItem>
+                          <SelectItem
+                            value="Operation"
+                            className={
+                              language === "ar"
+                                ? "text-right flex-row-reverse"
+                                : "text-left"
+                            }
+                          >
+                            {language === "ar" ? "عملية" : "Operation"}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Estimated Price Input */}
+                    <div className="p-4">
+                      <label
+                        className={`block text-sm font-medium mb-2 ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      >
+                        {language === "ar" ? "السعر المقدر" : "Estimated Price"}
+                      </label>
+                      <input
+                        type="text"
+                        value={estimatedPrice}
+                        onChange={handleEstimatedPriceChange}
+                        placeholder={
+                          language === "ar" ? "أدخل السعر" : "Enter price"
+                        }
+                        className={`w-full p-2 border border-gray-300 rounded-md ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      />
+                    </div>
+
+                    {/* Response Textarea */}
+                    <div className="p-4">
+                      <label
+                        className={`block text-sm font-medium mb-2 ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                      >
+                        {language === "ar" ? "الرد" : "Response"}
+                      </label>
+                      <textarea
+                        value={responseMessage}
+                        onChange={handleResponseChange}
+                        placeholder={
+                          language === "ar"
+                            ? "اكتب ردك..."
+                            : "Write your response..."
+                        }
+                        className={`w-full p-2 border border-gray-300 rounded-md ${
+                          language === "ar" ? "text-right" : "text-left"
+                        }`}
+                        style={{ direction: language === "ar" ? "rtl" : "ltr" }}
+                      />
+                      <div className="flex justify-center w-full">
+                        <button
+                          onClick={handleSendResponse}
+                          className="mt-2 bg-[#1588C8] text-white py-2 px-4 rounded-md w-1/4 mt-4"
+                        >
+                          {language === "ar" ? "إرسال" : "Send"}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>

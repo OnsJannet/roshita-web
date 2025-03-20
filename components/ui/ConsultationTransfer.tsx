@@ -146,6 +146,7 @@ export function ConsultationTransfer({
   };
 
   const handleDoctorClick = (doctor: Doctor) => {
+    console.log("doctor", doctor)
     setSelectedDoctor(doctor);
     setSelectedAppointment(null);
   };
@@ -156,6 +157,7 @@ export function ConsultationTransfer({
   };
 
   const handleAppointmentClick = (appointment: Doctor["appointments"][0]) => {
+    console.log("apointmenet picked", appointment)
     setSelectedAppointment(appointment);
   };
 
@@ -192,7 +194,7 @@ export function ConsultationTransfer({
         return;
       }
 
-      window.location.reload()
+      //window.location.reload()
       closeAppointmentsModal();
     } catch (error) {
       console.error("Error accepting appointment:", error);

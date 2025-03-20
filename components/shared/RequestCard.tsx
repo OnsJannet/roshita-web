@@ -100,9 +100,11 @@ const handleDetailsClick = () => {
         >
           {content.detailsButton}
         </button>
-        <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2">
-          {content.deleteButton}
-        </button>
+        {userType !== "hospital" && userType !=="doctor" && (
+          <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2">
+            {content.deleteButton}
+          </button>
+        )}
         {userType === "hospital" && (
           <button
             className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2"
@@ -111,7 +113,7 @@ const handleDetailsClick = () => {
             {content.transferButton}
           </button>
         )}
-        {userType !== "hospital" && (
+        {userType !== "hospital" && userType !=="doctor" && (
           <>
             <button className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
               {content.editButton}

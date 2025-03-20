@@ -34,9 +34,11 @@ interface Consultation {
     id: number;
     name: string;
   };
+  consultation_response_id: number;
   patient_files: { name: string; url: string }[];
   status: string;
   requestDate?: string; // Add this field if available in the API response
+  doctor_appointment_date_id: number;
 }
 
 type Language = "ar" | "en";
@@ -64,6 +66,7 @@ export default function Page() {
       }
 
       const response = await fetch(
+        //`https://www.test-roshita.net/api/consultation-requests/by_doctor/${id}/`,
         `https://test-roshita.net/api/consultation-requests/${id}/`,
         {
           method: "GET",
@@ -160,7 +163,7 @@ const handleSendResponse = async () => {
         throw new Error("Access token not found");
       }
 
-      const responseConsultationId = id; // Assuming `id` is the response-consultation-id
+      const responseConsultationId = consultation?.consultation_response_id; // Assuming `id` is the response-consultation-id
 
       const response = await fetch(
         `https://www.test-roshita.net/api/doctor-response-consultation/${responseConsultationId}/`,
@@ -174,7 +177,7 @@ const handleSendResponse = async () => {
             diagnosis_description_response: responseMessage,
             estimated_cost: estimatedPrice,
             service_type: serviceType,
-            // doctor_appointment_date_id: 216 // Uncomment if needed
+            //doctor_appointment_date_id: consultation?.doctor_appointment_date_id
           }),
         }
       );
@@ -240,7 +243,7 @@ const handleSendResponse = async () => {
                           requestDate={consultation.requestDate || "N/A"}
                           speciality={consultation.specialty.name}
                           language={language}
-                          userType="hospital"
+                          userType="doctor"
                           typeConsultation="نوع الاستشارة خاصة"
                         />
                       </div>
@@ -272,127 +275,135 @@ const handleSendResponse = async () => {
                       ))}
                     </div>
 
-                    {/* Service Type Selection Dropdown */}
-                    <div className="p-4">
-                      <label
-                        className={`block text-sm font-medium mb-2 ${
-                          language === "ar" ? "text-right" : "text-left"
-                        }`}
-                      >
-                        {language === "ar" ? "نوع الخدمة" : "Service Type"}
-                      </label>
-                      <Select onValueChange={(value) => setServiceType(value)}>
-                        <SelectTrigger
-                          className={
-                            language === "ar"
-                              ? "text-right flex-row-reverse"
-                              : "text-left"
-                          }
-                        >
-                          <SelectValue
+
+                    {consultation.status !== "Reviewed" && (
+
+                      <div>
+                        {/* Service Type Selection Dropdown */}
+                        <div className="p-4">
+                          <label
+                            className={`block text-sm font-medium mb-2 ${
+                              language === "ar" ? "text-right" : "text-left"
+                            }`}
+                          >
+                            {language === "ar" ? "نوع الخدمة" : "Service Type"}
+                          </label>
+                          <Select onValueChange={(value) => setServiceType(value)}>
+                            <SelectTrigger
+                              className={
+                                language === "ar"
+                                  ? "text-right flex-row-reverse"
+                                  : "text-left"
+                              }
+                            >
+                              <SelectValue
+                                placeholder={
+                                  language === "ar"
+                                    ? "اختر نوع الخدمة"
+                                    : "Select Service Type"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent
+                              className={
+                                language === "ar"
+                                  ? "text-right flex-row-reverse"
+                                  : "text-left"
+                              }
+                            >
+                              <SelectItem
+                                value="Shelter"
+                                className={
+                                  language === "ar"
+                                    ? "text-right flex-row-reverse"
+                                    : "text-left"
+                                }
+                              >
+                                {language === "ar" ? "مأوى" : "Shelter"}
+                              </SelectItem>
+                              <SelectItem
+                                value="Shelter_Operation"
+                                className={
+                                  language === "ar"
+                                    ? "text-right flex-row-reverse"
+                                    : "text-left"
+                                }
+                              >
+                                {language === "ar"
+                                  ? "عملية مأوى"
+                                  : "Shelter Operation"}
+                              </SelectItem>
+                              <SelectItem
+                                value="Operation"
+                                className={
+                                  language === "ar"
+                                    ? "text-right flex-row-reverse"
+                                    : "text-left"
+                                }
+                              >
+                                {language === "ar" ? "عملية" : "Operation"}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Estimated Price Input */}
+                        <div className="p-4">
+                          <label
+                            className={`block text-sm font-medium mb-2 ${
+                              language === "ar" ? "text-right" : "text-left"
+                            }`}
+                          >
+                            {language === "ar" ? "السعر المقدر" : "Estimated Price"}
+                          </label>
+                          <input
+                            type="text"
+                            value={estimatedPrice}
+                            onChange={handleEstimatedPriceChange}
+                            placeholder={
+                              language === "ar" ? "أدخل السعر" : "Enter price"
+                            }
+                            className={`w-full p-2 border border-gray-300 rounded-md ${
+                              language === "ar" ? "text-right" : "text-left"
+                            }`}
+                          />
+                        </div>
+
+                        {/* Response Textarea */}
+                        <div className="p-4">
+                          <label
+                            className={`block text-sm font-medium mb-2 ${
+                              language === "ar" ? "text-right" : "text-left"
+                            }`}
+                          >
+                            {language === "ar" ? "الرد" : "Response"}
+                          </label>
+                          <textarea
+                            value={responseMessage}
+                            onChange={handleResponseChange}
                             placeholder={
                               language === "ar"
-                                ? "اختر نوع الخدمة"
-                                : "Select Service Type"
+                                ? "اكتب ردك..."
+                                : "Write your response..."
                             }
+                            className={`w-full p-2 border border-gray-300 rounded-md ${
+                              language === "ar" ? "text-right" : "text-left"
+                            }`}
+                            style={{ direction: language === "ar" ? "rtl" : "ltr" }}
                           />
-                        </SelectTrigger>
-                        <SelectContent
-                          className={
-                            language === "ar"
-                              ? "text-right flex-row-reverse"
-                              : "text-left"
-                          }
-                        >
-                          <SelectItem
-                            value="Shelter"
-                            className={
-                              language === "ar"
-                                ? "text-right flex-row-reverse"
-                                : "text-left"
-                            }
-                          >
-                            {language === "ar" ? "مأوى" : "Shelter"}
-                          </SelectItem>
-                          <SelectItem
-                            value="Shelter_Operation"
-                            className={
-                              language === "ar"
-                                ? "text-right flex-row-reverse"
-                                : "text-left"
-                            }
-                          >
-                            {language === "ar"
-                              ? "عملية مأوى"
-                              : "Shelter Operation"}
-                          </SelectItem>
-                          <SelectItem
-                            value="Operation"
-                            className={
-                              language === "ar"
-                                ? "text-right flex-row-reverse"
-                                : "text-left"
-                            }
-                          >
-                            {language === "ar" ? "عملية" : "Operation"}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Estimated Price Input */}
-                    <div className="p-4">
-                      <label
-                        className={`block text-sm font-medium mb-2 ${
-                          language === "ar" ? "text-right" : "text-left"
-                        }`}
-                      >
-                        {language === "ar" ? "السعر المقدر" : "Estimated Price"}
-                      </label>
-                      <input
-                        type="text"
-                        value={estimatedPrice}
-                        onChange={handleEstimatedPriceChange}
-                        placeholder={
-                          language === "ar" ? "أدخل السعر" : "Enter price"
-                        }
-                        className={`w-full p-2 border border-gray-300 rounded-md ${
-                          language === "ar" ? "text-right" : "text-left"
-                        }`}
-                      />
-                    </div>
-
-                    {/* Response Textarea */}
-                    <div className="p-4">
-                      <label
-                        className={`block text-sm font-medium mb-2 ${
-                          language === "ar" ? "text-right" : "text-left"
-                        }`}
-                      >
-                        {language === "ar" ? "الرد" : "Response"}
-                      </label>
-                      <textarea
-                        value={responseMessage}
-                        onChange={handleResponseChange}
-                        placeholder={
-                          language === "ar"
-                            ? "اكتب ردك..."
-                            : "Write your response..."
-                        }
-                        className={`w-full p-2 border border-gray-300 rounded-md ${
-                          language === "ar" ? "text-right" : "text-left"
-                        }`}
-                        style={{ direction: language === "ar" ? "rtl" : "ltr" }}
-                      />
-                      <div className="flex justify-center w-full">
-                        <button
-                          onClick={handleSendResponse}
-                          className="mt-2 bg-[#1588C8] text-white py-2 px-4 rounded-md w-1/4 mt-4"
-                        >
-                          {language === "ar" ? "إرسال" : "Send"}
-                        </button>
+                          <div className="flex justify-center w-full">
+                            <button
+                              onClick={handleSendResponse}
+                              className="mt-2 bg-[#1588C8] text-white py-2 px-4 rounded-md w-1/4 mt-4"
+                            >
+                              {language === "ar" ? "إرسال" : "Send"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                      )}
+
+                    
                   </>
                 )}
               </>

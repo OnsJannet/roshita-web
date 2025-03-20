@@ -42,7 +42,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
-  console.log("status222", status)
+  console.log("status222", status);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -72,10 +72,13 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     const sanitizedDay = day.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
 
     // Split the sanitized day into parts
-    const [dayPart, monthPart, yearPart] = sanitizedDay.split('/');
+    const [dayPart, monthPart, yearPart] = sanitizedDay.split("/");
 
     // Create a valid date string in the format YYYY-MM-DD
-    const formattedDate = `${yearPart}-${monthPart.padStart(2, '0')}-${dayPart.padStart(2, '0')}`;
+    const formattedDate = `${yearPart}-${monthPart.padStart(
+      2,
+      "0"
+    )}-${dayPart.padStart(2, "0")}`;
 
     // Create a Date object for the reservation date (ignoring the time)
     const reservationDateObj = new Date(formattedDate);
@@ -135,10 +138,13 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       const sanitizedDay = day.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
 
       // Split the sanitized day into parts
-      const [dayPart, monthPart, yearPart] = sanitizedDay.split('/');
+      const [dayPart, monthPart, yearPart] = sanitizedDay.split("/");
 
       // Create a valid date string in the format YYYY-MM-DD
-      const formattedDate = `${yearPart}-${monthPart.padStart(2, '0')}-${dayPart.padStart(2, '0')}`;
+      const formattedDate = `${yearPart}-${monthPart.padStart(
+        2,
+        "0"
+      )}-${dayPart.padStart(2, "0")}`;
 
       // Create a Date object for the reservation date (ignoring the time)
       const reservationDateObj = new Date(formattedDate);
@@ -148,7 +154,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       currentDate.setHours(0, 0, 0, 0); // Set time to 00:00:00 to ignore the time part
 
       // Calculate the difference in milliseconds
-      const timeDifference = reservationDateObj.getTime() - currentDate.getTime();
+      const timeDifference =
+        reservationDateObj.getTime() - currentDate.getTime();
 
       // Convert the difference to hours
       const hoursDifference = timeDifference / (1000 * 60 * 60);
@@ -178,19 +185,26 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         if (hoursDifference <= 48) {
           try {
             const token = localStorage.getItem("access"); // Get the token from local storage
-            const refundResponse = await fetch("https://test-roshita.net/api/reservation/refund/", {
-              method: "POST",
-              headers: {
-                "accept": "application/json",
-                "X-CSRFToken": "VW6vgz0DcMQo9uu1fdvTgX9IGYZEQ0vSfHbSYe8pIQGw6kHJiPzHLAkCDplVi4FO", // Replace with your actual CSRF token
-                "Authorization": `Bearer ${token}`, // Include the bearer token
-              },
-            });
+            const refundResponse = await fetch(
+              "https://test-roshita.net/api/reservation/refund/",
+              {
+                method: "POST",
+                headers: {
+                  accept: "application/json",
+                  "X-CSRFToken":
+                    "VW6vgz0DcMQo9uu1fdvTgX9IGYZEQ0vSfHbSYe8pIQGw6kHJiPzHLAkCDplVi4FO", // Replace with your actual CSRF token
+                  Authorization: `Bearer ${token}`, // Include the bearer token
+                },
+              }
+            );
 
             if (refundResponse.ok) {
               console.log("Refund request successful");
             } else {
-              console.error("Refund request failed:", refundResponse.statusText);
+              console.error(
+                "Refund request failed:",
+                refundResponse.statusText
+              );
             }
           } catch (error) {
             console.error("Error during refund request:", error);
@@ -287,7 +301,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             >
               <Clock className="text-roshitaDarkBlue" />
               <span>
-                {language === "ar" ? `الوقت: ${time}` : `Time: ${time}`}
+                {language === "ar" ? `الوقت ${time}` : `Time ${time}`}
               </span>
             </div>
             <div
@@ -296,7 +310,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               } gap-2`}
             >
               <Calendar className="text-roshitaDarkBlue" />
-              <span>{language === "ar" ? `اليوم: ${day}` : `Day: ${day}`}</span>
+              <span>{language === "ar" ? `اليوم ${day}` : `Day ${day}`}</span>
             </div>
             <div
               className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
@@ -304,7 +318,9 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               } gap-2`}
             >
               <span>
-                {language === "ar" ? `سعر الكشف: ${price}` : `Price: ${price}`}
+                {language === "ar"
+                  ? `سعر الكشف ${price === undefined ? "-" : price}`
+                  : `Price ${price}`}
               </span>
               <Banknote className="text-roshitaDarkBlue" />
             </div>
