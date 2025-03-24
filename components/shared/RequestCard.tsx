@@ -7,6 +7,7 @@ interface RequestCardProps {
   requestDate: string;
   speciality: string;
   userType: string;
+  status: string;
   language: "ar" | "en";
   //doctors: any;
 }
@@ -18,6 +19,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
   language,
   speciality,
   userType,
+  status
   //doctors,
 }) => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false); // State to control modal
@@ -105,7 +107,7 @@ const handleDetailsClick = () => {
             {content.deleteButton}
           </button>
         )}
-        {userType === "hospital" && (
+        {userType === "hospital" && status === "Pending" &&(
           <button
             className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2"
             onClick={handleTransferClick} // Open the modal on click

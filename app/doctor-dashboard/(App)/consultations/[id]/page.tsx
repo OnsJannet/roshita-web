@@ -39,6 +39,31 @@ interface Consultation {
   status: string;
   requestDate?: string; // Add this field if available in the API response
   doctor_appointment_date_id: number;
+  consultation_response: {
+    id: number;
+    diagnosis_description_response: string;
+    selected_medical_organization: {
+      id: number;
+      name: string;
+      foreign_name: string;
+    };
+    doctor: {
+      id: number;
+      name: string;
+      last_name: string;
+      specialty: string;
+    };
+    doctor_appointment_date: {
+      id: number;
+      scheduled_date: string; 
+      start_time: string;
+      end_time: string;
+      appointment_status: string;
+    };
+    estimated_cost: string;
+    service_type: string;
+    status: string;
+  };
 }
 
 type Language = "ar" | "en";
@@ -154,6 +179,8 @@ export default function Page() {
     },
   ];
 
+  console.log("consultation?.consultation_response_id", consultation?.consultation_response?.id)
+
   // Handle sending a response
 const handleSendResponse = async () => {
   if (responseMessage.trim() !== "") {
@@ -163,7 +190,8 @@ const handleSendResponse = async () => {
         throw new Error("Access token not found");
       }
 
-      const responseConsultationId = consultation?.consultation_response_id; // Assuming `id` is the response-consultation-id
+      const responseConsultationId = consultation?.consultation_response?.id; 
+      console.log("this is responseConsultationId", responseConsultationId)// Assuming `id` is the response-consultation-id
 
       const response = await fetch(
         `https://www.test-roshita.net/api/doctor-response-consultation/${responseConsultationId}/`,

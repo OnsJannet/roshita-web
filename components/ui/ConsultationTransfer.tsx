@@ -303,81 +303,81 @@ export function ConsultationTransfer({
 
       {/* Modal for displaying appointments */}
       <Dialog open={!!selectedDoctor} onOpenChange={closeAppointmentsModal}>
-        <DialogContent
-          dir={direction}
-          className={`max-w-[800px] ${
-            language === "ar" ? "text-right" : "text-left"
-          } py-4 overflow-y-auto`}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl">
-              {language === "ar" ? "مواعيد الطبيب" : "Doctor Appointments"}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedDoctor && (
-            <div>
-              <div className="text-center">
-                <img
-                  src={
-                    selectedDoctor.staff.staff_avatar ||
-                    "/Images/default-doctor.jpeg"
-                  }
-                  alt={`${selectedDoctor.staff.first_name} ${selectedDoctor.staff.last_name}`}
-                  className="w-20 h-20 rounded-full object-cover mx-auto"
-                />
-                <p className="font-semibold mt-2">
-                  {selectedDoctor.staff.first_name} {selectedDoctor.staff.last_name}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {language === "ar"
-                    ? selectedDoctor.specialty.name
-                    : selectedDoctor.specialty.foreign_name}
-                </p>
-              </div>
-              <div className="mt-4 grid grid-cols-4 gap-4">
-                {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
-                  Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
-                    ([date, appointments]) => (
-                      <div key={date} className="mb-4">
-                        <p className="font-semibold text-lg text-center">{date}</p>
-                        <div className="grid grid-cols-1 gap-2">
-                          {appointments.map((appointment, index) => (
-                            <button
-                              key={index}
-                              className={`p-2 rounded-lg text-sm text-center ${
-                                selectedAppointment?.id === appointment.id
-                                  ? "bg-[#1588C8] text-white"
-                                  : "bg-gray-200 hover:bg-gray-300"
-                              }`}
-                              onClick={() => handleAppointmentClick(appointment)}
-                            >
-                              {appointment.start_time} - {appointment.end_time}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )
-                ) : (
-                  <p className="text-center col-span-4">
-                    {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
-                  </p>
-                )}
-              </div>
-              {selectedAppointment && (
-                <div className="flex justify-center mt-6">
-                  <Button
-                    onClick={() => handleAcceptAppointment()}
-                    className="bg-[#1588C8] text-white"
-                  >
-                    {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
-                  </Button>
+  <DialogContent
+    dir={direction}
+    className={`max-w-[1200px] ${
+      language === "ar" ? "text-right h-[80vh]" : "text-left h-[80vh]"
+    } py-4 overflow-y-auto`} // Added overflow-y-auto here
+  >
+    <DialogHeader>
+      <DialogTitle className="text-center text-2xl">
+        {language === "ar" ? "مواعيد الطبيب" : "Doctor Appointments"}
+      </DialogTitle>
+    </DialogHeader>
+    {selectedDoctor && (
+      <div>
+        <div className="text-center">
+          <img
+            src={
+              selectedDoctor.staff.staff_avatar ||
+              "/Images/default-doctor.jpeg"
+            }
+            alt={`${selectedDoctor.staff.first_name} ${selectedDoctor.staff.last_name}`}
+            className="w-20 h-20 rounded-full object-cover mx-auto"
+          />
+          <p className="font-semibold mt-2">
+            {selectedDoctor.staff.first_name} {selectedDoctor.staff.last_name}
+          </p>
+          <p className="text-sm text-gray-600">
+            {language === "ar"
+              ? selectedDoctor.specialty.name
+              : selectedDoctor.specialty.foreign_name}
+          </p>
+        </div>
+        <div className="mt-4 grid grid-cols-4 gap-4">
+          {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
+            Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
+              ([date, appointments]) => (
+                <div key={date} className="mb-4">
+                  <p className="font-semibold text-lg text-center">{date}</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {appointments.map((appointment, index) => (
+                      <button
+                        key={index}
+                        className={`p-2 rounded-lg text-sm text-center ${
+                          selectedAppointment?.id === appointment.id
+                            ? "bg-[#1588C8] text-white"
+                            : "bg-gray-200 hover:bg-gray-300"
+                        }`}
+                        onClick={() => handleAppointmentClick(appointment)}
+                      >
+                        {appointment.start_time} - {appointment.end_time}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
+              )
+            )
+          ) : (
+            <p className="text-center col-span-4">
+              {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
+            </p>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+        {selectedAppointment && (
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={() => handleAcceptAppointment()}
+              className="bg-[#1588C8] text-white"
+            >
+              {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
+            </Button>
+          </div>
+        )}
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
     </>
   );
 }

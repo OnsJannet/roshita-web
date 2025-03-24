@@ -107,6 +107,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   console.log("medical_organizations", medical_organizations);
   console.log("paymentMethod", paymentMethod);
   console.log("endTime", endTime);
+  console.log("profileData", profileData)
 
   const [language, setLanguage] = useState<Language>("ar");
   const [confirmModal, setConfirmModal] = useState(false);
@@ -169,6 +170,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   console.log("formDataAcceptAppointement", formData);
   console.log("familymember", familymember);
 
+
   const t = translations[language]; // Choose translation based on selected language
 
   const organizationId =
@@ -183,6 +185,8 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
           console.error("No access token found");
           return;
         }
+
+
     
         const [dayPart, monthPart, yearPart] = day.split("/");
         const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
@@ -202,9 +206,10 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
                     city: formData.city,
                     address: formData.address,
                   }
-                : { id: formData.id}
+                  //@ts-ignore
+                : { id: formData.id || profileData.user.id}
                 //@ts-ignore
-              : { id: profileData.user.id },
+              : { id: formData.id },
             reservation_date: formattedDate,
             start_time: formattedStartTime,
             end_time: formattedEndTime,
@@ -221,7 +226,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
         };
     
         try {
-          const response = await fetch("/api/appointements/createAppointement", {
+          const response = await fetch("https://test-roshita.net/api/user-appointment-reservations/", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

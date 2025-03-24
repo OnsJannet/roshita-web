@@ -58,6 +58,7 @@ export default function Page() {
   const [selectedDate, setSelectedDate] = useState<Date | null | undefined>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"all" | "my">("all");
+  const [Error, setError] = useState("")
   const [specialties, setSpecialties] = useState<
     { id: number; name: string; foreign_name: string }[]
   >([]);
@@ -96,6 +97,7 @@ export default function Page() {
       setTotalPages(Math.ceil(data.count / itemsPerPage));
     } catch (error) {
       console.error("Error fetching consultations:", error);
+      setError(error)
       setConsultations([]);
     } finally {
       setLoading(false);

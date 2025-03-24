@@ -112,7 +112,7 @@ const Page = () => {
         } while (page <= totalPages);
 
         setAppointments(allAppointments);
-        setFilteredAppointments(allAppointments);
+        setFilteredAppointments(allAppointments.reverse());
         setTotalPages(totalPages);
       } catch (error) {
         console.error("Error fetching appointments:", error);

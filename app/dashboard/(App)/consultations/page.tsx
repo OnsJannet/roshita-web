@@ -123,7 +123,7 @@ export default function Page() {
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/user-consultation-requests/by_hospital/${hospitalId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+        `https://test-roshita.net/api/consultation-requests/by_hospital/${hospitalId}/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -361,6 +361,7 @@ export default function Page() {
                       patientName={consultation.patient.full_name}
                       requestDate={"2025-10-01"} // Replace with actual date if available
                       speciality={consultation.specialty.name}
+                      status={consultation.status}
                       language={language}
                       userType="hospital"
                     />

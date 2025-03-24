@@ -62,11 +62,55 @@ interface EditProfileData {
 interface Consultation {
   id: number;
   diagnosis_description_request: string;
-  patient: number;
-  specialty: number;
-  patient_files: any[];
+  patient_detail: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    relative: string;
+    phone: string;
+    email: string;
+    city: number;
+    address: string;
+  };
+  specialty_detail: {
+    id: number;
+    name: string;
+    foreign_name: string;
+  };
+  patient_files: {
+    id: number;
+    file: string;
+    content_file_type: string;
+    description: string;
+  }[];
   status: string;
+  consultation_response: {
+    id: number;
+    diagnosis_description_response: string;
+    selected_medical_organization: {
+      id: number;
+      name: string;
+      foreign_name: string;
+    };
+    doctor: {
+      id: number;
+      name: string;
+      last_name: string;
+      specialty: string;
+    };
+    doctor_appointment_date: {
+      id: number;
+      scheduled_date: string; 
+      start_time: string;
+      end_time: string;
+      appointment_status: string;
+    };
+    estimated_cost: string;
+    service_type: string;
+    status: string;
+  };
 }
+
 
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -93,7 +137,7 @@ const Page = () => {
   });
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [currentPage, setCurrentPage] = useState(1); // Track current page
-  const [itemsPerPage, setItemsPerPage] = useState(5); // Items per page
+  const itemsPerPage = 5;
   const [totalPages, setTotalPages] = useState(0); // Total pages based on count
 
   useEffect(() => {
@@ -158,7 +202,7 @@ const Page = () => {
         const token = localStorage.getItem("access");
         const patientId = localStorage.getItem("patientId");
         const response = await fetch(
-          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/`,
+          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/?page=${currentPage}&page_size=${itemsPerPage}`,
           {
             method: "GET",
             headers: {
@@ -173,23 +217,23 @@ const Page = () => {
         }
   
         const data = await response.json();
-        setConsultations(data.results); // Set consultations to the `results` array
-        setTotalPages(Math.ceil(data.count / itemsPerPage)); // Use `count` for total pages
+        setConsultations(data.results);
+        setTotalPages(Math.ceil(data.count / itemsPerPage));
       } catch (error) {
         console.error("Error fetching consultations:", error);
-        setError("Failed to fetch consultations. Please try again.");
+        setError("Failed to fetch consultations");
       } finally {
         setLoading(false);
       }
     };
   
     fetchConsultations();
-  }, []);
+  }, [currentPage]);
 
   // Slice consultations to display only the current page's items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentConsultations = consultations.slice(indexOfFirstItem, indexOfLastItem);
+  const currentConsultations = consultations
 
   const filterAppointments = (
     appointments: any[],
@@ -349,66 +393,63 @@ const Page = () => {
               </Button>
             </div>
             {currentConsultations.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {currentConsultations.map((consultation) => (
-                  <ConsultationDropdown
-                    key={consultation.id}
-                    requestId={consultation.id}
-                    hospitalName=""
-                    notificationMessage=""
-                    date=""
-                    consultationType="استشارة خاصة"
-                    doctorMessage=""
-                    patientMessage={consultation.diagnosis_description_request}
-                    language={language}
-                    files={consultation.patient_files}
-                    consultationStatus={consultation.status}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                {translations[language].noConsultations}
-              </p>
-            )}
+  <div className="flex flex-col gap-4">
+{currentConsultations.map((consultation) => (
+  <ConsultationDropdown
+    key={consultation.id}
+    requestId={consultation.id}
+    consultationId={consultation.consultation_response?.id}
+    hospitalName={
+      language === 'ar'
+        ? consultation?.consultation_response?.selected_medical_organization?.name
+        : consultation?.consultation_response?.selected_medical_organization?.foreign_name
+    }
+    notificationMessage=""
+    creatin_date=""
+    date={consultation.consultation_response?.doctor_appointment_date?.scheduled_date || "No date available"}
+    consultationType="استشارة خاصة"
+    doctorMessage={consultation.consultation_response?.diagnosis_description_response || "No doctor message available"}
+    patientMessage={consultation.diagnosis_description_request}
+    language={language}
+    files={consultation.patient_files}
+    consultationStatus={consultation.status}
+  />
+))}
+  </div>
+) : (
+  <p className="text-center text-gray-500">
+    {translations[language].noConsultations}
+  </p>
+)}
             {/* Pagination Controls */}
-            <Pagination className="mt-6">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => {
-                      if (currentPage > 1) handlePageChange(currentPage - 1);
-                    }}
-                    className={
-                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-                    }
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <PaginationItem key={index + 1}>
-                    <PaginationLink
-                      isActive={currentPage === index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => {
-                      if (currentPage < totalPages)
-                        handlePageChange(currentPage + 1);
-                    }}
-                    className={
-                      currentPage === totalPages
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => handlePageChange(currentPage - 1)}
+              //@ts-ignore
+              disabled={currentPage === 1}
+            />
+          </PaginationItem>
+          {[...Array(totalPages)].map((_, index) => (
+            <PaginationItem key={index}>
+              <PaginationLink
+                onClick={() => handlePageChange(index + 1)}
+                isActive={currentPage === index + 1}
+              >
+                {index + 1}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => handlePageChange(currentPage + 1)}
+              //@ts-ignore
+              disabled={currentPage === totalPages}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
           </div>
         </div>
       </div>
