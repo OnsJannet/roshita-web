@@ -1,9 +1,11 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 
 const Cta = () => {
   const [language, setLanguage] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     // Sync the language state with the localStorage value
@@ -30,7 +32,9 @@ const Cta = () => {
     };
   }, []); // Run only once on mount
 
-  console.log("languages: " + language);
+  const handleConsultationClick = () => {
+    router.push("/consultations");
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto mt-20 bg-roshitaBlue mb-20 rounded-2xl h-60 flex">
@@ -64,7 +68,10 @@ const Cta = () => {
             : "Send a message to a specialist doctor"}
         </h2>
         <div className="flex flex-row-reverse mt-4">
-          <Button className="bg-white p-4 text-black hover:text-white">
+          <Button 
+            className="bg-white p-4 text-black hover:text-white"
+            onClick={handleConsultationClick}
+          >
             {language === "ar" ? "أطلب استشارة" : "Request a Consultation"}
           </Button>
         </div>

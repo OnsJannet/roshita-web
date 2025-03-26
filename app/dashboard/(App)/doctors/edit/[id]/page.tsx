@@ -16,13 +16,22 @@ import { useEffect, useState } from "react";
 import { specialities } from "../../../../../../constant/index";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import { logAction } from "@/lib/logger";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type Appointment = {
+  id: number;
   scheduled_date: string;
   start_time: string;
   end_time: string;
   appointment_status: string;
-  //price: string;
+  price: string;
 };
 
 interface User {
@@ -77,47 +86,6 @@ type Slot = {
   appointment_status: string;
 };
 
-/**
- * This is the `Page` component which represents the doctor information editing page.
- * It allows users to view and update personal information about a doctor, such as their name, phone number, location, and booking price.
- * 
- * Features:
- * - Displays doctor's personal information retrieved from the API (name, phone number, location, and booking price).
- * - Allows users to update the doctor's profile picture by uploading an image.
- * - Provides functionality to edit the doctor's phone number, location (city), and booking price.
- * - Supports language switching between Arabic and English. The language preference is stored in `localStorage` and is applied across the page.
- * - Handles updating the doctor's information by sending the modified data to the API.
- * - The form includes a breadcrumb navigation for easy navigation back to the doctor's list and home page.
- * - Uses a sidebar for additional navigation options.
- * 
- * States:
- * - `doctor`: Holds the data of the doctor being edited (or null if no doctor is selected).
- * - `specialtyName`: Stores the specialty name of the doctor, fetched from a separate API.
- * - `loading`: Boolean state that controls loading indicators while fetching doctor data.
- * - `error`: Stores error messages related to fetching doctor or specialty data.
- * - `cities`: Stores a list of cities available for the doctor's location.
- * - `language`: Tracks the current language of the page (either "ar" for Arabic or "en" for English).
- * - `formData`: Stores form data for photo upload.
- * - `image`: Stores the updated profile image path.
-
- * Effects:
- * - On mount, the component fetches doctor details, specialty data, and available cities.
- * - Language preference is loaded from `localStorage` and updates dynamically if changed.
- * 
- * Handlers:
- * - `handleFileUpload`: Handles the file upload for the profile picture.
- * - `handleCityChange`: Updates the doctor's city information when a new city is selected.
- * - `handleUpdateDoctor`: Sends the updated doctor data to the server for saving.
-
- * The component uses various custom components:
- * - `Breadcrumb`: Displays the navigation breadcrumb for the page.
- * - `InformationCard`: Displays the doctor's personal information and provides editable fields.
- * - `SidebarTrigger`, `SidebarProvider`, `SidebarInset`: Manages the sidebar functionality.
- * - `Button`: Represents the save button to submit the updated doctor information.
-
- * Error handling is included for fetching data and updating the doctor details, with appropriate error messages displayed.
- */
-
 const translations = {
   en: {
     title: "Doctor Availability Slots",
@@ -134,6 +102,8 @@ const translations = {
     action: "Action",
     roshitaBook: "Book",
     status: "Status",
+    previous: "Previous",
+    next: "Next",
   },
   ar: {
     title: "مواعيد توفر الطبيب",
@@ -150,6 +120,8 @@ const translations = {
     action: "إجراء",
     roshitaBook: "حجز ",
     status: "الحالة",
+    previous: "السابق",
+    next: "التالي",
   },
 };
 
@@ -160,8 +132,8 @@ export default function Page() {
   const [specialtyName, setSpecialtyName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [cities, setCities] = useState<City[]>([]); // State for cities
-  const [specialities, setSpecialities] = useState<Specialities | null>(null); // Allow null if no data
+  const [cities, setCities] = useState<City[]>([]);
+  const [specialities, setSpecialities] = useState<Specialities | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
   const [formData, setFormData] = useState<{ Image?: File }>({});
   const [image, setImage] = useState("");
@@ -183,34 +155,30 @@ export default function Page() {
     address: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const appointmentsPerPage = 5;
 
   const handleSlotsChange = (slots: Slot[]) => {
     setBackendSlots(slots);
-    console.log("Updated slots:", slots);
   };
-
-  console.log("patientDetails", patientDetails);
 
   const t = translations[language];
 
-  /*const handleRemoveSlot = (index: number) => {
-    if (doctor && doctor.appointments) {
-      const updatedAppointments = doctor.appointments.filter(
-        (_, idx) => idx !== index
-      );
-      setDoctor((prevDoctor) => {
-        return prevDoctor
-          ? {
-              ...prevDoctor,
-              appointments: updatedAppointments,
-            }
-          : null;
-      });
-    }
-  };*/
+  // Pagination logic
+  const indexOfLastAppointment = currentPage * appointmentsPerPage;
+  const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
+  const currentAppointments =
+    doctor?.appointments?.slice(
+      indexOfFirstAppointment,
+      indexOfLastAppointment
+    ) || [];
+  const totalPages = Math.ceil(
+    (doctor?.appointments?.length || 0) / appointmentsPerPage
+  );
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleRemoveSlot = async (index: number, id: number) => {
-    console.log("index: ", index);
     if (doctor && doctor.appointments) {
       if (!index) {
         console.error("Appointment ID not found");
@@ -218,14 +186,12 @@ export default function Page() {
       }
 
       try {
-        // Get the Bearer token from localStorage
         const token = localStorage.getItem("access");
         if (!token) {
           console.error("Access token not found in localStorage");
           return;
         }
 
-        // Send the DELETE request
         const response = await fetch(
           `https://test-roshita.net/api/appointment-reservations/${id}/`,
           {
@@ -240,18 +206,14 @@ export default function Page() {
         );
 
         if (response.ok) {
-          console.log("Appointment deleted successfully");
-
-          // Log the action as a success
           await logAction(
             token,
             `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "success",
-            response.status // HTTP status code (e.g., 200)
+            response.status
           );
 
-          // Update the appointments locally
           if (doctor && doctor.appointments) {
             const updatedAppointments = doctor.appointments.filter(
               (_, idx) => idx !== index
@@ -265,25 +227,20 @@ export default function Page() {
                 : null;
             });
           }
-          //window.location.reload();
         } else {
           console.error("Failed to delete appointment", response.statusText);
-
-          // Log the action as an error
-          const errorData = await response.json(); // Parse the error response
+          const errorData = await response.json();
           await logAction(
             token,
             `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
-            response.status, // HTTP status code (e.g., 400, 500)
-            errorData.message || "Failed to delete appointment" // Error message
+            response.status,
+            errorData.message || "Failed to delete appointment"
           );
         }
       } catch (error) {
         console.error("Error deleting appointment:", error);
-
-        // Log the action as an error
         const token = localStorage.getItem("access");
         if (token) {
           await logAction(
@@ -291,21 +248,16 @@ export default function Page() {
             `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
-            /* @ts-ignore */
-            error.response?.status || 500, // Use the error status code or default to 500
-            /* @ts-ignore */
-            error.message || "An unknown error occurred" // Error message
+            error instanceof Error ? 500 : 500,
+            error instanceof Error ? error.message : "An unknown error occurred"
           );
         }
       }
     }
   };
 
-  console.log("specialities", specialities);
   const handleBooked = (index: number) => {
-    console.log("index", index);
     if (doctor && doctor.appointments) {
-      console.log("entered doctors");
       const selectedAppointment = doctor.appointments[index];
       setBookingDetails(selectedAppointment);
       setPopupVisible(true);
@@ -316,19 +268,17 @@ export default function Page() {
     const payload = {
       reservation: {
         patient: patientDetails,
-        //reservation_status: "pending payment",
         reservation_date: bookingDetails?.scheduled_date,
         start_time: bookingDetails?.start_time,
         end_time: bookingDetails?.end_time,
       },
-      confirmation_code: "12345", // Replace or generate dynamically
+      confirmation_code: "12345",
       doctor_id: id,
       doctor: {
         id: id,
         name: doctor?.staff.first_name + " " + doctor?.staff.last_name,
       },
-      // @ts-ignore
-      price: bookingDetails?.price, // Adjust as needed
+      price: bookingDetails?.price,
     };
 
     const token = localStorage.getItem("access");
@@ -363,26 +313,21 @@ export default function Page() {
 
   const appointmentDates = backendSlots.map((slot) => {
     return {
-      scheduled_date: slot.date, // Date in YYYY-MM-DD format
-      start_time: slot.startTime, // Start time in HH:mm format
-      end_time: slot.endTime, // End time in HH:mm format
+      scheduled_date: slot.date,
+      start_time: slot.startTime,
+      end_time: slot.endTime,
       appointment_status: "pending",
       price: doctor?.fixed_price,
     };
   });
 
-  /* const handleFileUpload = (file: File) => {
-    setFormData((prev) => ({ ...prev, Image: file }));
-    console.log("Uploaded file received in parent:", file);
-  };*/
-
   const handleFileUpload = (file: File | null) => {
     if (file) {
-      setImageFile(file); // Store the File object
-      setImage(URL.createObjectURL(file)); // Set the image preview URL
+      setImageFile(file);
+      setImage(URL.createObjectURL(file));
     } else {
-      setImageFile(null); // Clear the File object
-      setImage("/Images/default-doctor.jpeg"); // Reset to the default image
+      setImageFile(null);
+      setImage("/Images/default-doctor.jpeg");
     }
   };
 
@@ -482,7 +427,7 @@ export default function Page() {
         const data: Specialities = await response.json();
 
         if (response.ok) {
-          setSpecialities(data); // Now setSpecialities accepts Specialities
+          setSpecialities(data);
         } else {
           console.error("Error fetching cities");
         }
@@ -496,11 +441,7 @@ export default function Page() {
     fetchSpecialities();
   }, [id]);
 
-  // Handle city change here
   const handleCityChange = (cityNameOrForeignName: string) => {
-    console.log("City selected:", cityNameOrForeignName);
-
-    // Find the matching city in the cities list based on name or foreign_name
     const matchingCity = cities?.find(
       (city) =>
         city.name === cityNameOrForeignName ||
@@ -513,13 +454,8 @@ export default function Page() {
     }
 
     const cityId = matchingCity.id;
-    console.log("Matched city ID:", cityId);
-
-    // Set the selected city ID in state
     setSelectedCityId(cityId);
-
-    // Update the doctor state
-    // @ts-ignore
+    //@ts-ignore
     setDoctor((prev) => {
       if (!prev || !prev.staff?.medical_organization) {
         console.log("Doctor state or medical organization not defined.");
@@ -532,12 +468,12 @@ export default function Page() {
           ...prev.staff,
           medical_organization: prev.staff.medical_organization.map(
             (org, index) =>
-              index === 0 // Assuming we're updating the first organization's city
+              index === 0
                 ? {
                     ...org,
                     city: {
                       ...org.city,
-                      id: cityId, // Update city ID
+                      id: cityId,
                     },
                   }
                 : org
@@ -545,18 +481,14 @@ export default function Page() {
         },
       };
 
-      console.log("Updated doctor state in setDoctor:", updatedDoctor);
       return updatedDoctor;
     });
-
-    console.log("Updated doctor state after city change:", doctor);
   };
 
   const handleSpecialityChange = (specialityNameOrForeignName: string) => {
-    // Find the matching specialty in the specialties list based on name or foreign_name
-    // @ts-ignore
+    //@ts-ignore
     const matchingSpeciality = specialities?.find(
-      // @ts-ignore
+      //@ts-ignore
       (speciality) =>
         speciality.name === specialityNameOrForeignName ||
         speciality.foreign_name === specialityNameOrForeignName
@@ -571,12 +503,8 @@ export default function Page() {
     }
 
     const specialityId = matchingSpeciality.id;
-
-    // Set the selected specialty ID in state
     setSelectedSpecialityId(specialityId);
-
-    // Update the doctor state
-    // @ts-ignore
+    //@ts-ignore
     setDoctor((prev) => {
       if (!prev) return prev;
 
@@ -585,9 +513,9 @@ export default function Page() {
         specialty: prev.specialty
           ? {
               ...prev.specialty,
-              id: specialityId, // Update specialty ID
+              id: specialityId,
             }
-          : null, // Handle the case where specialty is not defined
+          : null,
       };
 
       return updatedDoctor;
@@ -597,7 +525,6 @@ export default function Page() {
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
 
-    // Filter out old and new appointments
     const updatedAppointments =
       doctor.appointments?.filter((existingAppointment) => {
         return !appointmentDates.some(
@@ -621,7 +548,6 @@ export default function Page() {
       );
     });
 
-    // Create the `data` object for appointment dates
     const data = {
       appointment_dates: [
         ...updatedAppointments.map((appointment) => ({
@@ -629,7 +555,6 @@ export default function Page() {
           start_time: appointment.start_time,
           end_time: appointment.end_time,
           appointment_status: appointment.appointment_status,
-          //@ts-ignore
           price: appointment.price,
         })),
         ...newAppointments.map((appointment) => ({
@@ -643,65 +568,42 @@ export default function Page() {
       fixed_price: doctor.fixed_price,
     };
 
-    // Create the `staff` object for staff information
     const staff = {
       first_name: doctor.staff.first_name,
       last_name: doctor.staff.last_name,
       //@ts-ignore
       email: doctor.staff.email,
-      city: doctor.staff.city.id, // Include city ID
+      city: doctor.staff.city.id,
     };
 
-    // Log the data and staff objects
-    console.log("Data:", JSON.stringify(data));
-    console.log("Staff:", JSON.stringify(staff));
-
-    // Create FormData object
     const formData = new FormData();
-
-    // Append the `data` object as a JSON string
     formData.append("data", JSON.stringify(data));
-
-    // Append the `staff` object as a JSON string
     formData.append("staff", JSON.stringify(staff));
 
-    // Add the image file to FormData if it exists
-    //@ts-ignore
     if (imageFile) {
-      //@ts-ignore
-      formData.append("staff_avatar", imageFile); // Append the file directly if it exists
-      //@ts-ignore
-      console.log("Image file being sent:", imageFile);
+      formData.append("staff_avatar", imageFile);
     }
-
-    // Log the FormData content
-    formData.forEach((value, key) => {
-      console.log("FormData -", key, value);
-    });
 
     try {
       const accessToken = localStorage.getItem("access");
 
-      // Send the request to the backend
       const response = await fetch(
         `https://test-roshita.net/api/doctors/${doctor.id}/`,
         {
-          method: "PUT", // Use PUT for updating
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-          body: formData, // Send FormData
+          body: formData,
         }
       );
 
       const result = await response.json();
 
       if (response.ok) {
-        // Handle success
         console.log("Doctor updated successfully:", result);
-        window.location.reload(); // Reload the page or update the state as needed
+        window.location.reload();
       } else {
-        // Handle error
         console.error("Error updating doctor:", result);
         setError(result.message || "Error updating doctor information");
       }
@@ -819,7 +721,7 @@ export default function Page() {
                         onChange={(e) =>
                           setPatientDetails({
                             ...patientDetails,
-                            city: e.target.value, // Store city ID here
+                            city: e.target.value,
                           })
                         }
                         className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -936,63 +838,61 @@ export default function Page() {
               }
               onFieldChange={(index, value) => {
                 if (index === 0) {
-                  // Phone number field
                   setDoctor(
                     (prev) =>
                       prev && {
                         ...prev,
-                        user: { ...prev.user, phone: value }, // Update `doctor.user.phone`
+                        user: { ...prev.user, phone: value },
                       }
                   );
                 }
                 if (index === 1) {
                   setDoctor((prev) => {
-                    if (!prev) return prev; // Ensure prev exists
+                    if (!prev) return prev;
 
                     return {
                       ...prev,
                       staff: {
                         ...prev.staff,
                         city:
-                          typeof prev.staff.city === "object" // Ensure city is an object
+                          typeof prev.staff.city === "object"
                             ? {
-                                id: prev.staff.city.id, // Keep the existing ID (should be a number)
-                                name: value, // Update city name
+                                id: prev.staff.city.id,
+                                name: value,
                                 foreign_name: prev.staff.city.foreign_name,
                               }
-                            : prev.staff.city, // If city is not an object, keep it as is
+                            : prev.staff.city,
                       },
                     };
                   });
                 }
                 if (index === 2) {
                   setDoctor((prev) => {
-                    if (!prev) return prev; // Ensure prev exists
+                    if (!prev) return prev;
                     return {
                       ...prev,
                       specialty:
                         prev.specialty && typeof prev.specialty === "object"
                           ? {
                               ...prev.specialty,
-                              name: value, // Update the name with the desired value
+                              name: value,
                             }
-                          : prev.specialty, // If specialty is not an object, keep it as is
+                          : prev.specialty,
                     };
                   });
                 }
                 if (index === 3) {
-                  // Update fixed_price
                   setDoctor((prev) => prev && { ...prev, fixed_price: value });
                 }
               }}
               cities={cities}
-              onCityChange={handleCityChange} // Pass the city change handler
-              // @ts-ignore
+              onCityChange={handleCityChange}
+              //@ts-ignore
               specialities={specialities}
-              onSpecialityChange={handleSpecialityChange} // Pass the city change handler
+              onSpecialityChange={handleSpecialityChange}
             />
 
-            <Table className="w-full border border-gray-300  shadow-sm rounded-sm">
+            <Table className="w-full border border-gray-300 shadow-sm rounded-sm">
               <thead>
                 <TableRow>
                   {language === "ar" ? (
@@ -1035,82 +935,76 @@ export default function Page() {
                 </TableRow>
               </thead>
               <tbody>
-                {doctor?.appointments && doctor.appointments.length > 0 ? (
-                  doctor.appointments.map((slot, index) => {
-                    console.log("Appointment:", slot); // Log the appointment
-
-                    return (
-                      <TableRow key={index}>
-                        {language === "ar" ? (
-                          <>
-                            <TableCell className="text-center">
-                              <Button
-                                variant="destructive"
-                                /* @ts-ignore */
-                                onClick={() => handleRemoveSlot(index, slot.id)}
-                                className="text-white hover:text-red-800"
-                              >
-                                {t.remove}
-                              </Button>
-                              <Button
-                                onClick={() => handleBooked(index)}
-                                className="text-white bg-[#1685c7] ml-2"
-                              >
-                                {t.roshitaBook}
-                              </Button>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.appointment_status}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.end_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.start_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.scheduled_date}
-                            </TableCell>
-                          </>
-                        ) : (
-                          <>
-                            <TableCell className="text-center">
-                              {slot.scheduled_date}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.start_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.end_time}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {slot.appointment_status}
-                            </TableCell>
-                            <TableCell className="text-center gap-2">
-                              <Button
-                                variant="destructive"
-                                /* @ts-ignore */
-                                onClick={() => handleRemoveSlot(index, slot.id)}
-                                className="text-white hover:text-red-800"
-                              >
-                                {t.remove}
-                              </Button>
-                              <Button
-                                onClick={() => handleBooked(index)}
-                                className="text-white bg-[#1685c7] ml-2"
-                              >
-                                {t.roshitaBook}
-                              </Button>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    );
-                  })
+                {currentAppointments.length > 0 ? (
+                  currentAppointments.map((slot, index) => (
+                    <TableRow key={index}>
+                      {language === "ar" ? (
+                        <>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleRemoveSlot(index, slot.id)}
+                              className="text-white hover:text-red-800"
+                            >
+                              {t.remove}
+                            </Button>
+                            <Button
+                              onClick={() => handleBooked(index)}
+                              className="text-white bg-[#1685c7] ml-2"
+                            >
+                              {t.roshitaBook}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.appointment_status}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.end_time}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.start_time}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.scheduled_date}
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="text-center">
+                            {slot.scheduled_date}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.start_time}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.end_time}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {slot.appointment_status}
+                          </TableCell>
+                          <TableCell className="text-center gap-2">
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleRemoveSlot(index, slot.id)}
+                              className="text-white hover:text-red-800"
+                            >
+                              {t.remove}
+                            </Button>
+                            <Button
+                              onClick={() => handleBooked(index)}
+                              className="text-white bg-[#1685c7] ml-2"
+                            >
+                              {t.roshitaBook}
+                            </Button>
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={5}
                       className="text-center text-gray-500"
                     >
                       {language === "ar"
@@ -1121,6 +1015,44 @@ export default function Page() {
                 )}
               </tbody>
             </Table>
+
+            {/* Pagination controls */}
+            <Pagination className="mt-4">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    //@ts-ignore
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (number) => (
+                    <PaginationItem key={number}>
+                      <PaginationLink
+                        onClick={() => paginate(number)}
+                        isActive={currentPage === number}
+                      >
+                        {number}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    //@ts-ignore
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
 
             <DoctorSlots onSlotsChange={handleSlotsChange} />
 

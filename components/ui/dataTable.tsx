@@ -362,7 +362,8 @@ export function DataTable({
       accessorKey: "دكاترة",
       header: language === "ar" ? "دكاترة" : "Doctors",
       cell: ({ row }) => {
-        const img = row.original.img;
+        const img = row.original.img?.replace(/^http:/, "https:");
+
         const name = row.getValue<string>("دكاترة");
 
         return (

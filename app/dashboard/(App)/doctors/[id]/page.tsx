@@ -868,7 +868,7 @@ export default function Page() {
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 phone={
-                  doctor?.staff.medical_organization[0]?.phone ??
+                  doctor?.user.phone ??
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 imageSrc={

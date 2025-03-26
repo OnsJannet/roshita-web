@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { MessageAlert } from "@/components/shared/MessageAlert";
 
 type Language = "ar" | "en";
 
@@ -30,27 +31,25 @@ interface UploadImageProps {
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-
 /**
- * This React component serves as a client-side page for changing the user's password. 
- * It allows authenticated users to securely update their old and new passwords, 
- * with support for password visibility toggles. 
- * The page supports both Arabic and English languages, with language preferences 
+ * This React component serves as a client-side page for changing the user's password.
+ * It allows authenticated users to securely update their old and new passwords,
+ * with support for password visibility toggles.
+ * The page supports both Arabic and English languages, with language preferences
  * stored in localStorage and dynamically applied.
- * 
+ *
  * Key functionalities include:
  * - Secure password change via API call using the current user's authentication token.
  * - Inputs for the old password and new password, with visibility toggle for each field.
  * - Language support for Arabic and English, with dynamic layout adjustments.
  * - Navigation options for settings, appointments, and logout in the sidebar.
  * - Displaying success or error messages based on the API response.
- * 
+ *
  * Dependencies:
  * - Custom components (Button, Input, Label, etc.)
  * - React hooks (useState, useEffect) for state management and side effects.
  * - withAuth higher-order component for authentication protection.
  */
-
 
 const PasswordChange = () => {
   const router = useRouter();
@@ -159,7 +158,7 @@ const PasswordChange = () => {
 
   const handleNotificationsClick = () => {
     router.push("/notifications");
-  }
+  };
 
   const handleConsultationsClick = () => {
     router.push("/consultations");
@@ -237,8 +236,17 @@ const PasswordChange = () => {
             </div>
           </div>
           <div className="flex gap-10 text-end flex-col w-[80%] mx-auto bg-white p-4">
-            {error && <p className="text-red-500">{error}</p>}
-            {msg && <p className="text-green-500">{msg}</p>}
+            {msg && (
+              <MessageAlert type="success" language={language}>
+                {msg}
+              </MessageAlert>
+            )}
+
+            {error && (
+              <MessageAlert type="error" language={language}>
+                {error}
+              </MessageAlert>
+            )}
             <div>
               {language === "ar" ? (
                 <Label className="text-end">كلمة المرور القديمة</Label>

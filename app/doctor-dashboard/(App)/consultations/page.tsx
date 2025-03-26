@@ -58,7 +58,7 @@ export default function Page() {
   const [selectedDate, setSelectedDate] = useState<Date | null | undefined>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"all" | "my">("all");
-  const [Error, setError] = useState("")
+  const [error, setError] = useState("")
   const [specialties, setSpecialties] = useState<
     { id: number; name: string; foreign_name: string }[]
   >([]);
@@ -97,7 +97,7 @@ export default function Page() {
       setTotalPages(Math.ceil(data.count / itemsPerPage));
     } catch (error) {
       console.error("Error fetching consultations:", error);
-      setError(error)
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
       setConsultations([]);
     } finally {
       setLoading(false);
@@ -303,6 +303,7 @@ export default function Page() {
                       key={consultation.id}
                       requestNumber={consultation.id.toString()}
                       patientName={consultation.patient.full_name}
+                      status={consultation.status}
                       requestDate={"2025-10-01"} // Replace with actual date if available
                       speciality={consultation.specialty.name}
                       language={language}

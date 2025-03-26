@@ -15,6 +15,7 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination"; // Import your pagination components
+import withAuth from "@/hoc/withAuth";
 
 type Language = "ar" | "en";
 
@@ -100,7 +101,7 @@ interface Consultation {
     };
     doctor_appointment_date: {
       id: number;
-      scheduled_date: string; 
+      scheduled_date: string;
       start_time: string;
       end_time: string;
       appointment_status: string;
@@ -110,7 +111,6 @@ interface Consultation {
     status: string;
   };
 }
-
 
 const Page = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -211,11 +211,11 @@ const Page = () => {
             },
           }
         );
-  
+
         if (!response.ok) {
           throw new Error("Failed to fetch consultations");
         }
-  
+
         const data = await response.json();
         setConsultations(data.results);
         setTotalPages(Math.ceil(data.count / itemsPerPage));
@@ -226,14 +226,14 @@ const Page = () => {
         setLoading(false);
       }
     };
-  
+
     fetchConsultations();
   }, [currentPage]);
 
   // Slice consultations to display only the current page's items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentConsultations = consultations
+  const currentConsultations = consultations;
 
   const filterAppointments = (
     appointments: any[],
@@ -393,63 +393,74 @@ const Page = () => {
               </Button>
             </div>
             {currentConsultations.length > 0 ? (
-  <div className="flex flex-col gap-4">
-{currentConsultations.map((consultation) => (
-  <ConsultationDropdown
-    key={consultation.id}
-    requestId={consultation.id}
-    consultationId={consultation.consultation_response?.id}
-    hospitalName={
-      language === 'ar'
-        ? consultation?.consultation_response?.selected_medical_organization?.name
-        : consultation?.consultation_response?.selected_medical_organization?.foreign_name
-    }
-    notificationMessage=""
-    creatin_date=""
-    date={consultation.consultation_response?.doctor_appointment_date?.scheduled_date || "No date available"}
-    consultationType="استشارة خاصة"
-    doctorMessage={consultation.consultation_response?.diagnosis_description_response || "No doctor message available"}
-    patientMessage={consultation.diagnosis_description_request}
-    language={language}
-    files={consultation.patient_files}
-    consultationStatus={consultation.status}
-  />
-))}
-  </div>
-) : (
-  <p className="text-center text-gray-500">
-    {translations[language].noConsultations}
-  </p>
-)}
+              <div className="flex flex-col gap-4">
+                {currentConsultations.map((consultation) => (
+                  <ConsultationDropdown
+                    key={consultation.id}
+                    requestId={consultation.id}
+                    consultationId={consultation.consultation_response?.id}
+                    hospitalName={
+                      language === "ar"
+                        ? consultation?.consultation_response
+                            ?.selected_medical_organization?.name
+                        : consultation?.consultation_response
+                            ?.selected_medical_organization?.foreign_name
+                    }
+                    notificationMessage=""
+                    creatin_date=""
+                    date={
+                      consultation.consultation_response
+                        ?.doctor_appointment_date?.scheduled_date ||
+                      "No date available"
+                    }
+                    price={consultation.consultation_response?.estimated_cost}
+                    consultationType="استشارة خاصة"
+                    doctorMessage={
+                      consultation.consultation_response
+                        ?.diagnosis_description_response ||
+                      "No doctor message available"
+                    }
+                    patientMessage={consultation.diagnosis_description_request}
+                    language={language}
+                    files={consultation.patient_files}
+                    consultationStatus={consultation.status}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">
+                {translations[language].noConsultations}
+              </p>
+            )}
             {/* Pagination Controls */}
             <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => handlePageChange(currentPage - 1)}
-              //@ts-ignore
-              disabled={currentPage === 1}
-            />
-          </PaginationItem>
-          {[...Array(totalPages)].map((_, index) => (
-            <PaginationItem key={index}>
-              <PaginationLink
-                onClick={() => handlePageChange(index + 1)}
-                isActive={currentPage === index + 1}
-              >
-                {index + 1}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => handlePageChange(currentPage + 1)}
-              //@ts-ignore
-              disabled={currentPage === totalPages}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    //@ts-ignore
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      onClick={() => handlePageChange(index + 1)}
+                      isActive={currentPage === index + 1}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    //@ts-ignore
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         </div>
       </div>
@@ -457,4 +468,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default withAuth(Page);

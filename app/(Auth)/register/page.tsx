@@ -78,8 +78,12 @@ const Page = () => {
         //window.location.href = "/login";
       } else {
         const errorMessage =
-        result.message || result.phone || result.email || result.first_name || result.last_name;
-        setError(errorMessage)
+          result.message ||
+          result.phone ||
+          result.email ||
+          result.first_name ||
+          result.last_name;
+        setError(errorMessage);
         console.log("Registration Error:", result);
       }
     } catch (error) {
@@ -88,18 +92,21 @@ const Page = () => {
     }
   };
 
-
   const handleVerifyOTP = async (otp: string) => {
     try {
       // Send OTP to the server for verification
-      const response = await fetch("https://test-roshita.net/api/account/verify-otp/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE",
-        },
-        body: JSON.stringify({ otp, phone }),
-      });
+      const response = await fetch(
+        "https://test-roshita.net/api/account/verify-otp/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken":
+              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE",
+          },
+          body: JSON.stringify({ otp, phone }),
+        }
+      );
 
       const result = await response.json();
 
@@ -125,10 +132,46 @@ const Page = () => {
     >
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
+          <div
+            className={`flex gap-2 items-center justify-center mb-10 {
+              language === "en" ? "flex-row-reverse" : ""
+            }`}
+          >
+            <div>
+              <h2
+                onClick={() => (window.location.href = "/")}
+                className={`${
+                  language === "ar" ? "text-right" : "text-left"
+                } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
+              >
+                {language === "ar" ? "روشــــــــيتــــــا" : "Roshita"}
+              </h2>
+              <p
+                className={`${
+                  language === "ar" ? "text-right" : "text-left"
+                } font-[500] lg:text-[16px] text-[12px]`}
+              >
+                {language === "ar" ? "صحــة أفضل" : "Better Health"}{" "}
+                <span className="text-roshitaGreen">
+                  {language === "ar"
+                    ? "تواصـــــل أســرع"
+                    : "Faster Communication"}
+                </span>
+              </p>
+            </div>
+            <img
+              src="/logos/ShortLogo.png"
+              alt="roshita logo"
+              className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
+              onClick={() => (window.location.href = "/")}
+            />
+          </div>
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">
               {language === "ar" ? "أنضــم الي" : "Join"}{" "}
-              <span className="text-roshitaDarkBlue">Roshita</span>
+              <span className="text-roshitaDarkBlue">
+                {language === "ar" ? "روشيتا" : "Roshita"}
+              </span>
             </h1>
             <p className="text-muted-foreground">
               {language === "ar"
@@ -138,14 +181,14 @@ const Page = () => {
           </div>
 
           {error && (
-              <div
-                className={`text-red-500 bg-red-100 p-4 rounded ${
-                  language === "ar" ? "text-end" : "text-start"
-                }`}
-              >
-                {error}
-              </div>
-            )}
+            <div
+              className={`text-red-500 bg-red-100 p-4 rounded ${
+                language === "ar" ? "text-end" : "text-start"
+              }`}
+            >
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleRegister} className="grid gap-4">
             <div className="grid gap-2">
@@ -236,8 +279,6 @@ const Page = () => {
                 className={language === "ar" ? "text-right" : "text-left"}
               />
             </div>
-
-
 
             <Button type="submit" className="w-full bg-roshitaBlue">
               {language === "ar" ? "تسجيل" : "Register"}

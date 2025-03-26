@@ -759,13 +759,17 @@ export default function Page() {
   const fetchAppointments = async (page = 1) => {
     try {
       const token = localStorage.getItem("access");
+      const doctorId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
       if (!token) {
         console.error("Access token is missing.");
         return;
       }
 
+      console.log("id0", id)
+
       const response = await fetch(
-        `https://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${id}&page=${page}`,
+        `https://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${doctorId}&page=${page}`,
         {
           method: "GET",
           headers: {
@@ -868,7 +872,7 @@ export default function Page() {
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 phone={
-                  doctor?.staff.medical_organization[0]?.phone ??
+                  doctor?.user.phone ??
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 imageSrc={

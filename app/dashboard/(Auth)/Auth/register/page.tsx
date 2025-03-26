@@ -361,6 +361,40 @@ const Page = () => {
       {/* Left Column */}
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid lg:w-[600px] w-[90%] gap-6">
+        <div
+            className={`flex gap-2 items-center justify-center mb-10 {
+              language === "en" ? "flex-row-reverse" : ""
+            }`}
+          >
+            <div>
+              <h2
+                onClick={() => (window.location.href = "/")}
+                className={`${
+                  language === "ar" ? "text-right" : "text-left"
+                } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
+              >
+                {language === "ar" ? "روشــــــــيتــــــا" : "Roshita"}
+              </h2>
+              <p
+                className={`${
+                  language === "ar" ? "text-right" : "text-left"
+                } font-[500] lg:text-[16px] text-[12px]`}
+              >
+                {language === "ar" ? "صحــة أفضل" : "Better Health"}{" "}
+                <span className="text-roshitaGreen">
+                  {language === "ar"
+                    ? "تواصـــــل أســرع"
+                    : "Faster Communication"}
+                </span>
+              </p>
+            </div>
+            <img
+              src="/logos/ShortLogo.png"
+              alt="roshita logo"
+              className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
+              onClick={() => (window.location.href = "/")}
+            />
+          </div>
           {/* Step 1 */}
           {step === 1 && (
             <div className="flex items-center justify-center py-12 ">

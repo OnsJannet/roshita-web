@@ -182,17 +182,17 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         setStatus("canceled");
         setIsCancelModalOpen(false);
   
-        // Check if refund request should be sent
-        console.log("Checking refund condition, daysDifference:", daysDifference);
+        // Check if refund request would have been sent (commented out for now)
+        console.log("Would check refund condition, daysDifference:", daysDifference);
+        /*
         if (daysDifference <= 2) {
-          console.log("Preparing to send refund request...");
-  
+          console.log("Would send refund request...");
+          // Refund request logic has been temporarily commented out
           try {
-            const token = localStorage.getItem("access"); // Get the token from local storage
+            const token = localStorage.getItem("access");
             const refundUrl = "https://test-roshita.net/api/reservation/refund/";
             console.log("Refund request URL:", refundUrl);
   
-            // Create the refund request body
             const refundBody = {
               appointment_reservation: appointementId,
               reason: "Appointment cancellation"
@@ -220,8 +220,9 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             console.error("Error during refund request:", error);
           }
         } else {
-          console.log("No refund request sent as daysDifference > 2");
+          console.log("No refund request would be sent as daysDifference > 2");
         }
+        */
       } else {
         const errorMsg =
           language === "ar"

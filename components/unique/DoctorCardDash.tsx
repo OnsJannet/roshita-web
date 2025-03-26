@@ -21,6 +21,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   imageSrc,
   language,
 }) => {
+  const img = imageSrc?.replace(/^http:/, "https:");
   return (
     <div
       className={`bg-white shadow-sm py-4 flex flex-col ${
@@ -34,7 +35,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
         } items-center gap-10 lg:gap-8 w-full lg:w-[60%]`}
       >
         {/* Image Section */}
-        <Avatar className="w-[120px] h-[120px] object-cover">
+        {/*<Avatar className="w-[120px] h-[120px] object-cover">
           <AvatarImage
             src={
               imageSrc &&
@@ -53,7 +54,20 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
                   .join(" ") // Join the letters with a space
               : "?"}
           </AvatarFallback>
-        </Avatar>
+        </Avatar>*/}
+
+        <img
+          src={
+            img &&
+            img !== null &&
+            !img.startsWith("/media/media/") &&
+            !img.startsWith("/avatar/")
+              ? img
+              : "/Images/default-doctor.jpeg"
+          }
+          alt={name}
+          className="h-[120px] w-[120px] rounded-full object-contain"
+        />
 
         {/* Text Section */}
         <div

@@ -97,6 +97,7 @@ type Language = "ar" | "en";
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [payMethode, setPayMethode] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   useEffect(() => {
     // @ts-ignore
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
@@ -216,57 +217,79 @@ export default function Page() {
   // Handle form submission
   const handleSubmit = async () => {
     const missingFields = validateForm();
-
+  
     if (missingFields.length > 0) {
       setErrorMessage(`الحقول التالية مطلوبة: ${missingFields.join(", ")}`);
       return;
     }
-
+  
     try {
-      const accessToken =
-        typeof window !== "undefined" && typeof localStorage !== "undefined"
-          ? localStorage.getItem("access")
-          : null;
-
-      const response = await fetch("/api/doctors/createDoctor", {
+      const formDataObj = new FormData();
+  
+      // Doctor info
+      formDataObj.append("doctor_phone", formData.phoneNumber || "");
+      formDataObj.append("email", "doctor@example.com");
+      formDataObj.append("first_name", formData.firstName);
+      formDataObj.append("last_name", formData.lastName);
+      formDataObj.append("specialty", String(formData.specialty));
+      formDataObj.append("city", String(formData.city));
+      formDataObj.append("fixed_price", formData.fixedPrice);
+      formDataObj.append("is_consultant", String(formData.isConsultant));
+  
+      // File upload - use the Image from state that was set by UploadButton
+      if (formData.Image && typeof formData.Image !== 'string') {
+        // If Image is a File object (from UploadButton)
+        formDataObj.append("staff_avatar", formData.Image);
+      }
+  
+      // Medical organization info
+      formDataObj.append("medical_org_name", "Clinic Name");
+      formDataObj.append("medical_org_phone", "1234567890");
+      formDataObj.append("medical_org_email", "clinic@example.com");
+      formDataObj.append("medical_org_city", String(formData.city));
+      formDataObj.append("medical_org_address", formData.address);
+      formDataObj.append("medical_org_latitude", "0");
+      formDataObj.append("medical_org_longitude", "0");
+  
+      // Append appointment dates
+      appointmentDates.forEach((appointment, index) => {
+        formDataObj.append(`appointment_dates[${index}][scheduled_date]`, appointment.scheduled_date);
+        formDataObj.append(`appointment_dates[${index}][start_time]`, appointment.start_time);
+        formDataObj.append(`appointment_dates[${index}][end_time]`, appointment.end_time);
+        formDataObj.append(`appointment_dates[${index}][price]`, appointment.price);
+      });
+  
+      // Append payment method
+      formDataObj.append("pay_method", formData.payMethode || "");
+  
+      const accessToken = localStorage.getItem("access");
+      const response = await fetch("https://test-roshita.net/api/register-doctor/", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          staff: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            city: formData.city,
-            address: formData.address,
-            staff_avatar: formData.Image,
-          },
-          doctor_phone: formData.phoneNumber,
-          specialty: Number(formData.specialty),
-          fixed_price: formData.fixedPrice,
-          rating: Number(formData.rating),
-          is_consultant: formData.isConsultant,
-          appointment_dates: appointmentDates,
-          pay_method: formData.payMethode, // Use formData.payMethode
-        }),
+        body: formDataObj,
       });
-
+  
       const data = await response.json();
-
-      if (data.success) {
+  
+      if (response.ok) {
+        console.log("✅ Doctor registered:", data);
         window.location.href = "/dashboard/doctors";
       } else {
+        console.error("❌ Registration failed:", data);
         setErrorMessage(
-          language === "ar"
-            ? "حدث خطأ غير متوقع"
-            : "An unexpected error occurred"
+          language === "ar" 
+            ? "فشل التسجيل: " + JSON.stringify(data)
+            : "Registration failed: " + JSON.stringify(data)
         );
       }
     } catch (error) {
-      console.error("Error submitting doctor:", error);
+      console.error("🚨 Error during registration:", error);
       setErrorMessage(
-        language === "ar" ? "حدث خطأ غير متوقع" : "An unexpected error occurred"
+        language === "ar" 
+          ? "حدث خطأ أثناء التسجيل" 
+          : "Error during registration"
       );
     }
   };

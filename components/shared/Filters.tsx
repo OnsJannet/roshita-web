@@ -134,12 +134,12 @@ const Filters = () => {
           <SelectTrigger className="h-[52px] flex-row-reverse">
             <div className="flex flex-row-reverse gap-2 items-center">
               <MapPin className="h-[20px] w-[20px] text-roshitaDarkBlue" />
-              <SelectValue
+              <SelectValue className="text-black"
                 placeholder={language === "ar" ? "البلد" : "Country"}
               />
             </div>
           </SelectTrigger>
-          <SelectContent className="z-[999999]">
+          <SelectContent className="z-[999999] w-full text-black">
             <SelectItem key="all" value="all">
               {language === "ar" ? "الكل" : "All"}
             </SelectItem>

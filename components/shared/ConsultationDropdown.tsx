@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import FileComponent from "./FileComponent";
 import { paiement } from "@/constant";
+import { MessageAlert } from "./MessageAlert";
 
 interface File {
   description: string;
@@ -22,6 +23,7 @@ interface DropdownDetailsProps {
   consultationStatus: string;
   consultationId: number;
   requestId: number;
+  price: string;
 }
 
 const DropdownDetails: React.FC<DropdownDetailsProps> = ({
@@ -37,23 +39,31 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
   consultationStatus,
   requestId,
   consultationId,
+  price,
 }) => {
-
-  console.log(`consultationId ${consultationId} have status ${consultationStatus}`, )
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    string | null
+  >(null);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handlePaymentMethodClick = (id: number) => {
     const selectedMethod = paiement.find((option) => option.id === id);
     if (selectedMethod) {
       setSelectedPaymentMethod(selectedMethod.name_en.toLowerCase());
+      setError(""); // Clear error when selecting a method
     }
   };
 
   const acceptRequest = async () => {
     if (!selectedPaymentMethod) {
-      alert("Please select a payment method.");
+      setError(
+        language === "ar"
+          ? "الرجاء اختيار طريقة الدفع"
+          : "Please select a payment method"
+      );
       return;
     }
 
@@ -71,8 +81,8 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            mobile_number: "0913632323", // Static number for testing
-            birth_year: 1990, // Static birth year for testing
+            mobile_number: "0913632323",
+            birth_year: 1990,
             payment_method: selectedPaymentMethod,
             pay_full_amount: true,
           }),
@@ -85,11 +95,22 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
 
       const result = await response.json();
       console.log("Request accepted:", result);
-      window.location.reload()
-      setIsModalOpen(false); // Close the modal after successful request
+      setSuccessMessage(
+        language === "ar"
+          ? "تم قبول الطلب بنجاح"
+          : "Request accepted successfully"
+      );
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to accept request:", error);
-      alert("Failed to accept the request. Please try again.");
+      setError(
+        language === "ar"
+          ? "فشل قبول الطلب. الرجاء المحاولة مرة أخرى"
+          : "Failed to accept the request. Please try again."
+      );
     }
   };
 
@@ -98,7 +119,6 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
     try {
       const response = await fetch(
         `https://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
-         // Replace with the correct endpoint
         {
           method: "POST",
           headers: {
@@ -120,15 +140,26 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
 
       const result = await response.json();
       console.log("Request denied:", result);
-      window.location.reload()
+      setSuccessMessage(
+        language === "ar" ? "تم رفض الطلب بنجاح" : "Request denied successfully"
+      );
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error("Failed to deny request:", error);
-      alert("Failed to deny the request. Please try again.");
+      setError(
+        language === "ar"
+          ? "فشل رفض الطلب. الرجاء المحاولة مرة أخرى"
+          : "Failed to deny the request. Please try again."
+      );
     }
   };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
+    setError(""); // Clear errors when toggling
+    setSuccessMessage(""); // Clear success messages when toggling
   };
 
   const isArabic = language === "ar";
@@ -139,6 +170,30 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
         isOpen ? "" : "h-[200px] overflow-hidden"
       }`}
     >
+      {/* Success and Error Messages at the top */}
+      {successMessage && (
+        <MessageAlert
+          type="success"
+          //@ts-ignore
+          language={language}
+          className="rounded-t-lg rounded-b-none"
+        >
+          {successMessage}
+        </MessageAlert>
+      )}
+
+      {error && (
+        //@ts-ignore
+        <MessageAlert
+          type="error"
+          //@ts-ignore
+          language={language}
+          className="rounded-t-lg rounded-b-none"
+        >
+          {error}
+        </MessageAlert>
+      )}
+
       <div
         className={`flex flex-col w-full ${
           isArabic ? "lg:flex-row-reverse" : "lg:flex-row"
@@ -167,11 +222,8 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
                   isArabic ? "text-right" : "text-start"
                 }`}
               >
-                {hospitalName
-                  ? hospitalName
-                  : isArabic
-                  ? "تم إرسال الاستشارة"
-                  : "Consultation Sent"}
+                {hospitalName ||
+                  (isArabic ? "تم إرسال الاستشارة" : "Consultation Sent")}
               </h2>
               <div
                 className={`flex ${
@@ -192,11 +244,10 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
                 isArabic ? "right" : "left"
               }`}
             >
-              {notificationMessage
-                ? notificationMessage
-                : isArabic
-                ? "تم إضافة الاستشارة إلى القائمة"
-                : "Consultation added to the list"}
+              {notificationMessage ||
+                (isArabic
+                  ? "تم إضافة الاستشارة إلى القائمة"
+                  : "Consultation added to the list")}
             </p>
           </div>
         </div>
@@ -217,18 +268,24 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
               </span>{" "}
               {date}
             </p>
+            <p className="text-sm">
+              <span className="font-bold">
+                {isArabic ? " السعر:" : "Price:"}
+              </span>{" "}
+              {price}
+            </p>
             <p
               className="text-sm leading-relaxed mb-2"
               style={{ whiteSpace: "pre-line" }}
             >
-              {isArabic ? doctorMessage : doctorMessage}
+              {doctorMessage}
             </p>
             <hr className="my-4" />
             <p
               className="text-sm text-gray-600"
               style={{ whiteSpace: "pre-line" }}
             >
-              {isArabic ? patientMessage : patientMessage}
+              {patientMessage}
             </p>
 
             {files && files.length > 0 && (
@@ -270,7 +327,6 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-[80%] h-[80%] flex flex-col">
-            {/* Scrollable content container */}
             <div
               className="overflow-y-auto flex-1 px-4"
               style={{ maxHeight: "calc(100% - 20px)" }}
@@ -286,18 +342,6 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
                   ? "Your payment for Roshita will be processed using the selected method. Please note that payments for the doctor must be made in cash directly at the doctor's cabinet."
                   : "سيتم معالجة دفعتك لروشيتا باستخدام الطريقة المحددة. يرجى ملاحظة أن الدفع للطبيب يجب أن يتم نقدًا مباشرة في عيادة الطبيب."}
               </p>
-
-              {/* Commented-out mobile number field for future use */}
-              {/* <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  {language === "en" ? "Mobile Number" : "رقم الجوال"}
-                </label>
-                <input
-                  type="text"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder={language === "en" ? "Enter mobile number" : "أدخل رقم الجوال"}
-                />
-              </div> */}
 
               <p
                 className={`text-gray-600 mb-2 pb-2 text-2xl font-semibold ${
@@ -333,7 +377,6 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
               </div>
             </div>
 
-            {/* Buttons fixed at the bottom */}
             <div className="flex justify-end gap-4 mt-4">
               <button
                 onClick={() => setIsModalOpen(false)}
