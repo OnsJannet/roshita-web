@@ -129,13 +129,14 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         const token = localStorage.getItem("access");
         if (!token) {
           console.error("No access token found in localStorage");
+          setIsLoading(false);
           return;
         }
-
+    
         let allAppointments: Appointment[] = [];
         let nextPage = 1;
         let hasMore = true;
-
+    
         while (hasMore) {
           const response = await fetch(`${API_URL}search/?page=${nextPage}`, {
             method: "GET",
@@ -143,29 +144,27 @@ const Planner = ({ language = "en" }: { language?: string }) => {
               Authorization: `Bearer ${token}`,
             },
           });
-
+    
           if (!response.ok) throw new Error("Failed to fetch appointments");
-
+    
           const data = await response.json();
           allAppointments = [...allAppointments, ...data.results];
-
+    
           if (data.next) {
             nextPage += 1;
           } else {
             hasMore = false;
           }
         }
-
+    
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
+    
         const filteredAppointments = allAppointments
           .filter((appointment) => {
-            const appointmentDate = new Date(
-              appointment.reservation.reservation_date
-            );
+            const appointmentDate = new Date(appointment.reservation.reservation_date);
             const status = appointment.reservation.reservation_payment_status;
-
+    
             return status !== "Cancelled" && status !== "Completed";
           })
           .sort((a, b) => {
@@ -173,13 +172,12 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             const dateB = new Date(b.reservation.reservation_date);
             return dateA.getTime() - dateB.getTime();
           });
-
+    
         setAppointments(filteredAppointments);
-        setTotalPages(
-          Math.ceil(filteredAppointments.length / APPOINTMENTS_PER_PAGE)
-        );
+        setTotalPages(Math.ceil(filteredAppointments.length / APPOINTMENTS_PER_PAGE));
       } catch (error) {
         console.error("Error fetching appointments:", error);
+        setError("Failed to fetch appointments");
       } finally {
         setIsLoading(false);
       }
@@ -656,7 +654,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   return (
     <div className="p-4 border rounded-md shadow">
-      {isLoading ? (
+      {isLoading || appointments.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <LoadingDoctors />
         </div>
