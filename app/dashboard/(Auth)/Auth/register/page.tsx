@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { Building, Lock, Mail, Phone, User } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
 import { logAction } from "@/lib/logger";
+import UploadButton from "@/components/unique/UploadButton";
 
 type Language = "ar" | "en";
 
@@ -117,6 +118,20 @@ const Page = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({}); // Track field errors
   const [specialties, setSpecialties] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
+  // Add this to your existing state declarations
+  const [staffAvatar, setStaffAvatar] = useState<File | null>(null);
+  const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
+
+  // Add this handler function
+  const handleAvatarUpload = (file: File | null) => {
+    if (file) {
+      setStaffAvatar(file);
+      setPreviewAvatar(URL.createObjectURL(file));
+    } else {
+      setStaffAvatar(null);
+      setPreviewAvatar(null);
+    }
+  };
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -298,38 +313,61 @@ const Page = () => {
   const handleRegisterDoctor = async () => {
     setLoading(true);
     setError(null);
-
-    const doctorData = {
-      doctor_phone: phone,
-      email: email,
-      first_name: name,
-      last_name: lastName,
-      specialty: speciality,
-      city: city,
-      staff_avatar: "",
-      fixed_price: fixedPrice,
-      is_consultant: true,
-      medical_org_name: medicalOrgName,
-      medical_org_phone: medicalOrgPhone,
-      medical_org_email: medicalOrgEmail,
-      medical_org_city: medicalOrgCity,
-      medical_org_address: medicalOrgAddress,
-      medical_org_latitude: 0,
-      medical_org_longitude: 0,
-    };
-
+  
+    // Validate all fields including the image
+    const errors: Record<string, boolean> = {};
+    if (!name.trim()) errors.firstName = true;
+    if (!lastName.trim()) errors.lastName = true;
+    if (!phone.trim()) errors.doctorPhone = true;
+    if (!email.trim()) errors.email = true;
+    if (!speciality) errors.specialty = true;
+    if (!city) errors.city = true;
+    if (!staffAvatar) errors.staffAvatar = true;
+    if (!fixedPrice) errors.fixedPrice = true;
+    if (!medicalOrgName.trim()) errors.medicalOrgName = true;
+    if (!medicalOrgPhone.trim()) errors.medicalOrgPhone = true;
+    if (!medicalOrgEmail.trim()) errors.medicalOrgEmail = true;
+    if (!medicalOrgCity) errors.medicalOrgCity = true;
+    if (!medicalOrgAddress.trim()) errors.medicalOrgAddress = true;
+  
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setLoading(false);
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("doctor_phone", phone);
+    formData.append("email", email);
+    formData.append("first_name", name);
+    formData.append("last_name", lastName);
+    formData.append("specialty", speciality.toString());
+    formData.append("city", city.toString());
+    if (staffAvatar) {
+      formData.append("staff_avatar", staffAvatar);
+    }
+    formData.append("fixed_price", fixedPrice);
+    formData.append("is_consultant", "1"); // or "0" depending on your needs
+    formData.append("medical_org_name", medicalOrgName);
+    formData.append("medical_org_phone", medicalOrgPhone);
+    formData.append("medical_org_email", medicalOrgEmail);
+    formData.append("medical_org_city", medicalOrgCity);
+    formData.append("medical_org_address", medicalOrgAddress);
+    formData.append("medical_org_latitude", "0"); // Add actual values if available
+    formData.append("medical_org_longitude", "0"); // Add actual values if available
+  
     try {
       const response = await fetch(
         "https://www.test-roshita.net/api/register-doctor/",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "X-API-Key": "", // Add your API key here
           },
-          body: JSON.stringify(doctorData),
+          body: formData,
         }
       );
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
@@ -338,9 +376,9 @@ const Page = () => {
           }`
         );
       }
-
+  
       const data = await response.json();
-      window.location.href="/dashboard/Auth/login"
+      window.location.href = "/dashboard/Auth/login";
       console.log("Response:", data);
     } catch (err) {
       /* @ts-ignore */
@@ -726,6 +764,22 @@ const Page = () => {
                     }}
                     className="grid gap-4"
                   >
+                                          <div className="flex justify-center my-4">
+  <div className="grid gap-2">
+    <Label htmlFor="staff_avatar" className={textAlignment}>
+      {t.staffAvatar}
+    </Label>
+    <UploadButton
+      onUpload={handleAvatarUpload} 
+      picture={previewAvatar || ""} 
+    />
+    {fieldErrors.staffAvatar && (
+      <p className={`text-red-500 text-sm ${textAlignment}`}>
+        {t.fillField} "{t.staffAvatar}"
+      </p>
+    )}
+  </div>
+</div>
                     <div
                       className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
                     >

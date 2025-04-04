@@ -5,7 +5,7 @@ import PaginationDemo from "@/components/shared/PaginationDemo";
 import DoctorCard from "@/components/unique/DorctorCard";
 import FilterDoctor from "@/components/unique/FilterDoctor";
 import TitleSection from "@/components/unique/TitleSection";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
@@ -21,7 +21,6 @@ const translations = {
   },
 };
 
-// Define the Doctor type
 interface MedicalOrganization {
   id: number;
   name: string;
@@ -58,15 +57,14 @@ interface Doctor {
 }
 
 const Page = () => {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [language, setLanguage] = useState<Language>("ar");
-  const [loading, setLoading] = useState(false);
-  const [noDoctors, setNoDoctors] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const doctorsPerPage = 5;
   const [doctorCount, setDoctorCount] = useState(0);
+  const doctorsPerPage = 5;
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -101,118 +99,118 @@ const Page = () => {
       : decodeURIComponent(params.specialty)
     : undefined;
 
+  const state = params?.state
+    ? Array.isArray(params.state)
+      ? decodeURIComponent(params.state[0])
+      : decodeURIComponent(params.state)
+    : undefined;
+
   const hospital = params?.hospital
     ? Array.isArray(params.hospital)
       ? decodeURIComponent(params.hospital[0])
       : decodeURIComponent(params.hospital)
     : undefined;
 
+  const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<string[]>(country ? [country] : []);
+  const [selectedSpeciality, setSelectedSpeciality] = useState<string[]>(specialty ? [specialty] : []);
+  const [selectedState, setSelectedState] = useState<string[]>(state ? [state] : []);
+  const [selectedHospitals, setSelectedHospitals] = useState<string[]>(hospital ? [hospital] : []);
+
   useEffect(() => {
-    // Fetch doctors from the backend
-    const fetchDoctors = async (page: number) => {
+    if (country) setSelectedCountry([country]);
+    if (specialty) setSelectedSpeciality([specialty]);
+    if (state) setSelectedState([state]);
+    if (hospital) setSelectedHospitals([hospital]);
+  }, [country, specialty, state, hospital]);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/userDoctor/getDoctor?page=${page}`);
+        
+        // Build query parameters
+        const queryParams = new URLSearchParams();
+        queryParams.append("page", currentPage.toString());
+        
+        // Only add filters if they're not "all" or undefined
+        if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
+          queryParams.append("speciality", selectedSpeciality[0]);
+        }
+        if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
+          queryParams.append("country", selectedCountry[0]);
+        }
+        if (selectedState.length > 0 && selectedState[0] !== "all") {
+          queryParams.append("state", selectedState[0]);
+        }
+        if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
+          queryParams.append("hospital", selectedHospitals[0]);
+        }
+        
+        const response = await fetch(
+          `https://test-roshita.net/api/user-doctors/?${queryParams.toString()}`
+        );
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch doctors");
+        }
+        
         const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Failed to fetch doctors");
-        setDoctors(data.data || []);
-        setDoctorCount(data.total);
+        
+        // Handle different response structures
+        let doctorsData = [];
+        let totalCount = 0;
+        
+        if (data.results?.data?.doctors) {
+          doctorsData = data.results.data.doctors;
+          totalCount = data.results.total || data.total || 0;
+        } else if (data.doctors) {
+          doctorsData = data.doctors;
+          totalCount = data.total || 0;
+        } else {
+          doctorsData = [];
+          totalCount = 0;
+        }
+        
+        setDoctors(doctorsData);
+        setDoctorCount(data.count);
       } catch (err: any) {
         setError(err.message);
+        setDoctors([]);
+        setDoctorCount(0);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDoctors(currentPage);
-  }, [currentPage]);
-
-  const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
-  const [selectedHospitals, setSelectedHospitals] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (country) {
-      setSelectedCountries([country]);
-    }
-    if (specialty) {
-      setSelectedSpecialties([specialty]);
-    }
-    if (hospital) {
-      setSelectedHospitals([hospital]);
-    }
-  }, [country, specialty, hospital]);
+    fetchDoctors();
+  }, [currentPage, selectedCountry, selectedSpeciality, selectedState, selectedHospitals]);
 
   const resetFilters = () => {
     setSelectedPrices([]);
-    setSelectedCountries([]);
-    setSelectedSpecialties([]);
+    setSelectedCountry([]);
+    setSelectedSpeciality([]);
+    setSelectedState([]);
     setSelectedHospitals([]);
     setCurrentPage(1);
   };
 
-  const filteredDoctors = doctors.filter((doctor) => {
-    const priceMatch =
-      selectedPrices.length === 0 ||
-      selectedPrices.includes("all") ||
-      selectedPrices.includes(doctor.price);
-
-    const countryMatch =
-      selectedCountries.length === 0 ||
-      selectedCountries.includes("all") ||
-      selectedCountries.some((selectedCountry) => {
-        return doctor.medical_organizations[0]?.city?.country?.name.includes(
-          selectedCountry
-        );
-      });
-
-    const specialtyMatch =
-      selectedSpecialties.length === 0 ||
-      selectedSpecialties.includes("all") ||
-      selectedSpecialties.includes(doctor.specialization);
-
-    const hospitalMatch =
-      selectedHospitals.length === 0 ||
-      selectedHospitals.includes("all") ||
-      selectedHospitals.includes(
-        language === "ar"
-          ? doctor.medical_organizations[0]?.name
-          : doctor.medical_organizations[0]?.foreign_name
-      );
-
-    return priceMatch && countryMatch && specialtyMatch && hospitalMatch;
-  });
-
-  useEffect(() => {
-    setNoDoctors(filteredDoctors.length === 0);
-  }, [filteredDoctors]);
-
-  const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
-
-  const totalDoctorPages = Math.ceil(doctorCount / doctorsPerPage);
-  const indexOfLastDoctor = currentPage * doctorsPerPage;
-  const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-
-  /*const currentDoctors = filteredDoctors.slice(
-    indexOfFirstDoctor,
-    indexOfLastDoctor
-  );*/
-
-  //bg-[#F9F9F9]
+  const totalPages = Math.ceil(doctorCount / doctorsPerPage);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
-  return (
-    isLoading ? (
-      <div className="bg-white flex items-center justify-center min-h-screen">
-        <LoadingDoctors />
-      </div>
+  // Apply client-side price filtering if needed
+  const filteredDoctors = selectedPrices.length > 0 && selectedPrices[0] !== "all"
+    ? doctors.filter(doctor => selectedPrices.includes(doctor.price || ""))
+    : doctors;
 
-    ) : (
+  return isLoading ? (
+    <div className="bg-white flex items-center justify-center min-h-screen">
+      <LoadingDoctors />
+    </div>
+  ) : (
     <div className="bg-white pb-20">
       <TitleSection />
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
@@ -221,10 +219,10 @@ const Page = () => {
             doctors={doctors}
             selectedPrices={selectedPrices}
             setSelectedPrices={setSelectedPrices}
-            selectedCountries={selectedCountries}
-            setSelectedCountries={setSelectedCountries}
-            selectedSpecialties={selectedSpecialties}
-            setSelectedSpecialties={setSelectedSpecialties}
+            selectedCountries={selectedCountry}
+            setSelectedCountries={setSelectedCountry}
+            selectedSpecialties={selectedSpeciality}
+            setSelectedSpecialties={setSelectedSpeciality}
             selectedHospitals={selectedHospitals}
             setSelectedHospitals={setSelectedHospitals}
           />
@@ -238,7 +236,7 @@ const Page = () => {
         </div>
 
         <div className="space-y-4 lg:w-[80%]">
-          {noDoctors ? (
+          {filteredDoctors.length === 0 ? (
             <div className="text-center text-xl font-semibold mx-auto mt-10">
               {translations[language].noDoctors}
             </div>
@@ -256,8 +254,8 @@ const Page = () => {
                   location={doctor.city}
                   hospital={
                     language === "ar"
-                      ? doctor.medical_organizations[0]?.name
-                      : doctor.medical_organizations[0]?.foreign_name
+                      ? doctor.medical_organizations[0]?.name || ""
+                      : doctor.medical_organizations[0]?.foreign_name || ""
                   }
                   imageUrl={doctor.image}
                 />
@@ -265,7 +263,7 @@ const Page = () => {
 
               <PaginationDemo
                 currentPage={currentPage}
-                totalPages={totalDoctorPages}
+                totalPages={totalPages}
                 onPageChange={handlePageChange}
               />
             </>
@@ -273,7 +271,6 @@ const Page = () => {
         </div>
       </div>
     </div>
-    )
   );
 };
 

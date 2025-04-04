@@ -5,12 +5,9 @@ import {
   Filter,
   Globe,
   HeartPulse,
-  Star,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
-// Define the types for Doctor and Props
-// Define the Doctor type
 interface MedicalOrganization {
   id: number;
   name: string;
@@ -79,96 +76,97 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   const [language, setLanguage] = useState<Language>("ar");
 
   useEffect(() => {
-    // Sync the language state with the localStorage value
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
-      setLanguage(storedLanguage as Language); // Cast stored value to 'Language'
+      setLanguage(storedLanguage as Language);
     } else {
-      setLanguage("ar"); // Default to 'ar' (Arabic) if no language is set
+      setLanguage("ar");
     }
 
-    // Listen for changes in localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar"); // Cast newValue to 'Language'
+        setLanguage((event.newValue as Language) || "ar");
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
+  // Get unique prices, handling null/undefined and formatting
   const prices = Array.from(
     new Set(
-      doctors.map((doctor) => doctor.price).filter((price) => price !== undefined && price !== null && price !== "")
+      doctors
+        .map((doctor) => doctor.price)
+        .filter((price) => price !== null && price !== undefined && price !== "")
+        .map(price => price.replace(/\.000$/, '')) // Remove trailing .000 for display
     )
-  );
-  
+  ).sort((a, b) => parseFloat(a) - parseFloat(b));
+
+  // Get unique countries from all medical organizations
   const countries = Array.from(
     new Set(
-      doctors.map((doctor) =>
-        language === "ar"
-          ? doctor.medical_organizations[0]?.city?.country?.name
-          : doctor.medical_organizations[0]?.city?.country?.foreign_name || ""
-      )
+      doctors.flatMap(doctor => 
+        doctor.medical_organizations?.map(org =>
+          language === "ar" 
+            ? org.city?.country?.name 
+            : org.city?.country?.foreign_name
+        ) || []
+      ).filter(Boolean)
     )
-  );
-  
-  
+  ).sort();
+
+  // Get unique specialties
   const specialties = Array.from(
-    new Set(doctors.map((doctor) => doctor.specialization || ""))
-  );
+    new Set(
+      doctors.map((doctor) => doctor.specialization).filter(Boolean)
+    )
+  ).sort();
+
+  // Get unique hospitals from all medical organizations
   const hospitals = Array.from(
     new Set(
-      doctors.map((doctor) =>
-        language === "ar"
-          ? doctor.medical_organizations[0]?.name
-          : doctor.medical_organizations[0]?.foreign_name || ""
-      )
+      doctors.flatMap(doctor =>
+        doctor.medical_organizations?.map(org =>
+          language === "ar" ? org.name : org.foreign_name
+        ) || []
+      ).filter(Boolean)
     )
-  );
+  ).sort();
 
   const handlePriceChange = (price: string) => {
-    if (price === undefined) return;
-    if (selectedPrices.includes(price)) {
-      setSelectedPrices(selectedPrices.filter((p) => p !== price));
-    } else {
-      setSelectedPrices([...selectedPrices, price]);
-    }
+    const fullPrice = `${price}.000`; // Match the format in the data
+    setSelectedPrices(prev =>
+      prev.includes(fullPrice)
+        ? prev.filter(p => p !== fullPrice)
+        : [...prev, fullPrice]
+    );
   };
 
   const handleCountryChange = (country: string) => {
-    if (country === undefined) return;
-    if (selectedCountries.includes(country)) {
-      setSelectedCountries(selectedCountries.filter((c) => c !== country));
-    } else {
-      setSelectedCountries([...selectedCountries, country]);
-    }
+    setSelectedCountries(prev =>
+      prev.includes(country)
+        ? prev.filter(c => c !== country)
+        : [...prev, country]
+    );
   };
 
   const handleSpecialtyChange = (specialty: string) => {
-    if (specialty === undefined) return;
-    if (selectedSpecialties.includes(specialty)) {
-      setSelectedSpecialties(
-        selectedSpecialties.filter((s) => s !== specialty)
-      );
-    } else {
-      setSelectedSpecialties([...selectedSpecialties, specialty]);
-    }
+    setSelectedSpecialties(prev =>
+      prev.includes(specialty)
+        ? prev.filter(s => s !== specialty)
+        : [...prev, specialty]
+    );
   };
 
   const handleHospitalChange = (hospital: string) => {
-    console.log("Hospital", hospital);
-    if (hospital === undefined) return;
-    if (selectedHospitals.includes(hospital)) {
-      setSelectedHospitals(selectedHospitals.filter((h) => h !== hospital));
-    } else {
-      setSelectedHospitals([...selectedHospitals, hospital]);
-    }
+    setSelectedHospitals(prev =>
+      prev.includes(hospital)
+        ? prev.filter(h => h !== hospital)
+        : [...prev, hospital]
+    );
   };
 
   return (
@@ -212,7 +210,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Price" : "السعــر"}
                 </h3>
-                <Banknote className="text-roshitaDarkBlue  mb-2" />
+                <Banknote className="text-roshitaDarkBlue mb-2" />
               </div>
             </div>
             {isPriceOpen && (
@@ -223,14 +221,12 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                     className="flex gap-2 items-center justify-end"
                   >
                     <div className="flex flex-row-reverse gap-1">
-                      <label className="text-gray-400">
-                        {price.replace("د", "").trim()}
-                      </label>
+                      <label className="text-gray-400">{price}</label>
                       <p>{language === "ar" ? "د.ت" : "DT"}</p>
                     </div>
                     <input
                       type="checkbox"
-                      checked={selectedPrices.includes(price)}
+                      checked={selectedPrices.includes(`${price}.000`)}
                       onChange={() => handlePriceChange(price)}
                       className="rounded-full"
                     />
@@ -255,7 +251,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Country" : "البلد"}
                 </h3>
-                <Globe className="text-roshitaDarkBlue  mb-2" />
+                <Globe className="text-roshitaDarkBlue mb-2" />
               </div>
             </div>
 
@@ -294,7 +290,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Specialty" : "التخصص"}
                 </h3>
-                <HeartPulse className="text-roshitaDarkBlue  mb-2" />
+                <HeartPulse className="text-roshitaDarkBlue mb-2" />
               </div>
             </div>
 

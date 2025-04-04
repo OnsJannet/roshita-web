@@ -12,8 +12,6 @@ import { MoveRight } from "lucide-react";
 import UploadButton from "@/components/unique/UploadButton";
 import DoctorSlots from "@/components/layout/doctor-slot";
 
-// The structure of the data being sent to the backend
-// The structure of the data being sent to the backend
 interface DoctorFormData {
   firstName: string;
   lastName: string;
@@ -26,6 +24,7 @@ interface DoctorFormData {
   Image?: string;
   phoneNumber?: string;
   payMethode?: string;
+  email?: string;
 }
 
 interface Specialty {
@@ -35,71 +34,20 @@ interface Specialty {
 }
 
 type Slot = {
-  date: string; // Format: YYYY-MM-DD
-  startTime: string; // Format: HH:mm
-  endTime: string; // Format: HH:mm
-  backendFormat: string; // Format: YYYY-MM-DD HH:mm:00
+  date: string;
+  startTime: string;
+  endTime: string;
+  backendFormat: string;
 };
 
 type Language = "ar" | "en";
-
-/**
- * Doctor Add Form Page
- *
- * This page is responsible for adding a new doctor to the system. It handles
- * the submission of the doctor's details, including their name, specialty,
- * city, address, fixed price, rating, and profile picture. The form dynamically
- * adjusts based on the selected language and provides a smooth user experience
- * with real-time validation and API integration.
- *
- * Features:
- * - Displays a form with fields for the doctor's first name, last name, specialty,
- *   city, address, fixed price, and rating.
- * - Allows image upload for the doctor's profile picture.
- * - Fetches available specialties and cities dynamically from external APIs.
- * - Handles form validation to ensure all required fields are filled before submission.
- * - Submits the doctor's data to the backend API and handles success or error responses.
- * - Displays error messages if the API request fails or if form validation fails.
- * - Supports dynamic language switching between Arabic and English based on user preference.
- * - Adjusts the layout and text direction (RTL or LTR) based on the selected language.
- *
- * Fetching Flow:
- * 1. The list of available specialties and cities is fetched from external APIs
- *    when the component mounts.
- * 2. The form fields are populated with the user's input, and changes are tracked
- *    using controlled components.
- * 3. On form submission, the doctor's data is sent to the backend API for storage.
- * 4. If the submission is successful, the user is redirected to the doctors list page.
- *    If there is an error, an error message is displayed.
- *
- * Components Used:
- * - Breadcrumb: Displays navigation links to easily navigate between pages.
- * - UploadButton: Provides functionality for uploading the doctor's profile picture.
- * - Form Fields: Various input fields (text, number, select) for entering doctor details.
- * - ErrorMessage: Displays error messages for missing or invalid fields.
- *
- * Expected Props:
- * - Language: The current language selected by the user (e.g., 'ar' or 'en').
- * - Specialties: A list of available specialties fetched from an external API.
- * - Cities: A list of available cities fetched from an external API.
- *
- * Example:
- * When the user fills out the form with the doctor's details and clicks the submit button,
- * the doctor's data will be sent to the backend, and on success, the user will be redirected
- * to the doctors list page.
- *
- * Notes:
- * - The form supports dynamic text direction based on the selected language.
- * - All error messages and form labels are displayed in the selected language (Arabic or English).
- * - The page is part of a larger admin panel used for managing doctor records.
- */
 
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [payMethode, setPayMethode] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  
   useEffect(() => {
-    // @ts-ignore
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       const storedLanguage = localStorage.getItem("language");
       if (storedLanguage) {
@@ -145,37 +93,36 @@ export default function Page() {
     specialty: 0,
     fixedPrice: "",
     phoneNumber: "",
+    email: "",
     rating: 0,
     isConsultant: false,
     payMethode: "",
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
-  // Handle input changes
+
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     field: string
   ) => {
     setFormData((prevData) => {
-      let value: string | number | boolean = e.target.value; // Start by assuming it's a string
+      let value: string | number | boolean = e.target.value;
 
-      // Convert values to appropriate types
       if (field === "rating") {
-        value = Number(e.target.value); // Ensure rating is a number
+        value = Number(e.target.value);
       } else if (field === "specialty") {
-        value = Number(e.target.value); // Ensure specialty is a number
+        value = Number(e.target.value);
       } else if (
         field === "isConsultant" &&
         e.target instanceof HTMLInputElement
       ) {
-        value = e.target.checked; // Checkbox is a boolean
+        value = e.target.checked;
       } else if (field === "fixedPrice") {
-        // Allow only numbers for fixedPrice
         if (!/^\d*$/.test(e.target.value)) {
           setErrorMessage("سعر الحجز يجب أن يكون رقمًا فقط");
           return prevData;
         }
       } else if (field === "payMethode") {
-        value = e.target.value; // Handle payment method
+        value = e.target.value;
       }
 
       return {
@@ -187,14 +134,15 @@ export default function Page() {
 
   const validateForm = (): string[] => {
     const missingFields: string[] = [];
-    if (!formData.firstName) missingFields.push("الإسم ");
+    if (!formData.firstName) missingFields.push("الإسم");
     if (!formData.lastName) missingFields.push("اللقب");
     if (!formData.address) missingFields.push("مكان");
     if (!formData.specialty) missingFields.push("التخصص");
     if (!formData.fixedPrice) missingFields.push("سعر الحجز");
     if (!formData.rating) missingFields.push("التقييم");
     if (!formData.phoneNumber) missingFields.push("رقم التليفون");
-    if (!formData.phoneNumber) missingFields.push("طريقة الدفع");
+    if (!formData.payMethode) missingFields.push("طريقة الدفع");
+    if (!formData.email) missingFields.push("البريد الإلكتروني");
     return missingFields;
   };
 
@@ -205,16 +153,13 @@ export default function Page() {
 
   const appointmentDates = backendSlots.map((slot) => {
     return {
-      scheduled_date: slot.date, // Date in YYYY-MM-DD format
-      start_time: slot.startTime, // Start time in HH:mm format
-      end_time: slot.endTime, // End time in HH:mm format
+      scheduled_date: slot.date,
+      start_time: slot.startTime,
+      end_time: slot.endTime,
       price: formData.fixedPrice,
     };
   });
 
-  console.log("appointmentDates", appointmentDates);
-
-  // Handle form submission
   const handleSubmit = async () => {
     const missingFields = validateForm();
   
@@ -223,52 +168,65 @@ export default function Page() {
       return;
     }
   
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      setErrorMessage(language === "ar" ? "بريد إلكتروني غير صالح" : "Invalid email address");
+      return;
+    }
+  
     try {
+      const accessToken = localStorage.getItem("access");
+      const url = "https://test-roshita.net/api/doctors/";
+  
+      // Prepare the request data structure
+      const requestData = {
+        doctor_phone: formData.phoneNumber || "",
+        fixed_price: formData.fixedPrice,
+        pay_method: formData.payMethode || "",
+        specialty: String(formData.specialty),
+        is_consultant: formData.isConsultant,
+        staff: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email || "",
+          city: formData.city
+        },
+        data: {
+          appointment_dates: appointmentDates.map(appointment => ({
+            scheduled_date: appointment.scheduled_date,
+            start_time: `${appointment.start_time}:00`,
+            end_time: `${appointment.end_time}:00`,
+            appointment_status: "pending",
+            price: appointment.price
+          }))
+        }
+      };
+  
       const formDataObj = new FormData();
+      
+      // Append all data as JSON string
+      formDataObj.append("doctor_phone", requestData.doctor_phone);
+      formDataObj.append("fixed_price", requestData.fixed_price);
+      formDataObj.append("pay_method", requestData.pay_method);
+      formDataObj.append("specialty", requestData.specialty);
+      formDataObj.append("is_consultant", String(requestData.is_consultant));
+      
+      // Append nested objects as JSON strings
+      formDataObj.append("staff", JSON.stringify(requestData.staff));
+      formDataObj.append("data", JSON.stringify(requestData.data));
   
-      // Doctor info
-      formDataObj.append("doctor_phone", formData.phoneNumber || "");
-      formDataObj.append("email", "doctor@example.com");
-      formDataObj.append("first_name", formData.firstName);
-      formDataObj.append("last_name", formData.lastName);
-      formDataObj.append("specialty", String(formData.specialty));
-      formDataObj.append("city", String(formData.city));
-      formDataObj.append("fixed_price", formData.fixedPrice);
-      formDataObj.append("is_consultant", String(formData.isConsultant));
-  
-      // File upload - use the Image from state that was set by UploadButton
+      // Add image file if exists
       if (formData.Image && typeof formData.Image !== 'string') {
-        // If Image is a File object (from UploadButton)
         formDataObj.append("staff_avatar", formData.Image);
       }
   
-      // Medical organization info
-      formDataObj.append("medical_org_name", "Clinic Name");
-      formDataObj.append("medical_org_phone", "1234567890");
-      formDataObj.append("medical_org_email", "clinic@example.com");
-      formDataObj.append("medical_org_city", String(formData.city));
-      formDataObj.append("medical_org_address", formData.address);
-      formDataObj.append("medical_org_latitude", "0");
-      formDataObj.append("medical_org_longitude", "0");
-  
-      // Append appointment dates
-      appointmentDates.forEach((appointment, index) => {
-        formDataObj.append(`appointment_dates[${index}][scheduled_date]`, appointment.scheduled_date);
-        formDataObj.append(`appointment_dates[${index}][start_time]`, appointment.start_time);
-        formDataObj.append(`appointment_dates[${index}][end_time]`, appointment.end_time);
-        formDataObj.append(`appointment_dates[${index}][price]`, appointment.price);
-      });
-  
-      // Append payment method
-      formDataObj.append("pay_method", formData.payMethode || "");
-  
-      const accessToken = localStorage.getItem("access");
-      const response = await fetch("https://test-roshita.net/api/register-doctor/", {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`
+          // Don't set Content-Type - let browser set it with boundary
         },
-        body: formDataObj,
+        body: formDataObj
       });
   
       const data = await response.json();
@@ -302,7 +260,7 @@ export default function Page() {
         );
         const data = await response.json();
         if (data) {
-          setSpecialties(data); // Adjust this line based on the actual structure of your response
+          setSpecialties(data);
         } else {
           console.error("Failed to fetch specialties:", data.error);
         }
@@ -322,7 +280,7 @@ export default function Page() {
         );
         const data = await response.json();
         if (data) {
-          setCities(data); // Adjust this line based on the actual structure of your response
+          setCities(data);
         } else {
           console.error("Failed to fetch specialties:", data.error);
         }
@@ -337,7 +295,6 @@ export default function Page() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        {/* Header Section */}
         <header
           className={`flex ${
             language === "ar" ? "justify-end" : "justify-between"
@@ -348,13 +305,11 @@ export default function Page() {
               language === "ar" ? "flex-row" : "flex-row-reverse"
             } gap-2 items-center`}
           >
-            <Breadcrumb items={items} translate={(key) => key} />{" "}
-            {/* Pass a no-op translate function */}
+            <Breadcrumb items={items} translate={(key) => key} />
             <SidebarTrigger className="rotate-180 " />
           </div>
         </header>
 
-        {/* Main Content Section */}
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="p-8 space-y-8">
             {errorMessage && (
@@ -386,7 +341,6 @@ export default function Page() {
               >
                 <UploadButton
                   onUpload={(file) => {
-                    //@ts-ignore
                     setFormData((prevData) => ({ ...prevData, Image: file }));
                     console.log("Uploaded image path:", file);
                   }}
@@ -427,6 +381,23 @@ export default function Page() {
               {language === "ar" && (
                 <table className="w-full text-right p-4">
                   <tbody>
+                    <tr className="border-t p-4">
+                      <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                        <div className="flex justify-center">
+                          <MoveRight className="h-4 w-4" />
+                        </div>
+                      </td>
+                      <td className="py-3 px-2 text-gray-700 p-4">
+                        <input
+                          type="email"
+                          value={formData.email || ""}
+                          onChange={(e) => handleFieldChange(e, "email")}
+                          className="text-end border p-2 rounded"
+                          placeholder=""
+                        />
+                      </td>
+                      <td className="py-3 px-2 text-gray-500 p-4">البريد الإلكتروني</td>
+                    </tr>
                     <tr className="border-t p-4">
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
@@ -477,7 +448,6 @@ export default function Page() {
                       </td>
                       <td className="py-3 px-2 text-gray-500 p-4">مكان</td>
                     </tr>
-                    {/* Other fields */}
                     <tr className="border-t p-4">
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
@@ -541,7 +511,6 @@ export default function Page() {
                           </option>
                         </select>
                       </td>
-
                       <td className="py-3 px-2 text-gray-500 p-4">
                         طريقة الدفع
                       </td>
@@ -587,9 +556,24 @@ export default function Page() {
                 <table className={`w-full p-4 text-left`}>
                   <tbody>
                     <tr className="border-t p-4">
-                      <td className="py-3 px-2 text-gray-500 p-4">
-                        Booking Price
+                      <td className="py-3 px-2 text-gray-500 p-4">Email</td>
+                      <td className="py-3 px-2 text-gray-700 p-4">
+                        <input
+                          type="email"
+                          value={formData.email || ""}
+                          onChange={(e) => handleFieldChange(e, "email")}
+                          className={`border p-2 rounded text-end`}
+                          placeholder="example@domain.com"
+                        />
                       </td>
+                      <td className="py-3 px-2 text-gray-500 p-4 text-center">
+                        <div className="flex justify-center">
+                          <MoveRight className="h-4 w-4" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="border-t p-4">
+                      <td className="py-3 px-2 text-gray-500 p-4">Booking Price</td>
                       <td className="py-3 px-2 text-gray-700 p-4">
                         <input
                           type="text"
@@ -598,7 +582,6 @@ export default function Page() {
                           className={`border p-2 rounded text-end`}
                         />
                       </td>
-
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
                           <MoveRight className="h-4 w-4" />
@@ -617,7 +600,6 @@ export default function Page() {
                           className={`border p-2 rounded text-end`}
                         />
                       </td>
-
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
                           <MoveRight className="h-4 w-4" />
@@ -738,7 +720,6 @@ export default function Page() {
         </div>
       </SidebarInset>
 
-      {/* Sidebar Section */}
       <AppSidebar side="right" />
     </SidebarProvider>
   );
