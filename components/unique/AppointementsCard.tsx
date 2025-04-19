@@ -166,7 +166,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       console.log("daysDifference:", daysDifference);
   
       // Send the cancellation request
-      const url = `https://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
+      const url = `http://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
       console.log("Sending cancellation request to:", url);
   
       const response = await fetch(url, {
@@ -190,7 +190,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
           // Refund request logic has been temporarily commented out
           try {
             const token = localStorage.getItem("access");
-            const refundUrl = "https://test-roshita.net/api/reservation/refund/";
+            const refundUrl = "http://test-roshita.net/api/reservation/refund/";
             console.log("Refund request URL:", refundUrl);
   
             const refundBody = {
@@ -254,7 +254,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       const payload = { rating };
       const token = localStorage.getItem("access");
       const doctorId = doctorID;
-      const url = `https://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
+      const url = `http://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
 
       const response = await fetch(url, {
         method: "POST",

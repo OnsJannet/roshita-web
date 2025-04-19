@@ -228,7 +228,7 @@ export default function Page() {
     
           // Send the DELETE request
           const response = await fetch(
-            `https://test-roshita.net/api/appointment-reservations/${id}/`,
+            `http://test-roshita.net/api/appointment-reservations/${id}/`,
             {
               method: "DELETE",
               headers: {
@@ -246,7 +246,7 @@ export default function Page() {
             // Log the action as a success
             await logAction(
               token,
-              `https://test-roshita.net/api/appointment-reservations/${index}/`,
+              `http://test-roshita.net/api/appointment-reservations/${index}/`,
               { appointmentId: index },
               "success",
               response.status // HTTP status code (e.g., 200)
@@ -274,7 +274,7 @@ export default function Page() {
             const errorData = await response.json(); // Parse the error response
             await logAction(
               token,
-              `https://test-roshita.net/api/appointment-reservations/${index}/`,
+              `http://test-roshita.net/api/appointment-reservations/${index}/`,
               { appointmentId: index },
               "error",
               response.status, // HTTP status code (e.g., 400, 500)
@@ -289,7 +289,7 @@ export default function Page() {
           if (token) {
             await logAction(
               token,
-              `https://test-roshita.net/api/appointment-reservations/${index}/`,
+              `http://test-roshita.net/api/appointment-reservations/${index}/`,
               { appointmentId: index },
               "error",
               /* @ts-ignore */
@@ -337,7 +337,7 @@ export default function Page() {
 
     try {
       const response = await fetch(
-        "https://test-roshita.net/api/appointment-reservations/",
+        "http://test-roshita.net/api/appointment-reservations/",
         {
           method: "POST",
           headers: {
@@ -433,7 +433,7 @@ export default function Page() {
           setDoctor(doctorData.data);
 
           const specialtiesResponse = await fetch(
-            "https://test-roshita.net/api/specialty-list/"
+            "http://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
@@ -459,7 +459,7 @@ export default function Page() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/cities-list/"
+          "http://test-roshita.net/api/cities-list/"
         );
         const citiesData: City[] = await response.json();
         if (response.ok) {
@@ -475,7 +475,7 @@ export default function Page() {
     const fetchSpecialities = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/specialty-list/"
+          "http://test-roshita.net/api/specialty-list/"
         );
         const data: Specialities = await response.json();
 
@@ -682,7 +682,7 @@ export default function Page() {
 
       // Send the request to the backend
       const response = await fetch(
-        `https://test-roshita.net/api/doctors/${doctor.id}/`,
+        `http://test-roshita.net/api/doctors/${doctor.id}/`,
         {
           method: "PUT", // Use PUT for updating
           headers: {

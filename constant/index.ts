@@ -45,7 +45,7 @@ export const doctors = [
     price: "300.000",
     location: " تونس , تونس العاصمة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/f065d5ae-01dd-4469-baa2-ca6fc2dfb1bc.png",
+      "http://test-roshita.net/media/media/avatar/staff/f065d5ae-01dd-4469-baa2-ca6fc2dfb1bc.png",
     appointment_dates: [
       "2024-09-05 16:56:00",
       "2024-09-04 10:53:00",
@@ -64,7 +64,7 @@ export const doctors = [
     price: "200.000",
     location: "تونس , تونس العاصمة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/04e9052d-fadc-4685-985c-66f6eaa56668.png",
+      "http://test-roshita.net/media/media/avatar/staff/04e9052d-fadc-4685-985c-66f6eaa56668.png",
     appointment_dates: [
       "2024-09-08 12:02:00",
       "2024-09-03 10:35:00",
@@ -83,7 +83,7 @@ export const doctors = [
     price: "800.000",
     location: "تونس , تونس العاصمة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/5c5005fc-72c5-4737-bbfd-3b921c73479b.png",
+      "http://test-roshita.net/media/media/avatar/staff/5c5005fc-72c5-4737-bbfd-3b921c73479b.png",
     appointment_dates: [
       "2024-09-07 10:46:00",
       "2024-09-06 13:37:00",
@@ -102,7 +102,7 @@ export const doctors = [
     price: "500.000",
     location: "تونس , تونس العاصمة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/ce090d43-bfc0-4283-8dc4-da9d32958e2f.png",
+      "http://test-roshita.net/media/media/avatar/staff/ce090d43-bfc0-4283-8dc4-da9d32958e2f.png",
     appointment_dates: [
       "2024-09-05 17:53:00",
       "2024-09-07 16:08:00",
@@ -121,7 +121,7 @@ export const doctors = [
     price: "500.000",
     location: "طرابلس، ليبيا",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/1aa016d1-5de4-4a26-9ef6-c98e9c4fb9a6.png",
+      "http://test-roshita.net/media/media/avatar/staff/1aa016d1-5de4-4a26-9ef6-c98e9c4fb9a6.png",
     appointment_dates: [
       "2024-09-04 09:40:00",
       "2024-09-08 12:42:00",
@@ -140,7 +140,7 @@ export const doctors = [
     price: "450.000",
     location: " تونس , تونس العاصمة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/a34acb6f-042b-4e9d-9a2f-76cd1ca0fd68.png",
+      "http://test-roshita.net/media/media/avatar/staff/a34acb6f-042b-4e9d-9a2f-76cd1ca0fd68.png",
     appointment_dates: [
       "2024-09-08 12:30:00",
       "2024-09-07 10:08:00",
@@ -155,7 +155,7 @@ export const doctors = [
     specialty: "نساء وتوليد",
     hospital: "مستشفى الشفاء",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/41e8c1de-30bc-4cf5-b01b-ff058206581e.png",
+      "http://test-roshita.net/media/media/avatar/staff/41e8c1de-30bc-4cf5-b01b-ff058206581e.png",
     rating: 4.9,
     reviewsCount: 30,
     price: "450.000",
@@ -178,7 +178,7 @@ export const doctors = [
     price: "450.000",
     location: "تونس , سوسة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/abc552eb-7d91-418c-826e-a723a221f9bb.png",
+      "http://test-roshita.net/media/media/avatar/staff/abc552eb-7d91-418c-826e-a723a221f9bb.png",
     appointment_dates: [
       "2024-09-05 10:54:00",
       "2024-09-05 12:55:00",
@@ -197,7 +197,7 @@ export const doctors = [
     price: "500.000",
     location: "تونس , سوسة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/0f28b746-eaec-4e98-a8dc-949981657e4f.png",
+      "http://test-roshita.net/media/media/avatar/staff/0f28b746-eaec-4e98-a8dc-949981657e4f.png",
     appointment_dates: [
       "2024-09-07 15:27:00",
       "2024-09-05 12:55:00",
@@ -216,7 +216,7 @@ export const doctors = [
     price: "500.000",
     location: "تونس , سوسة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/c161f0a4-f144-464f-be39-c3bca1ffdc0c.png",
+      "http://test-roshita.net/media/media/avatar/staff/c161f0a4-f144-464f-be39-c3bca1ffdc0c.png",
     appointment_dates: [
       "2024-09-06 12:39:00",
       "2024-09-02 08:34:00",
@@ -235,7 +235,7 @@ export const doctors = [
     price: "100.000",
     location: "طرابلس",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/21cc4b93-70c4-428f-bac0-7e167be34774.png",
+      "http://test-roshita.net/media/media/avatar/staff/21cc4b93-70c4-428f-bac0-7e167be34774.png",
     appointment_dates: [
       "2024-09-02 13:12:00",
       "2024-09-03 17:20:00",
@@ -254,7 +254,7 @@ export const doctors = [
     price: "100.000",
     location: "البيضاء، ليبيا",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/a8150e72-c792-405c-a38f-2f3393b66b50.png",
+      "http://test-roshita.net/media/media/avatar/staff/a8150e72-c792-405c-a38f-2f3393b66b50.png",
     appointment_dates: [
       "2024-09-07 17:14:00",
       "2024-09-05 10:38:00",
@@ -273,7 +273,7 @@ export const doctors = [
     price: "150.000",
     location: "مصراتة، ليبيا",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/3b8160f3-afcc-4857-b4f9-8f984642cf12.png",
+      "http://test-roshita.net/media/media/avatar/staff/3b8160f3-afcc-4857-b4f9-8f984642cf12.png",
     appointment_dates: [
       "2024-09-07 09:10:00",
       "2024-09-05 14:32:00",
@@ -292,7 +292,7 @@ export const doctors = [
     price: "450.000",
     location: "تونس , سوسة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/c19a9fec-4ce8-463e-996a-aa6d372beda5.png",
+      "http://test-roshita.net/media/media/avatar/staff/c19a9fec-4ce8-463e-996a-aa6d372beda5.png",
     appointment_dates: [
       "2024-09-03 14:22:00",
       "2024-09-04 10:12:00",
@@ -311,7 +311,7 @@ export const doctors = [
     price: "500.000",
     location: "تونس , سوسة",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/ad01c202-7103-4551-9627-d89b29e3dd05.png",
+      "http://test-roshita.net/media/media/avatar/staff/ad01c202-7103-4551-9627-d89b29e3dd05.png",
     appointment_dates: [
       "2024-09-05 14:13:00",
       "2024-09-05 08:27:00",
@@ -349,7 +349,7 @@ export const doctors = [
     price: "400.000",
     location: "طرابلس",
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/4861ef5d-3d0d-427f-a56b-60e39de8f4ca.png",
+      "http://test-roshita.net/media/media/avatar/staff/4861ef5d-3d0d-427f-a56b-60e39de8f4ca.png",
     appointment_dates: [
       "2024-09-05 16:29:00",
       "2024-09-03 13:29:00",
@@ -366,7 +366,7 @@ export const doctors = [
     location: "طرابلس",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/6eef593e-0910-4ed7-885e-45e550aec224.png",
+      "http://test-roshita.net/media/media/avatar/staff/6eef593e-0910-4ed7-885e-45e550aec224.png",
     price: "400.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -386,7 +386,7 @@ export const doctors = [
     location: "تونس , تونس العاصمة",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/9734b75e-9b08-4c9b-927e-da180368b8ed.png",
+      "http://test-roshita.net/media/media/avatar/staff/9734b75e-9b08-4c9b-927e-da180368b8ed.png",
     price: "300.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -406,7 +406,7 @@ export const doctors = [
     location: "تونس , تونس العاصمة",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/fb99a5e1-7602-4ba6-a1ff-70ba0568b532.png",
+      "http://test-roshita.net/media/media/avatar/staff/fb99a5e1-7602-4ba6-a1ff-70ba0568b532.png",
     price: "700.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -426,7 +426,7 @@ export const doctors = [
     location: "تونس , تونس العاصمة",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/84bcfc4a-9580-4096-a94b-c6554645ba22.png",
+      "http://test-roshita.net/media/media/avatar/staff/84bcfc4a-9580-4096-a94b-c6554645ba22.png",
     price: "400.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -446,7 +446,7 @@ export const doctors = [
     location: "تونس , تونس العاصمة",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/d7d42fc3-dfe8-4c8f-8bba-7147de678cde.png",
+      "http://test-roshita.net/media/media/avatar/staff/d7d42fc3-dfe8-4c8f-8bba-7147de678cde.png",
     price: "500.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -466,7 +466,7 @@ export const doctors = [
     location: "تونس , تونس العاصمة",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/2b15d753-a898-4fbe-9a1e-c94c872ca1c7.png",
+      "http://test-roshita.net/media/media/avatar/staff/2b15d753-a898-4fbe-9a1e-c94c872ca1c7.png",
     price: "300.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -486,7 +486,7 @@ export const doctors = [
     location: "تونس , طرابلس",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/f8f1550d-ef87-48b1-888a-b0a6f2fa5b8e.png",
+      "http://test-roshita.net/media/media/avatar/staff/f8f1550d-ef87-48b1-888a-b0a6f2fa5b8e.png",
     price: "500.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -525,7 +525,7 @@ export const doctors = [
     location: " تونس , صفاقس",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/c214e0d1-a81f-4ea9-b5f9-33d4e85c7062.png",
+      "http://test-roshita.net/media/media/avatar/staff/c214e0d1-a81f-4ea9-b5f9-33d4e85c7062.png",
     price: "500.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -545,7 +545,7 @@ export const doctors = [
     location: "تونس , صفاقس",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/71a9f9c4-c1f4-4ade-aaa7-2bac85f27bf5.png",
+      "http://test-roshita.net/media/media/avatar/staff/71a9f9c4-c1f4-4ade-aaa7-2bac85f27bf5.png",
     price: "220.000",
     rating: 4.6,
     reviewsCount: 29,
@@ -565,7 +565,7 @@ export const doctors = [
     location: "تونس , صفاقس",
     address: null,
     imageUrl:
-      "https://test-roshita.net/media/media/avatar/staff/73757796-1a2d-49c3-8813-1fa85e5c8753.png",
+      "http://test-roshita.net/media/media/avatar/staff/73757796-1a2d-49c3-8813-1fa85e5c8753.png",
     price: "150.000",
     rating: 4.6,
     reviewsCount: 29,

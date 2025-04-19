@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Calendar } from "../ui/calendar";
 import { Table, TableRow, TableCell } from "../ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 
 type Slot = {
   date: string; // Format: YYYY-MM-DD
@@ -10,6 +11,11 @@ type Slot = {
   endTime: string; // Format: HH:mm
   backendFormat: string; // Format: YYYY-MM-DD HH:mm:00
   appointment_status: string;
+};
+
+type DateRange = {
+  from: Date;
+  to: Date;
 };
 
 type Language = "ar" | "en";
@@ -49,11 +55,13 @@ type DoctorSlotsProps = {
 
 const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
   const [slots, setSlots] = useState<Slot[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
   const [duration, setDuration] = useState<number>(1);
   const [language, setLanguage] = useState<Language>("ar");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -79,51 +87,42 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
   const t = translations[language]; // Select translation based on language
 
   const handleAddSlot = () => {
-    if (selectedDate && startTime && endTime) {
-      const start = new Date(
-        `${selectedDate.toISOString().split("T")[0]}T${startTime}:00`
-      );
-      const end = new Date(
-        `${selectedDate.toISOString().split("T")[0]}T${endTime}:00`
-      );
-      const totalDuration =
-        (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-
-      if (totalDuration < duration) {
-        alert(t.durationError);
-        return;
-      }
-
+    if (dateRange?.from && dateRange?.to && startTime && endTime) {
       const slotsToAdd: Slot[] = [];
+      const currentDate = new Date(dateRange.from);
 
-      for (let i = 0; i < Math.floor(totalDuration / duration); i++) {
-        const slotStartTime = new Date(
-          start.getTime() + i * duration * 60 * 60 * 1000
-        );
-        const slotEndTime = new Date(
-          slotStartTime.getTime() + duration * 60 * 60 * 1000
-        );
+      while (currentDate <= dateRange.to) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const start = new Date(`${dateStr}T${startTime}`);
+        const end = new Date(`${dateStr}T${endTime}`);
+        const totalDuration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
-        const backendFormat = new Date(
-          slotStartTime.getTime() -
-            slotStartTime.getTimezoneOffset() * 60 * 1000
-        )
-          .toISOString()
-          .replace(".000Z", ":00Z");
+        if (totalDuration < duration) {
+          alert(t.durationError);
+          return;
+        }
 
-        slotsToAdd.push({
-          date: selectedDate.toISOString().split("T")[0],
-          startTime: slotStartTime.toISOString().split("T")[1].slice(0, 5),
-          endTime: slotEndTime.toISOString().split("T")[1].slice(0, 5),
-          backendFormat,
-          appointment_status: "pending",
-        });
+        for (let i = 0; i < Math.floor(totalDuration / duration); i++) {
+          const slotStartTime = new Date(start.getTime() + i * duration * 60 * 60 * 1000);
+          const slotEndTime = new Date(slotStartTime.getTime() + duration * 60 * 60 * 1000);
+
+          const backendFormat = slotStartTime.toISOString().replace('.000Z', ':00Z');
+
+          slotsToAdd.push({
+            date: dateStr,
+            startTime: slotStartTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            endTime: slotEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            backendFormat,
+            appointment_status: 'pending',
+          });
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
       }
 
       const updatedSlots = [...slots, ...slotsToAdd];
       setSlots(updatedSlots);
-      onSlotsChange(updatedSlots); // Notify the parent about the updated slots
-      // setSelectedDate(undefined); // Remove this line if you want to retain the selected date
+      onSlotsChange(updatedSlots);
       setStartTime("");
       setEndTime("");
     }
@@ -147,17 +146,13 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
             {t.selectDate}
           </label>
           <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              if (date) {
-                // Make sure to reset the time to midnight in UTC to avoid time zone shifts
-                const utcDate = new Date(
-                  Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-                );
-                setSelectedDate(utcDate);
-              }
+            mode="range"
+            selected={dateRange}
+            onSelect={(range) => {
+              //@ts-ignore
+              setDateRange(range || undefined);
             }}
+            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
             className="rounded-lg border shadow-sm"
           />
         </div>
@@ -207,7 +202,7 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
           <Button
             onClick={handleAddSlot}
             className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 disabled:opacity-50"
-            disabled={!selectedDate || !startTime || !endTime}
+            disabled={!dateRange?.from || !startTime || !endTime}
           >
             {t.addSlot}
           </Button>
@@ -219,28 +214,29 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
           {t.currentSlots}
         </h3>
         {slots.length > 0 ? (
-          <Table className="w-full border border-gray-300 rounded-lg shadow-sm">
-            <thead>
+          <>
+          <Table className="w-full border border-gray-300 rounded-lg shadow-sm divide-y divide-gray-200 text-right">
+            <thead className="bg-gray-50">
               <TableRow>
-                <TableCell className="font-bold text-gray-700">
+                <TableCell className="font-bold text-gray-700 py-3 px-4 text-right">
                   {t.date}
                 </TableCell>
-                <TableCell className="font-bold text-gray-700">
+                <TableCell className="font-bold text-gray-700 py-3 px-4 text-right">
                   {t.startTime}
                 </TableCell>
-                <TableCell className="font-bold text-gray-700">
+                <TableCell className="font-bold text-gray-700 py-3 px-4 text-right">
                   {t.endTime}
                 </TableCell>
-                <TableCell />
+                <TableCell className="py-3 px-4" />
               </TableRow>
             </thead>
-            <tbody>
-              {slots.map((slot, index) => (
-                <TableRow key={index}>
-                  <TableCell>{slot.date}</TableCell>
-                  <TableCell>{slot.startTime}</TableCell>
-                  <TableCell>{slot.endTime}</TableCell>
-                  <TableCell>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {slots.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((slot, index) => (
+                <TableRow key={index} className="hover:bg-gray-50 transition-colors duration-200">
+                  <TableCell className="py-3 px-4 text-right">{slot.date}</TableCell>
+                  <TableCell className="py-3 px-4 text-right">{slot.startTime}</TableCell>
+                  <TableCell className="py-3 px-4 text-right">{slot.endTime}</TableCell>
+                  <TableCell className="py-3 px-4">
                     <Button
                       variant="destructive"
                       onClick={() => handleRemoveSlot(index)}
@@ -253,6 +249,35 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
               ))}
             </tbody>
           </Table>
+          <div className="mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+                {Array.from({ length: Math.ceil(slots.length / itemsPerPage) }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(i + 1)}
+                      isActive={currentPage === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(slots.length / itemsPerPage), prev + 1))}
+                    className={currentPage === Math.ceil(slots.length / itemsPerPage) ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+          </>
         ) : (
           <p className="text-sm text-gray-500 text-center">{t.noSlots}</p>
         )}

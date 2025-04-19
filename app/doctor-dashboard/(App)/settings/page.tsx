@@ -134,7 +134,7 @@ export default function Page() {
           setDoctor(doctorData.data);
 
           const specialtiesResponse = await fetch(
-            "https://test-roshita.net/api/specialty-list/"
+            "http://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
@@ -160,7 +160,7 @@ export default function Page() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/cities-list/"
+          "http://test-roshita.net/api/cities-list/"
         );
         const citiesData: City[] = await response.json();
         if (response.ok) {
@@ -224,7 +224,7 @@ export default function Page() {
 
       // Send the request directly to the external API
       const response = await fetch(
-        "https://www.test-roshita.net/api/account/profile/edit/",
+        "http://www.test-roshita.net/api/account/profile/edit/",
         {
           method: "POST",
           headers: {

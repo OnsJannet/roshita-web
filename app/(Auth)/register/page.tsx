@@ -56,7 +56,7 @@ const Page = () => {
     try {
       // Send POST request to API for registration
       const response = await fetch(
-        "https://test-roshita.net/api/account/register/",
+        "http://test-roshita.net/api/account/register/",
         {
           method: "POST",
           headers: {
@@ -71,7 +71,7 @@ const Page = () => {
       const result = await response.json();
 
       if (response.ok) {
-        alert("Registration successful");
+        
         setIsOTPModalOpen(true);
         console.log("Registration Response:", result);
         // Redirect to login or other actions after successful registration
@@ -96,7 +96,7 @@ const Page = () => {
     try {
       // Send OTP to the server for verification
       const response = await fetch(
-        "https://test-roshita.net/api/account/verify-otp/",
+        "http://test-roshita.net/api/account/verify-otp/",
         {
           method: "POST",
           headers: {

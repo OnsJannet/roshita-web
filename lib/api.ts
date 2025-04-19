@@ -60,7 +60,7 @@ interface UserData {
    */
   export const registerUser = async (userData: UserData): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/account/register/", {
+      const response = await fetch("http://test-roshita.net/api/account/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ interface UserData {
    */
   export const logoutUser = async (refreshToken: string, accessToken: string): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/account/logout/", {
+      const response = await fetch("http://test-roshita.net/api/account/logout/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +100,7 @@ interface UserData {
    */
   export const loginUser = async (loginData: LoginData): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/account/login/", {
+      const response = await fetch("http://test-roshita.net/api/account/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +130,7 @@ interface UserData {
    */
   export const verifyOTP = async (otpData: OTPData): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/account/verify-otp/", {
+      const response = await fetch("http://test-roshita.net/api/account/verify-otp/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +149,7 @@ interface UserData {
    */
   export const getMedicalGuideList = async (): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/medical-services-list/", {
+      const response = await fetch("http://test-roshita.net/api/medical-services-list/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -167,7 +167,7 @@ interface UserData {
    */
   export const getSpecialtyList = async (): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/specialty-list/", {
+      const response = await fetch("http://test-roshita.net/api/specialty-list/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -185,7 +185,7 @@ interface UserData {
    */
   export const getDoctorDetails = async (doctorData: DoctorData): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/doctor-view/", {
+      const response = await fetch("http://test-roshita.net/api/doctor-view/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -204,7 +204,7 @@ interface UserData {
    */
   export const getDoctorsByOrganizationId = async (orgId: number, page = 1, limit = 10): Promise<any> => {
     try {
-      const response = await fetch("https://test-roshita.net/api/organization-staff-service-list/", {
+      const response = await fetch("http://test-roshita.net/api/organization-staff-service-list/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -227,7 +227,7 @@ interface UserData {
   
       for (let doctorId = 1; doctorId <= 10; doctorId++) {
         const doctorData: DoctorData = { doctor_id: doctorId };
-        const response = await fetch("https://test-roshita.net/api/doctor-view/", {
+        const response = await fetch("http://test-roshita.net/api/doctor-view/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -261,7 +261,7 @@ interface UserData {
    */
   export const getDoctorsList = async (page: number): Promise<any> => {
     try {
-      const response = await fetch(`https://test-roshita.net/api/doctors-list/?page=${page}`, {
+      const response = await fetch(`http://test-roshita.net/api/doctors-list/?page=${page}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -280,7 +280,7 @@ interface UserData {
   export const getAllDoctorsList = async (): Promise<Doctor[]> => {
     try {
       let allDoctors: Doctor[] = [];
-      let nextPage: string | null = "https://test-roshita.net/api/doctors-list/?page=1";
+      let nextPage: string | null = "http://test-roshita.net/api/doctors-list/?page=1";
   
       while (nextPage) {
         const response = await fetch(nextPage, {
@@ -320,7 +320,7 @@ export const fetchProfileDetails = async (): Promise<any> => {
     }
 
     // Make the API request with Bearer token in the Authorization header
-    const response = await fetch("https://test-roshita.net/api/account/profile/detail/", {
+    const response = await fetch("http://test-roshita.net/api/account/profile/detail/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -348,7 +348,7 @@ export const fetchProfileDetails = async (): Promise<any> => {
  */
 export const editUserProfile = async (profileData: EditProfileData, accessToken: string): Promise<any> => {
   try {
-    const response = await fetch("https://test-roshita.net/api/account/profile/edit/", {
+    const response = await fetch("http://test-roshita.net/api/account/profile/edit/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

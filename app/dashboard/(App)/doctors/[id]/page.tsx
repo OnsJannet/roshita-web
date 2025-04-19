@@ -316,7 +316,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        "http://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
         {
           method: "POST",
           headers: {
@@ -358,7 +358,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "https://www.test-roshita.net/api/api/select-organization",
+        "http://www.test-roshita.net/api/api/select-organization",
         {
           method: "POST",
           headers: {
@@ -431,7 +431,7 @@ export default function Page() {
 
         // Send the DELETE request
         const response = await fetch(
-          `https://test-roshita.net/api/appointment-reservations/${index}/`,
+          `http://test-roshita.net/api/appointment-reservations/${index}/`,
           {
             method: "DELETE",
             headers: {
@@ -449,7 +449,7 @@ export default function Page() {
           // Log the action as a success
           await logAction(
             token,
-            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            `http://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "success",
             response.status // HTTP status code (e.g., 200)
@@ -474,7 +474,7 @@ export default function Page() {
           const errorData = await response.json(); // Parse the error response
           await logAction(
             token,
-            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            `http://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
             response.status, // HTTP status code (e.g., 400, 500)
@@ -489,7 +489,7 @@ export default function Page() {
         if (token) {
           await logAction(
             token,
-            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            `http://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -507,7 +507,7 @@ export default function Page() {
   const handleEndSlot = async (index: number) => {
     // Define the URL of the API endpoint
     const url =
-      "https://test-roshita.net/api/complete-appointment-reservations/";
+      "http://test-roshita.net/api/complete-appointment-reservations/";
 
     // Retrieve the Bearer token from localStorage
     const token = localStorage.getItem("access");
@@ -608,7 +608,7 @@ export default function Page() {
 
     try {
       const response = await fetch(
-        "https://test-roshita.net/api/appointment-reservations/",
+        "http://test-roshita.net/api/appointment-reservations/",
         {
           method: "POST",
           headers: {
@@ -724,7 +724,7 @@ export default function Page() {
 
           // Fetch specialties
           const specialtiesResponse = await fetch(
-            "https://test-roshita.net/api/specialty-list/"
+            "http://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
@@ -765,7 +765,7 @@ export default function Page() {
       }
 
       const response = await fetch(
-        `https://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${id}&page=${page}`,
+        `http://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${id}&page=${page}`,
         {
           method: "GET",
           headers: {

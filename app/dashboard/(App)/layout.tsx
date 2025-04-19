@@ -31,7 +31,8 @@ export default function RootLayout({
         parsedUser.medical_organization_type !== "Laboratory" &&
         parsedUser.medical_organization_type !== "hospital" &&
         parsedUser.medical_organization_type !== "Radiologic" &&
-        parsedUser.medical_organization_type !== "Doctor Hospital"
+        parsedUser.medical_organization_type !== "Doctor Hospital" &&
+        parsedUser.medical_organization_type!== "Hospital"
       ) {
         console.log(
           "entered if (parsedUser.user_type !== staff || parsedUser.user_type !== Admin) {"

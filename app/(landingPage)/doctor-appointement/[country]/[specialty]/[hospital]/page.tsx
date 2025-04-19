@@ -5,7 +5,7 @@ import PaginationDemo from "@/components/shared/PaginationDemo";
 import DoctorCard from "@/components/unique/DorctorCard";
 import FilterDoctor from "@/components/unique/FilterDoctor";
 import TitleSection from "@/components/unique/TitleSection";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
@@ -58,12 +58,14 @@ interface Doctor {
 
 const Page = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [currentPage, setCurrentPage] = useState(1);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [language, setLanguage] = useState<Language>("ar");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [doctorCount, setDoctorCount] = useState(0);
+  const [filtersDisabled, setFiltersDisabled] = useState(false);
   const doctorsPerPage = 5;
 
   useEffect(() => {
@@ -112,16 +114,46 @@ const Page = () => {
     : undefined;
 
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState<string[]>(country ? [country] : []);
-  const [selectedSpeciality, setSelectedSpeciality] = useState<string[]>(specialty ? [specialty] : []);
-  const [selectedState, setSelectedState] = useState<string[]>(state ? [state] : []);
-  const [selectedHospitals, setSelectedHospitals] = useState<string[]>(hospital ? [hospital] : []);
+  const [selectedCountry, setSelectedCountry] = useState<string[]>([]);
+  const [selectedSpeciality, setSelectedSpeciality] = useState<string[]>([]);
+  const [selectedState, setSelectedState] = useState<string[]>([]);
+  const [selectedHospitals, setSelectedHospitals] = useState<string[]>([]);
 
+  // Check if filters came from URL params
   useEffect(() => {
-    if (country) setSelectedCountry([country]);
-    if (specialty) setSelectedSpeciality([specialty]);
-    if (state) setSelectedState([state]);
-    if (hospital) setSelectedHospitals([hospital]);
+    const hasParams = country || specialty || state || hospital;
+    setFiltersDisabled(!!hasParams);
+  }, [country, specialty, state, hospital]);
+
+  // Update URL when filters change
+  const updateUrlWithFilters = () => {
+    const queryParams = new URLSearchParams();
+    
+    if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
+      queryParams.set("specialty", selectedSpeciality[0]);
+    }
+    if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
+      queryParams.set("country", selectedCountry[0]);
+    }
+    if (selectedState.length > 0 && selectedState[0] !== "all") {
+      queryParams.set("state", selectedState[0]);
+    }
+    if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
+      queryParams.set("hospital", selectedHospitals[0]);
+    }
+
+    const newUrl = `${pathname}?${queryParams.toString()}`;
+    router.push(newUrl);
+  };
+
+  // Automatic filter reset when URL params change
+  useEffect(() => {
+    setSelectedCountry(country ? [country] : []);
+    setSelectedSpeciality(specialty ? [specialty] : []);
+    setSelectedState(state ? [state] : []);
+    setSelectedHospitals(hospital ? [hospital] : []);
+    setSelectedPrices([]);
+    setCurrentPage(1);
   }, [country, specialty, state, hospital]);
 
   useEffect(() => {
@@ -129,26 +161,24 @@ const Page = () => {
       try {
         setIsLoading(true);
         
-        // Build query parameters
         const queryParams = new URLSearchParams();
         queryParams.append("page", currentPage.toString());
         
-        // Only add filters if they're not "all" or undefined
         if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
-          queryParams.append("speciality", selectedSpeciality[0]);
+          queryParams.append("specialty", selectedSpeciality[0]);
         }
         if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
           queryParams.append("country", selectedCountry[0]);
         }
         if (selectedState.length > 0 && selectedState[0] !== "all") {
-          queryParams.append("state", selectedState[0]);
+          queryParams.append("city", selectedState[0]);
         }
         if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
-          queryParams.append("hospital", selectedHospitals[0]);
+          queryParams.append("medical_organization", selectedHospitals[0]);
         }
         
         const response = await fetch(
-          `https://test-roshita.net/api/user-doctors/?${queryParams.toString()}`
+          `http://test-roshita.net/api/user-doctors/?${queryParams.toString()}`
         );
         
         if (!response.ok) {
@@ -157,7 +187,6 @@ const Page = () => {
         
         const data = await response.json();
         
-        // Handle different response structures
         let doctorsData = [];
         let totalCount = 0;
         
@@ -186,6 +215,14 @@ const Page = () => {
     fetchDoctors();
   }, [currentPage, selectedCountry, selectedSpeciality, selectedState, selectedHospitals]);
 
+  // Update URL when filters change (except price)
+  useEffect(() => {
+    if (selectedCountry.length > 0 || selectedSpeciality.length > 0 || 
+        selectedState.length > 0 || selectedHospitals.length > 0) {
+      updateUrlWithFilters();
+    }
+  }, [selectedCountry, selectedSpeciality, selectedState, selectedHospitals]);
+
   const resetFilters = () => {
     setSelectedPrices([]);
     setSelectedCountry([]);
@@ -193,6 +230,9 @@ const Page = () => {
     setSelectedState([]);
     setSelectedHospitals([]);
     setCurrentPage(1);
+    setFiltersDisabled(false);
+    //@ts-ignore
+    router.push(pathname);
   };
 
   const totalPages = Math.ceil(doctorCount / doctorsPerPage);
@@ -201,10 +241,38 @@ const Page = () => {
     setCurrentPage(newPage);
   };
 
-  // Apply client-side price filtering if needed
-  const filteredDoctors = selectedPrices.length > 0 && selectedPrices[0] !== "all"
-    ? doctors.filter(doctor => selectedPrices.includes(doctor.price || ""))
-    : doctors;
+  const filteredDoctors = doctors.filter(doctor => {
+    if (selectedPrices.length > 0 && selectedPrices[0] !== "all" && !selectedPrices.includes(doctor.price)) {
+      return false;
+    }
+    
+    if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all" && 
+        !selectedSpeciality.includes(doctor.specialization)) {
+      return false;
+    }
+    
+    if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
+      const hospitalMatch = doctor.medical_organizations.some(org => 
+        selectedHospitals.includes(org.name) || selectedHospitals.includes(org.foreign_name)
+      );
+      if (!hospitalMatch) return false;
+    }
+    
+    if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
+      const countryMatch = doctor.medical_organizations.some(org => 
+        selectedCountry.includes(org.city.country.name) || 
+        selectedCountry.includes(org.city.country.foreign_name)
+      );
+      if (!countryMatch) return false;
+    }
+    
+    if (selectedState.length > 0 && selectedState[0] !== "all" && 
+        !selectedState.includes(doctor.city)) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return isLoading ? (
     <div className="bg-white flex items-center justify-center min-h-screen">
@@ -220,11 +288,18 @@ const Page = () => {
             selectedPrices={selectedPrices}
             setSelectedPrices={setSelectedPrices}
             selectedCountries={selectedCountry}
-            setSelectedCountries={setSelectedCountry}
+            setSelectedCountries={(values) => {
+              setSelectedCountry(values);
+            }}
             selectedSpecialties={selectedSpeciality}
-            setSelectedSpecialties={setSelectedSpeciality}
+            setSelectedSpecialties={(values) => {
+              setSelectedSpeciality(values);
+            }}
             selectedHospitals={selectedHospitals}
-            setSelectedHospitals={setSelectedHospitals}
+            setSelectedHospitals={(values) => {
+              setSelectedHospitals(values);
+            }}
+            disabled={filtersDisabled}
           />
 
           <button

@@ -17,30 +17,67 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
+import LoadingDoctors from "../layout/LoadingDoctors";
 
 type Language = "ar" | "en";
+
+interface ApiResponse {
+  doctorId: string;
+  data: {
+    month: string;
+    appointments: number;
+    localizedMonth: {
+      ar: string;
+      en: string;
+    };
+  }[];
+  stats: {
+    percentageChange: number;
+    trendDirection: string;
+    comparisonPeriod: string;
+  };
+  metadata: {
+    period: string;
+    lastUpdated: string;
+    doctorDetails: {
+      name: {
+        ar: string;
+        en: string;
+      };
+      specialty: {
+        ar: string;
+        en: string;
+      };
+    };
+  };
+}
 
 const translations = {
   en: {
     title: "Appointment rate this month",
-    description: "Showing total visitors for the last 6 months",
-    trending: "Trending up by 5.2% this month",
-    dateRange: "January - June 2024",
-    desktop: "Desktop",
-    mobile: "Mobile",
+    description: "Showing total appointments for the last 6 months",
+    appointments: "Appointments",
+    loading: "Loading...",
+    error: "Failed to load data",
   },
   ar: {
     title: "معدل المواعيد هذا الشهر",
-    description: "عرض إجمالي الزوار للأشهر الستة الماضية",
-    trending: "ارتفاع بنسبة 5.2% هذا الشهر",
-    dateRange: "يناير - يونيو 2024",
-    desktop: "سطح المكتب",
-    mobile: "الهاتف المحمول",
+    description: "عرض إجمالي المواعيد للأشهر الستة الماضية",
+    appointments: "المواعيد",
+    loading: "جاري التحميل...",
+    error: "فشل في تحميل البيانات",
   },
 };
 
 export function DoctorAreaChart() {
   const [language, setLanguage] = useState<Language>("ar");
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    percentageChange: number;
+    trendDirection: string;
+  } | null>(null);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -63,23 +100,54 @@ export function DoctorAreaChart() {
     };
   }, []);
 
-  const chartData = [
-    { month: language === "ar" ? "يناير" : "January", desktop: 186 },
-    { month: language === "ar" ? "فبراير" : "February", desktop: 305 },
-    { month: language === "ar" ? "مارس" : "March", desktop: 237 },
-    { month: language === "ar" ? "أبريل" : "April", desktop: 73 },
-    { month: language === "ar" ? "مايو" : "May", desktop: 209 },
-    { month: language === "ar" ? "يونيو" : "June", desktop: 214 },
-  ];
+  useEffect(() => {
+    const fetchAppointmentData = async () => {
+      try {
+        setLoading(true);
+        const userId = localStorage.getItem("userId") || "2";
+        const accessToken = localStorage.getItem('access');
+
+        const response = await fetch(
+          `http://test-roshita.net/api/kpis/doctors/${userId}/appointment-reservation-summary?lang=${language}&period=6m`,
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data: ApiResponse = await response.json();
+
+        const transformedData = data.data.map((item) => ({
+          month: item.localizedMonth[language],
+          appointments: item.appointments,
+        }));
+
+        setChartData(transformedData);
+        setStats({
+          percentageChange: data.stats.percentageChange,
+          trendDirection: data.stats.trendDirection,
+        });
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching appointment data:", err);
+        setError(translations[language].error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointmentData();
+  }, [language]);
 
   const chartConfig = {
-    desktop: {
-      label: translations[language].desktop,
+    appointments: {
+      label: translations[language].appointments,
       color: "hsl(var(--chart-1))",
-    },
-    mobile: {
-      label: translations[language].mobile,
-      color: "hsl(var(--chart-2))",
     },
   } satisfies ChartConfig;
 
@@ -94,58 +162,61 @@ export function DoctorAreaChart() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <AreaChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dot" />}
-            />
-            <Area
-              dataKey="mobile"
-              type="natural"
-              fill="var(--color-mobile)"
-              fillOpacity={0.4}
-              stroke="var(--color-mobile)"
-              stackId="a"
-            />
-            <Area
-              dataKey="desktop"
-              type="natural"
-              fill="var(--color-desktop)"
-              fillOpacity={0.4}
-              stroke="var(--color-desktop)"
-              stackId="a"
-            />
-          </AreaChart>
-        </ChartContainer>
+        {loading ? (
+          <div className="flex items-center justify-center h-[200px]">
+            <LoadingDoctors />
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-[200px]">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : (
+          <ChartContainer config={chartConfig}>
+            <AreaChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => value.slice(0, 3)}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="dot" />}
+              />
+              <Area
+                dataKey="appointments"
+                //type="natural"
+                type="linear"
+                fill="#17c653"
+                fillOpacity={0.4}
+                stroke="#17c653"
+                stackId="a"
+              />
+            </AreaChart>
+          </ChartContainer>
+        )}
       </CardContent>
-      <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
-              {translations[language].trending} <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              {translations[language].dateRange}
+      {stats && (
+        <CardFooter>
+          <div className="flex w-full items-start gap-2 text-sm">
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2 font-medium leading-none">
+                {stats.trendDirection === "up" ? "ارتفاع" : "انخفاض"} بنسبة {stats.percentageChange}% هذا الشهر
+                <TrendingUp className="h-4 w-4" />
+              </div>
             </div>
           </div>
-        </div>
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   );
 }

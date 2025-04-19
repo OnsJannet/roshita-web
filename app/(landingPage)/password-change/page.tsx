@@ -94,7 +94,7 @@ const PasswordChange = () => {
       console.log("token change passowrd", token);
 
       const response = await fetch(
-        "https://test-roshita.net/api/account/change-password/",
+        "http://test-roshita.net/api/account/change-password/",
         {
           method: "POST",
           headers: {

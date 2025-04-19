@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Banknote,
   Building,
@@ -53,6 +55,7 @@ interface FilterDoctorProps {
   setSelectedSpecialties: React.Dispatch<React.SetStateAction<string[]>>;
   selectedHospitals: string[];
   setSelectedHospitals: React.Dispatch<React.SetStateAction<string[]>>;
+  disabled?: boolean;
 }
 
 type Language = "ar" | "en";
@@ -67,6 +70,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   setSelectedSpecialties,
   selectedHospitals,
   setSelectedHospitals,
+  disabled = false,
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
@@ -169,11 +173,90 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
     );
   };
 
+  const formatFilterValue = (value: string) => {
+    return value === "all" ? (language === "ar" ? "الكل" : "all") : value;
+  };
+
+  const renderActiveFilters = () => {
+    const activeFilters = [];
+    
+    if (selectedSpecialties.length > 0) {
+      activeFilters.push(
+        <div key="specialty" className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+          <HeartPulse className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-500 text-sm">
+            {language === "en" ? "Specialty: " : "التخصص: "}
+            {selectedSpecialties.map(formatFilterValue).join(", ")}
+          </span>
+        </div>
+      );
+    }
+    
+    if (selectedCountries.length > 0) {
+      activeFilters.push(
+        <div key="country" className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+          <Globe className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-500 text-sm">
+            {language === "en" ? "Country: " : "البلد: "}
+            {selectedCountries.map(formatFilterValue).join(", ")}
+          </span>
+        </div>
+      );
+    }
+    
+    if (selectedHospitals.length > 0) {
+      activeFilters.push(
+        <div key="hospital" className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+          <Building className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-500 text-sm">
+            {language === "en" ? "Hospital: " : "المستشفى: "}
+            {selectedHospitals.map(formatFilterValue).join(", ")}
+          </span>
+        </div>
+      );
+    }
+    
+    if (selectedPrices.length > 0) {
+      activeFilters.push(
+        <div key="price" className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+          <Banknote className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-500 text-sm">
+            {language === "en" ? "Price: " : "السعر: "}
+            {selectedPrices.map(p => p.replace(/\.000$/, '')).join(", ")} {language === "ar" ? "د.ت" : "DT"}
+          </span>
+        </div>
+      );
+    }
+
+    if (activeFilters.length === 0) {
+      return (
+        <p className="text-sm text-gray-500 mt-2">
+          {language === "en" 
+            ? "No active filters" 
+            : "لا توجد فلاتر نشطة"}
+        </p>
+      );
+    }
+
+    return (
+      <div className={`mt-2 space-y-1 ${language === "ar" ? "text-right" : ""}`}>
+        <p className="text-sm text-gray-500 font-bold">
+          {language === "en" 
+            ? "Active filters" 
+            : "الفلاتر النشطة"}
+        </p>
+        <div className={`space-y-1 ${language === "ar" ? "mr-2" : "ml-2"}`}>
+          {activeFilters}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-white rounded-2xl">
+    <div className={`bg-white rounded-2xl ${language === "ar" ? "text-right" : "text-left"}`}>
       <div
-        className="bg-[#71C9F9] p-8 flex flex-col rounded-2xl cursor-pointer"
-        onClick={() => setIsFilterOpen(!isFilterOpen)}
+        className={`p-8 flex flex-col rounded-2xl cursor-pointer ${disabled ? 'bg-gray-100' : 'bg-[#71C9F9]'}`}
+        onClick={() => !disabled && setIsFilterOpen(!isFilterOpen)}
       >
         <div
           className={`flex justify-between items-center ${
@@ -181,19 +264,20 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
           }`}
         >
           <div className="flex gap-1">
-            <Filter className="text-white" />
-            <h2 className="text-white">
+            <Filter className={`${disabled ? 'text-gray-500' : 'text-white'}`} />
+            <h2 className={disabled ? 'text-gray-700' : 'text-white'}>
               {language === "en" ? "Filter" : "الفلتـرة"}
             </h2>
           </div>
           <ChevronDown
-            className={`text-white ${isFilterOpen ? "rotate-180" : ""}`}
+            className={`${disabled ? 'text-gray-500' : 'text-white'} ${isFilterOpen ? "rotate-180" : ""}`}
           />
         </div>
+        {disabled && renderActiveFilters()}
       </div>
 
       {/* Filter Content */}
-      {isFilterOpen && (
+      {isFilterOpen && !disabled && (
         <div className="p-4">
           {/* Price Filter Accordion */}
           <div>
@@ -206,7 +290,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                   isPriceOpen ? "rotate-180" : ""
                 }`}
               />
-              <div className="flex justify-end items-center gap-1">
+              <div className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Price" : "السعــر"}
                 </h3>
@@ -214,13 +298,13 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
               </div>
             </div>
             {isPriceOpen && (
-              <div className="flex flex-col-reverse gap-2">
+              <div className={`flex flex-col gap-2 ${language === "ar" ? "items-end" : "items-start"}`}>
                 {prices.map((price) => (
                   <div
                     key={price}
-                    className="flex gap-2 items-center justify-end"
+                    className={`flex gap-2 items-center ${language === "ar" ? "flex-row-reverse" : ""}`}
                   >
-                    <div className="flex flex-row-reverse gap-1">
+                    <div className={`flex gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
                       <label className="text-gray-400">{price}</label>
                       <p>{language === "ar" ? "د.ت" : "DT"}</p>
                     </div>
@@ -247,7 +331,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                   isCountryOpen ? "rotate-180" : ""
                 }`}
               />
-              <div className="flex justify-end items-center gap-1">
+              <div className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Country" : "البلد"}
                 </h3>
@@ -256,11 +340,11 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
             </div>
 
             {isCountryOpen && (
-              <div className="flex flex-col-reverse gap-2">
+              <div className={`flex flex-col gap-2 ${language === "ar" ? "items-end" : "items-start"}`}>
                 {countries.map((country) => (
                   <div
                     key={country}
-                    className="flex gap-1 items-center justify-end"
+                    className={`flex gap-1 items-center ${language === "ar" ? "flex-row-reverse" : ""}`}
                   >
                     <label className="text-gray-400">{country}</label>
                     <input
@@ -286,7 +370,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                   isSpecialtyOpen ? "rotate-180" : ""
                 }`}
               />
-              <div className="flex justify-end items-center gap-1">
+              <div className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Specialty" : "التخصص"}
                 </h3>
@@ -295,11 +379,11 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
             </div>
 
             {isSpecialtyOpen && (
-              <div className="flex flex-col-reverse gap-2">
+              <div className={`flex flex-col gap-2 ${language === "ar" ? "items-end" : "items-start"}`}>
                 {specialties.map((specialty) => (
                   <div
                     key={specialty}
-                    className="flex gap-1 items-center justify-end"
+                    className={`flex gap-1 items-center ${language === "ar" ? "flex-row-reverse" : ""}`}
                   >
                     <label className="text-gray-400">{specialty}</label>
                     <input
@@ -325,7 +409,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                   isHospitalOpen ? "rotate-180" : ""
                 }`}
               />
-              <div className="flex justify-end items-center gap-1">
+              <div className={`flex items-center gap-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
                 <h3 className="font-bold mb-2">
                   {language === "en" ? "Hospital" : "المستشفى"}
                 </h3>
@@ -334,11 +418,11 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
             </div>
 
             {isHospitalOpen && (
-              <div className="flex flex-col-reverse gap-2">
+              <div className={`flex flex-col gap-2 ${language === "ar" ? "items-end" : "items-start"}`}>
                 {hospitals.map((hospital) => (
                   <div
                     key={hospital}
-                    className="flex gap-1 items-center justify-end"
+                    className={`flex gap-1 items-center ${language === "ar" ? "flex-row-reverse" : ""}`}
                   >
                     <label className="text-gray-400">{hospital}</label>
                     <input

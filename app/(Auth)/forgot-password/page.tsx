@@ -50,7 +50,7 @@ const Page = () => {
     setError(null);
     try {
       const response = await fetch(
-        "https://test-roshita.net/api/account/password-recovery/otp/",
+        "http://test-roshita.net/api/account/password-recovery/otp/",
         {
           method: "POST",
           headers: {
@@ -84,7 +84,7 @@ const Page = () => {
     setError(null);
     try {
       const response = await fetch(
-        "https://test-roshita.net/api/account/password-recovery/reset/",
+        "http://test-roshita.net/api/account/password-recovery/reset/",
         {
           method: "POST",
           headers: {

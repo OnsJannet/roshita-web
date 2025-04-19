@@ -56,7 +56,7 @@ const Page = () => {
     setError(null);
   
     const endpoint = "/api/auth/login/loginStaff"; // Define the endpoint
-    const backendEndpoint = "https://test-roshita.net/api/auth/staff-login/"
+    const backendEndpoint = "http://test-roshita.net/api/auth/staff-login/"
     const token = localStorage.getItem("access"); // Get the token if it exists
   
     try {
@@ -92,7 +92,7 @@ const Page = () => {
   
         // Save user data to localStorage
         localStorage.setItem("refresh", data.refreshToken);
-        localStorage.setItem("userId", data.user.doctor_id);
+        localStorage.setItem("userId", data.user.medical_organization_type === "Hospital" ? data.user.user_id : data.user.doctor_id);
         localStorage.setItem("access", data.token);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userRole", data.user.user_type);

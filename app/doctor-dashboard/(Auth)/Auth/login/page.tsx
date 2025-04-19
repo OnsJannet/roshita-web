@@ -56,7 +56,7 @@ const Page = () => {
     setError(null);
   
     const endpoint = "/api/auth/login/loginStaff"; // Define the endpoint
-    const backendEndpoint = "https://test-roshita.net/api/auth/staff-login/"
+    const backendEndpoint = "http://test-roshita.net/api/auth/staff-login/"
     const token = localStorage.getItem("access"); // Get the token if it exists
   
     try {

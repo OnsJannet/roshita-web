@@ -98,7 +98,7 @@ export default function Page() {
   const handleAccept = async (id: number) => {
     try {
       const response = await fetch(
-        `https://www.test-roshita.net/api/hospital-accept-doctor-suggest/${id}/`,
+        `http://www.test-roshita.net/api/hospital-accept-doctor-suggest/${id}/`,
         {
           method: "POST",
           headers: {
@@ -122,7 +122,7 @@ export default function Page() {
   const handleDeny = async (id: number) => {
     try {
       const response = await fetch(
-        `https://www.test-roshita.net/api/hospital-accept-doctor-suggest/${id}/`,
+        `http://www.test-roshita.net/api/hospital-accept-doctor-suggest/${id}/`,
         {
           method: "POST",
           headers: {

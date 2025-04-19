@@ -131,7 +131,7 @@ const DoctorDetailsPage = () => {
     try {
       setIsLoading(true); // Start loading
       const response = await fetch(
-        `https://test-roshita.net/api/user-doctors/${id}/`,
+        `http://test-roshita.net/api/user-doctors/${id}/`,
         {
           method: "GET",
           headers: {

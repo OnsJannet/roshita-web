@@ -100,8 +100,8 @@ export function BarChartDash() {
   }, []);
 
   return (
-    <Card className={language === "ar" ? "rtl" : ""}>
-    <CardHeader className="flex flex-col justify-start">
+    <Card className={`flex flex-col h-full ${language === "ar" ? "rtl" : ""}`}>
+    <CardHeader className="flex flex-col justify-start pb-0">
       <CardTitle className={language === "ar" ? "text-end" : ""}>
         {language === "ar" ? "صافي" : "Net"}
       </CardTitle>
@@ -109,7 +109,7 @@ export function BarChartDash() {
         {language === "ar" ? "المعاملات" : "Transactions"}
       </CardDescription>
     </CardHeader>
-    <CardContent>
+    <CardContent className="flex-1 flex flex-col justify-center">
       <div className="text-3xl font-bold text-center mb-4">$9,395.72</div>
       <ChartContainer config={chartConfig}>
         <BarChart width={300} height={200} data={chartData[view]}>
@@ -128,7 +128,7 @@ export function BarChartDash() {
         </BarChart>
       </ChartContainer>
     </CardContent>
-    <CardFooter className="flex justify-around text-sm">
+    <CardFooter className="flex justify-around text-sm mt-auto">
       {[
         language === "ar" ? "اليوم" : "Today",
         language === "ar" ? "الأسبوع" : "Week",
@@ -150,6 +150,5 @@ export function BarChartDash() {
       })}
     </CardFooter>
   </Card>
-  
   );
 }

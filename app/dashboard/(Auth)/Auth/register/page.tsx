@@ -51,6 +51,9 @@ const translations = {
     medicalOrgLongitude: "خط الطول للمنظمة الطبية",
     firstName: "الاسم",
     lastName: "اللقب",
+    paymentMethod: "طريقة الدفع",
+    cash: "نقدي",
+    online: "عبر الإنترنت",
   },
   en: {
     selectType: "Choose the type of institution",
@@ -86,6 +89,9 @@ const translations = {
     medicalOrgLongitude: "Medical Organization Longitude",
     firstName: "First Name",
     lastName: "Last Name",
+    paymentMethod: "Payment Method",
+    cash: "Cash",
+    online: "Online",
   },
 };
 
@@ -105,6 +111,7 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
+  const [paymentMethod, setPaymentMethod] = useState("Cash"); // Default payment method
   const router = useRouter();
   const [hospitalName, setHospitalName] = useState("");
   const [hospitalForeignName, setHospitalForeignName] = useState("");
@@ -192,7 +199,7 @@ const Page = () => {
     const fetchSpecialties = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/specialty-list/",
+          "http://test-roshita.net/api/specialty-list/",
           {
             method: "GET",
             headers: {
@@ -214,7 +221,7 @@ const Page = () => {
 
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/cities-list/",
+          "http://test-roshita.net/api/cities-list/",
           {
             method: "GET",
             headers: {
@@ -248,8 +255,8 @@ const Page = () => {
     }
 
     // Proceed with form submission if all fields are filled
-    const endpoint = "/api/auth/register/registerStaff";
-    const backendEndpoint = "https://test-roshita.net/api/auth/staff-register/";
+    const endpoint = "http://test-roshita.net/api/auth/staff-register/";
+    const backendEndpoint = "http://test-roshita.net/api/auth/staff-register/";
     const token = localStorage.getItem("access");
 
     const payload = {
@@ -294,12 +301,41 @@ const Page = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
+        //window.location.href = "/dashboard/Auth/login"
         const successMessage =
           language === "ar" ? "تم التسجيل بنجاح!" : "Registration successful!";
         alert(successMessage);
         setStep(2);
       } else {
-        setError(result.message || "An error occurred during registration.");
+        // Handle specific validation errors for phone and email
+        if (result.user) {
+          const errorMessages = [];
+          
+          // Check for phone number error
+          if (result.user.phone && result.user.phone.length > 0) {
+            const phoneError = language === "ar" 
+              ?" رقم الهاتف هذا مستخدم من قبل" 
+              : result.user.phone[0];
+            errorMessages.push(phoneError);
+          }
+          
+          // Check for email error
+          if (result.user.email && result.user.email.length > 0) {
+            const emailError = language === "ar" 
+              ? "البريد الإلكتروني هذا مستخدم من قبل"  
+              : result.user.email[0];
+            errorMessages.push(emailError);
+          }
+          
+          // Set the combined error message
+          if (errorMessages.length > 0) {
+            setError(errorMessages.join("\n"));
+            return;
+          }
+        }
+        
+        // Default error message if no specific errors found
+        setError(result.message || (language === "ar" ? "حدث خطأ أثناء التسجيل" : "An error occurred during registration."));
       }
     } catch (error: any) {
       setError(
@@ -329,6 +365,7 @@ const Page = () => {
     if (!medicalOrgEmail.trim()) errors.medicalOrgEmail = true;
     if (!medicalOrgCity) errors.medicalOrgCity = true;
     if (!medicalOrgAddress.trim()) errors.medicalOrgAddress = true;
+    if (!paymentMethod) errors.paymentMethod = true;
   
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -355,14 +392,15 @@ const Page = () => {
     formData.append("medical_org_address", medicalOrgAddress);
     formData.append("medical_org_latitude", "0"); // Add actual values if available
     formData.append("medical_org_longitude", "0"); // Add actual values if available
+    formData.append("pay_method", paymentMethod); // Add payment method
   
     try {
       const response = await fetch(
-        "https://www.test-roshita.net/api/register-doctor/",
+        "http://test-roshita.net/api/register-doctor/",
         {
           method: "POST",
           headers: {
-            "X-API-Key": "", // Add your API key here
+            "X-API-Key": "", 
           },
           body: formData,
         }
@@ -446,8 +484,15 @@ const Page = () => {
                   </p>
                 </div>
                 {error && (
-                  <div className="text-red-500 text-center">{error}</div>
-                )}
+  <div className="text-red-500 text-center">
+    {error.split('\n').map((line, index) => (
+      <span key={index}>
+        {line}
+        <br />
+      </span>
+    ))}
+  </div>
+)}
                 <div className="grid grid-cols-2 gap-4">
                   {/* Option 1 */}
                   <div
@@ -552,7 +597,7 @@ const Page = () => {
                       language === "ar" ? "text-end" : "text-start"
                     }`}
                   >
-                    {t.errorLogin}
+                    {error}
                   </div>
                 )}
                 {selected !== "doctors" ? (
@@ -1139,6 +1184,35 @@ const Page = () => {
                             className={`text-red-500 text-sm ${textAlignment}`}
                           >
                             {t.fillField} "{t.fixedPrice}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex lg:flex-row flex-col gap-4 ${elementAlignment}`}
+                    >
+                      {/* Payment Method */}
+                      <div className="grid gap-2 lg:w-1/2 w-full">
+                        <Label htmlFor="payment_method" className={textAlignment}>
+                          {t.paymentMethod}
+                        </Label>
+                        <select
+                          id="payment_method"
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className={`border p-2 rounded ${
+                            fieldErrors.paymentMethod ? "border-red-500" : ""
+                          }`}
+                        >
+                          <option value="Cash">{t.cash}</option>
+                          <option value="Online">{t.online}</option>
+                        </select>
+                        {fieldErrors.paymentMethod && (
+                          <p
+                            className={`text-red-500 text-sm ${textAlignment}`}
+                          >
+                            {t.fillField} "{t.paymentMethod}"
                           </p>
                         )}
                       </div>

@@ -31,7 +31,7 @@ export default async function handler(
 
   try {
     const apiResponse = await fetch(
-      `https://test-roshita.net/api/appointment-reservations/${id}/`,
+      `http://test-roshita.net/api/appointment-reservations/${id}/`,
       {
         method: "DELETE",
         headers: {

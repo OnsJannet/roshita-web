@@ -90,7 +90,7 @@ const Page = () => {
 
         do {
           const response = await fetch(
-            `https://test-roshita.net/api/user-appointment-reservations/filter-appointments/?user_id=${userID}&page=${page}`,
+            `http://test-roshita.net/api/user-appointment-reservations/filter-appointments/?user_id=${userID}&page=${page}`,
             {
               method: "GET",
               headers: {

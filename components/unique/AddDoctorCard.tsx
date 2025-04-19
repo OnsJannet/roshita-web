@@ -191,8 +191,8 @@ const AddDoctorCard = () => {
   };
 
   return (
-    <Card className="flex flex-col pb-[30px] h-[410px]">
-      <CardHeader className=" pb-0 flex flex-col justify-start">
+    <Card className="flex flex-col h-full">
+      <CardHeader className="pb-0 flex flex-col justify-start">
         <CardTitle className={language === "ar" ? "text-end" : ""}>
           {lastDoctorsText}
         </CardTitle>

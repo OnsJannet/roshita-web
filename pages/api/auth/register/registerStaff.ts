@@ -113,6 +113,8 @@ export default async function registerStaff(
       medical_organization,
     };
 
+    console.log("payload", payload)
+
     // Fetch CSRF token from environment variables
     const csrfToken = process.env.CSRF_TOKEN;
     if (!csrfToken) {
@@ -121,7 +123,7 @@ export default async function registerStaff(
 
     // Send the POST request to the Swagger endpoint
     const response = await fetch(
-      "https://test-roshita.net/api/auth/staff-register/",
+      "http://test-roshita.net/api/auth/staff-register/",
       {
         method: "POST",
         headers: {

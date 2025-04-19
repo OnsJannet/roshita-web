@@ -127,7 +127,7 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
     const fetchServices = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/medical-services-list/"
+          "http://test-roshita.net/api/medical-services-list/"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch medical services");
@@ -148,7 +148,7 @@ const InputForm: React.FC<InputFormProps> = ({ type, onAdd, testType }) => {
     const fetchCategories = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/services-categories/"
+          "http://test-roshita.net/api/services-categories/"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch categories");

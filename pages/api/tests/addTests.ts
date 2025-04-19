@@ -108,7 +108,7 @@ export default async function addTest(
 
       // Make the POST request to the external API
       const externalResponse = await fetch(
-        "https://test-roshita.net/api/laboratory-guide-medical/",
+        "http://test-roshita.net/api/laboratory-guide-medical/",
         {
           method: "POST",
           headers: {

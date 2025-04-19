@@ -185,7 +185,7 @@ const DoctorCardInside: React.FC<DoctorCardInsideProps> = ({
               imageUrl &&
               imageUrl !== null &&
               !imageUrl.startsWith("/media/media/")
-                ? `https://test-roshita.net/${imageUrl}`
+                ? `http://test-roshita.net/${imageUrl}`
                 : "/Images/default-doctor.jpeg"
             }
             alt={name}

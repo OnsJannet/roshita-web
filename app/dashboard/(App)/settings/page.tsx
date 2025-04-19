@@ -176,13 +176,13 @@ export default function Page() {
 
           // Set the avatar image if it exists, otherwise use the default image
           if (doctorData.data.avatar) {
-            setImage(`https://www.test-roshita.net/${doctorData.data.avatar}`); // Set the avatar URL from the API
+            setImage(`http://www.test-roshita.net/${doctorData.data.avatar}`); // Set the avatar URL from the API
           } else {
             setImage("/Images/default-doctor.jpeg"); // Use the default image
           }
 
           const specialtiesResponse = await fetch(
-            "https://test-roshita.net/api/specialty-list/"
+            "http://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
@@ -208,7 +208,7 @@ export default function Page() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "https://test-roshita.net/api/cities-list/"
+          "http://test-roshita.net/api/cities-list/"
         );
         const citiesData: City[] = await response.json();
         if (response.ok) {
@@ -268,7 +268,7 @@ export default function Page() {
 
       // Send the request directly to the external API
       const response = await fetch(
-        "https://www.test-roshita.net/api/account/profile/edit/",
+        "http://www.test-roshita.net/api/account/profile/edit/",
         {
           method: "POST",
           headers: {

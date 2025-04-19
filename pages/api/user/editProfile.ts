@@ -107,7 +107,7 @@ export default async function editProfileDetails(
     }
 
     // Send the POST request to the external API
-    const response = await fetch("https://test-roshita.net/api/account/profile/edit/", {
+    const response = await fetch("http://test-roshita.net/api/account/profile/edit/", {
       method: "POST",
       headers: {
         accept: "application/json",

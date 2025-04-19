@@ -76,14 +76,14 @@ export default function Page() {
 
         {/* Main Content Section */}
         <div className=" p-4 flex  flex-col justify-center">
-          <div className="flex lg:flex-row flex-col justify-between gap-2 w-full mb-2">
-            <div className="lg:w-[50%] h-full w-full">
+          <div className="grid lg:grid-cols-3 gap-4 w-full mb-2">
+            <div className="h-[400px]">
               <DoctorBarChat />
             </div>
-            <div className="lg:w-[50%] h-full w-full">
+            <div className="h-[400px]">
               <DoctorPieChart />
             </div>
-            <div className="lg:w-[50%] h-full w-full">
+            <div className="h-[400px]">
               <DoctorAreaChart />
             </div>
           </div>

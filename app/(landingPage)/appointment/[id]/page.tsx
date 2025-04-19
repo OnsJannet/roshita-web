@@ -79,7 +79,7 @@ const Appointment = () => {
     const fetchDoctor = async () => {
       try {
         const response = await fetch(
-          `https://test-roshita.net/api/user-doctors/${id}/`,
+          `http://test-roshita.net/api/user-doctors/${id}/`,
           {
             method: "GET",
             headers: {

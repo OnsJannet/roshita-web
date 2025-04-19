@@ -24,7 +24,7 @@ const fetchProfileDetails = async (): Promise<any> => {
     }
 
     const response = await fetch(
-      "https://test-roshita.net/api/account/profile/detail/",
+      "http://test-roshita.net/api/account/profile/detail/",
       {
         method: "GET",
         headers: {

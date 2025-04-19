@@ -55,7 +55,7 @@ export default async function loginStaff(
 
     console.log("Making request to backend with payload:", payload);
     const response = await fetch(
-      "https://test-roshita.net/api/auth/staff-login/",
+      "http://test-roshita.net/api/auth/staff-login/",
       {
         method: "POST",
         headers: {

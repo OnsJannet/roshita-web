@@ -78,14 +78,14 @@ export default function Page() {
           <div className="mb-4">
             <AreaChartDash />
           </div>
-          <div className="flex lg:flex-row flex-col justify-between gap-2 w-full">
-            <div className="lg:w-[40%] w-full">
+          <div className="flex lg:flex-row flex-col justify-between gap-4 w-full min-h-[400px]">
+            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg shadow-sm p-4">
               <BarChartDash />
             </div>
-            <div className="lg:w-[40%] w-full">
+            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg shadow-sm p-4">
               <PieChartDash />
             </div>
-            <div className="lg:w-[40%] w-full">
+            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg shadow-sm p-4">
               <AddDoctorCard />
             </div>
           </div>

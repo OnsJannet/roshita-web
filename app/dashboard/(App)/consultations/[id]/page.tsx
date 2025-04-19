@@ -65,8 +65,8 @@ export default function Page() {
       }
 
       const response = await fetch(
-        //`https://www.test-roshita.net/api/consultation-requests/unreviewing_consultation/${id}/`,
-        `https://test-roshita.net/api/consultation-requests/${id}/`,
+        //`http://www.test-roshita.net/api/consultation-requests/unreviewing_consultation/${id}/`,
+        `http://test-roshita.net/api/consultation-requests/${id}/`,
         {
           method: "GET",
           headers: {
@@ -165,7 +165,7 @@ export default function Page() {
         const responseConsultationId = id;
 
         const response = await fetch(
-          `https://www.test-roshita.net/api/doctor-response-consultation/${responseConsultationId}/`,
+          `http://www.test-roshita.net/api/doctor-response-consultation/${responseConsultationId}/`,
           {
             method: "POST",
             headers: {

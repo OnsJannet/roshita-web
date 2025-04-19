@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import LoadingDoctors from "../layout/LoadingDoctors";
 
-const API_URL = "https://www.test-roshita.net/api/appointment-reservations/";
+const API_URL = "http://www.test-roshita.net/api/appointment-reservations/";
 
 interface Appointment {
   id: number;
@@ -120,6 +120,11 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     page * APPOINTMENTS_PER_PAGE
   );
 
+  const noDataMessage = language === "ar" ? "لا توجد بيانات لعرضها" : "No data to show";
+  const nextText = language === "ar" ? "التالي" : "Next";
+  const previousText = language === "ar" ? "السابق" : "Previous";
+  
+  console.log("language", language);
   console.log("paginatedAppointments", paginatedAppointments);
 
   useEffect(() => {
@@ -234,7 +239,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `https://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
+        `http://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
         {
           method: "GET",
           headers: {
@@ -316,7 +321,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        "http://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
         {
           method: "POST",
           headers: {
@@ -369,7 +374,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "https://www.test-roshita.net/api/doctor-suggestions/",
+        "http://www.test-roshita.net/api/doctor-suggestions/",
         {
           method: "POST",
           headers: {
@@ -457,7 +462,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/appointment-reservations/${index}/`,
+        `http://test-roshita.net/api/appointment-reservations/${index}/`,
         {
           method: "DELETE",
           headers: {
@@ -473,7 +478,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         console.log("Appointment deleted successfully");
         await logAction(
           token,
-          `https://test-roshita.net/api/appointment-reservations/${index}/`,
+          `http://test-roshita.net/api/appointment-reservations/${index}/`,
           { appointmentId: index },
           "success",
           response.status
@@ -483,7 +488,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `https://test-roshita.net/api/appointment-reservations/${index}/`,
+          `http://test-roshita.net/api/appointment-reservations/${index}/`,
           { appointmentId: index },
           "error",
           response.status,
@@ -496,7 +501,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `https://test-roshita.net/api/appointment-reservations/${index}/`,
+          `http://test-roshita.net/api/appointment-reservations/${index}/`,
           { appointmentId: index },
           "error",
           //@ts-ignore
@@ -522,7 +527,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+        `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
         {
           method: "POST",
           headers: {
@@ -540,7 +545,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         console.log("Marked as not attended successfully");
         await logAction(
           token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "success",
           response.status
@@ -550,7 +555,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           response.status,
@@ -563,7 +568,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           //@ts-ignore
@@ -577,7 +582,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
   const handleEndSlot = async (index: number) => {
     const url =
-      "https://test-roshita.net/api/complete-appointment-reservations/";
+      "http://test-roshita.net/api/complete-appointment-reservations/";
     const token = localStorage.getItem("access");
     const data = {
       appointment_reservation_id: index,
@@ -698,8 +703,15 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedAppointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
+                {paginatedAppointments.length === 0 ? (
+                  <TableRow className="h-20">
+                    <TableCell colSpan={8} className="text-center">
+                      {noDataMessage}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedAppointments.map((appointment) => (
+                    <TableRow key={appointment.id}>
                     <TableCell className="text-center">
                       #{appointment.reservation.id || "-"}
                     </TableCell>
@@ -764,8 +776,9 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
                     ) : (
                       <p className="text-center p-4">-</p>
                     )}
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  )))
+                }
               </TableBody>
             </Table>
           </div>
@@ -955,45 +968,33 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
             </DialogContent>
           </Dialog>
 
-          <Pagination>
-  <PaginationContent>
-    <PaginationItem>
-      <PaginationPrevious
-        onClick={handlePreviousPage}
-        //@ts-ignore
-        disabled={disablePreviousPage}
-      >
-        {language === "ar" ? "السابق" : "Previous"} {/* Arabic or English text */}
-      </PaginationPrevious>
-    </PaginationItem>
-
-    {[...Array(totalPages)].map((_, index) => {
-      const pageNumber = index + 1;
-      return (
-        <PaginationItem key={pageNumber}>
-          <PaginationLink
-            onClick={() => setPage(pageNumber)}
-            className={
-              page === pageNumber ? "bg-blue-500 text-white" : ""
-            }
-          >
-            {pageNumber}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    })}
-
-    <PaginationItem>
-      <PaginationNext
-        onClick={handleNextPage}
-        //@ts-ignore
-        disabled={disableNextPage}
-      >
-        {language === "ar" ? "التالي" : "Next"} {/* Arabic or English text */}
-      </PaginationNext>
-    </PaginationItem>
-  </PaginationContent>
-</Pagination>
+          <Pagination className={`mt-4 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={handlePreviousPage}
+                  //@ts-ignore
+                  disabled={disablePreviousPage}
+                  className={language === "ar" ? "flex-row-reverse" : ""}
+                >
+                  {previousText}
+                </PaginationPrevious>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink>{page}</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={handleNextPage}
+                                    //@ts-ignore
+                  disabled={disableNextPage}
+                  className={language === "ar" ? "flex-row-reverse" : ""}
+                >
+                  {nextText}
+                </PaginationNext>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </>
       )}
     </div>

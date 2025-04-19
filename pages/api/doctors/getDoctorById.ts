@@ -82,7 +82,7 @@ export default async function getDoctorById(
     }
 
     const doctorResponse = await fetch(
-      `https://test-roshita.net/api/doctors/${id}/`,
+      `http://test-roshita.net/api/doctors/${id}/`,
       {
         method: "GET",
         headers: {
@@ -106,7 +106,7 @@ export default async function getDoctorById(
     // Fetch city details
     const cityId = doctorData.staff.city;
     const cityResponse = await fetch(
-      `https://test-roshita.net/api/cities-list/`,
+      `http://test-roshita.net/api/cities-list/`,
       {
         method: "GET",
         headers: {

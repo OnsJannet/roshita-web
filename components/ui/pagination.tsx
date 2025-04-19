@@ -84,7 +84,7 @@ const PaginationPrevious = ({
       className={cn("gap-1 pl-2.5 items-center", className)}
       {...props}
     >
-      {language === "ar" ? (
+      {language === "ar" || !language || language === " " ? (
         <ChevronLeftIcon className="h-4 w-4" />
       ) : (
         <ChevronLeftIcon className="h-4 w-4" />

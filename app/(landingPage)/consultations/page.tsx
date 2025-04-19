@@ -202,7 +202,7 @@ const Page = () => {
         const token = localStorage.getItem("access");
         const patientId = localStorage.getItem("patientId");
         const response = await fetch(
-          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+          `http://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/?page=${currentPage}&page_size=${itemsPerPage}`,
           {
             method: "GET",
             headers: {
@@ -432,7 +432,7 @@ const Page = () => {
                 {translations[language].noConsultations}
               </p>
             )}
-            {/* Pagination Controls */}
+            {currentConsultations.length > 0 && (
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -461,6 +461,7 @@ const Page = () => {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
+            )}
           </div>
         </div>
       </div>

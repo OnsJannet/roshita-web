@@ -140,7 +140,7 @@ const Page = () => {
       }
   
       const response = await fetch(
-        "https://www.test-roshita.net/api/user-consultation-requests/",
+        "http://www.test-roshita.net/api/user-consultation-requests/",
         {
           method: "POST",
           headers: {
@@ -198,7 +198,7 @@ const Page = () => {
     const fetchSpecialties = async () => {
       try {
         const specialtiesResponse = await fetch(
-          "https://test-roshita.net/api/specialty-list/"
+          "http://test-roshita.net/api/specialty-list/"
         );
         const specialtiesData: Specialty[] = await specialtiesResponse.json();
         if (specialtiesResponse.ok) {

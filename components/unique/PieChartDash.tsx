@@ -86,7 +86,7 @@ export function PieChartDash() {
   }, []);
 
   return (
-    <Card className="flex flex-col pb-[30px]">
+    <Card className="flex flex-col h-full">
       <CardHeader className="pb-0 flex flex-col justify-start">
       <CardTitle className={language === "ar" ? "text-end" : ""}>
           {language === "ar" ? "رسم بياني دائري" : "Pie Chart"}
@@ -97,7 +97,7 @@ export function PieChartDash() {
             : "Statistics for the Last 6 Months"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1 pb-0 flex flex-col justify-center">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square max-h-[250px]"
