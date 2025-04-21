@@ -141,24 +141,32 @@ const Page = () => {
   };
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
+    let isMounted = true;
 
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
+    // Only access localStorage on the client side
+    if (typeof window !== 'undefined') {
+      const storedLanguage = localStorage.getItem("language");
+      if (isMounted) {
+        if (storedLanguage) {
+          setLanguage(storedLanguage as Language);
+        } else {
+          setLanguage("ar");
+        }
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === "language" && isMounted) {
+          setLanguage((event.newValue as Language) || "ar");
+        }
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+      window.addEventListener("storage", handleStorageChange);
+
+      return () => {
+        isMounted = false;
+        window.removeEventListener("storage", handleStorageChange);
+      };
+    }
   }, []);
 
   // Handle option selection

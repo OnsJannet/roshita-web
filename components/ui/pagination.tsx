@@ -10,9 +10,9 @@ import { ButtonProps, buttonVariants } from "@/components/ui/button";
 
 // Helper function to get language from localStorage
 const getLanguage = () => {
-  console.log("language pagination", localStorage.getItem("language"))
-  return localStorage.getItem("language") || "en"; 
-  
+  console.log("language pagination", localStorage.getItem("language"));
+  const lang = localStorage.getItem("language");
+  return (!lang || lang.trim() === "") ? "ar" : lang;
 };
 
 

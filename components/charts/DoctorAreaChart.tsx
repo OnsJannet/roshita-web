@@ -152,8 +152,8 @@ export function DoctorAreaChart() {
   } satisfies ChartConfig;
 
   return (
-    <Card className="flex flex-col pb-[32px]">
-      <CardHeader className="pb-0 flex flex-col justify-start mb-10">
+    <Card className="flex flex-col h-full pb-[32px]">
+      <CardHeader className="pb-4 flex flex-col justify-start">
         <CardTitle className={language === "ar" ? "text-end" : ""}>
           {translations[language].title}
         </CardTitle>
@@ -161,7 +161,7 @@ export function DoctorAreaChart() {
           {translations[language].description}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 w-full">
         {loading ? (
           <div className="flex items-center justify-center h-[200px]">
             <LoadingDoctors />
@@ -171,14 +171,18 @@ export function DoctorAreaChart() {
             <p className="text-red-500">{error}</p>
           </div>
         ) : (
-          <ChartContainer config={chartConfig}>
+          <ChartContainer config={chartConfig} className="w-full h-[200px]">
             <AreaChart
               accessibilityLayer
               data={chartData}
               margin={{
                 left: 12,
                 right: 12,
+                top: 10,
+                bottom: 10
               }}
+              width={undefined}
+              height={undefined}
             >
               <CartesianGrid vertical={false} />
               <XAxis
@@ -206,13 +210,11 @@ export function DoctorAreaChart() {
         )}
       </CardContent>
       {stats && (
-        <CardFooter>
-          <div className="flex w-full items-start gap-2 text-sm">
-            <div className="grid gap-2">
-              <div className="flex items-center gap-2 font-medium leading-none">
-                {stats.trendDirection === "up" ? "ارتفاع" : "انخفاض"} بنسبة {stats.percentageChange}% هذا الشهر
-                <TrendingUp className="h-4 w-4" />
-              </div>
+        <CardFooter className="flex justify-center items-center">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 font-medium leading-none">
+              {stats.trendDirection === "up" ? "ارتفاع" : "انخفاض"} بنسبة {stats.percentageChange}% هذا الشهر
+              <TrendingUp className="h-4 w-4" />
             </div>
           </div>
         </CardFooter>

@@ -968,33 +968,35 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
             </DialogContent>
           </Dialog>
 
-          <Pagination className={`mt-4 ${language === "ar" ? "flex-row-reverse" : ""}`}>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={handlePreviousPage}
-                  //@ts-ignore
-                  disabled={disablePreviousPage}
-                  className={language === "ar" ? "flex-row-reverse" : ""}
-                >
-                  {previousText}
-                </PaginationPrevious>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink>{page}</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext
-                  onClick={handleNextPage}
-                                    //@ts-ignore
-                  disabled={disableNextPage}
-                  className={language === "ar" ? "flex-row-reverse" : ""}
-                >
-                  {nextText}
-                </PaginationNext>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          {paginatedAppointments.length > 0 && (
+            <Pagination className={`mt-4 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={handlePreviousPage}
+                    //@ts-ignore
+                    disabled={disablePreviousPage}
+                    className={language === "ar" ? "flex-row-reverse" : ""}
+                  >
+                    {previousText}
+                  </PaginationPrevious>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationLink>{page}</PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={handleNextPage}
+                    //@ts-ignore
+                    disabled={disableNextPage}
+                    className={language === "ar" ? "flex-row-reverse" : ""}
+                  >
+                    {nextText}
+                  </PaginationNext>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </>
       )}
     </div>

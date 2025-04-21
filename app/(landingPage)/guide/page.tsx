@@ -101,21 +101,22 @@ const Page = () => {
   const [doctorCount, setDoctorCount] = useState(0);
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
+    // This code will only run on the client side
+    const storedLanguage = window.localStorage.getItem("language");
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
     } else {
       setLanguage("ar");
     }
-
+  
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
         setLanguage((event.newValue as Language) || "ar");
       }
     };
-
+  
     window.addEventListener("storage", handleStorageChange);
-
+  
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
@@ -288,11 +289,13 @@ const Page = () => {
                 />
               ))
             )}
-            <PaginationDemo
-              currentPage={currentPage}
-              totalPages={totalDoctorPages}
-              onPageChange={handlePageChange}
-            />
+             {filteredDoctors.length > 0 && (
+                <PaginationDemo
+                  currentPage={currentPage}
+                  totalPages={totalDoctorPages}
+                  onPageChange={handlePageChange}
+                />
+             )}
           </div>
         ) : searchTerm === "hospitalsSearch" ? (
           <div className="space-y-4 lg:w-full">
@@ -314,11 +317,13 @@ const Page = () => {
                 />
               ))
             )}
+            {currentHospitals.length > 0 && (
             <PaginationDemo
               currentPage={currentPage}
               totalPages={totalHospitalPages}
               onPageChange={handlePageChange}
             />
+            )}
           </div>
         ) : searchTerm === "pharmaciesSearch" ? (
           <p className="text-center text-xl font-semibold mx-auto">
@@ -340,11 +345,13 @@ const Page = () => {
                 />
               ))
             )}
+             {currentLabs.length > 0 && (
             <PaginationDemo
               currentPage={currentPage}
               totalPages={totalLabPages}
               onPageChange={handlePageChange}
             />
+             )}
           </div>
         )}
       </div>

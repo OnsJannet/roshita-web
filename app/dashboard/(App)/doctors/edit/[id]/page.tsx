@@ -813,7 +813,7 @@ export default function Page() {
               ]}
               picture={
                 doctor?.staff.staff_avatar
-                  ? doctor.staff.staff_avatar.replace("http://", "https://")
+                  ? doctor.staff.staff_avatar.replace("https://", "http://")
                   : "/Images/default-doctor.jpg"
               }
               //@ts-ignore

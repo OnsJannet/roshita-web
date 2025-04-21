@@ -517,7 +517,7 @@ const Sidebar = React.forwardRef<
           setUserRoles({
             lab: user?.medical_organization_type === "Laboratory",
             hospital:
-              user?.medical_organization_type === "hospital" &&
+              (user?.medical_organization_type === "hospital" ||  user?.medical_organization_type === "Hospital") &&
               (user?.user_type === "Admin" || user?.user_type === "staff"),
             xRays: user?.medical_organization_type === "Radiologic",
             doctor:

@@ -21,7 +21,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   imageSrc,
   language,
 }) => {
-  const img = imageSrc?.replace(/^http:/, "https:");
+  const img = imageSrc?.replace(/^https:/, "http:");
   return (
     <div
       className={`bg-white shadow-sm py-4 flex flex-col ${

@@ -697,7 +697,7 @@ export default function Page() {
       if (response.ok) {
         // Handle success
         console.log("Doctor updated successfully:", result);
-        window.location.reload(); // Reload the page or update the state as needed
+       //window.location.reload() Reload the page or update the state as needed
       } else {
         // Handle error
         console.error("Error updating doctor:", result);
@@ -928,7 +928,7 @@ export default function Page() {
               ]}
               picture={
                 doctor?.staff.staff_avatar
-                  ? doctor.staff.staff_avatar.replace("http://", "https://")
+                  ? doctor.staff.staff_avatar.replace("https://", "http://")
                   : "/Images/default-doctor.jpg"
               }
               //@ts-ignore

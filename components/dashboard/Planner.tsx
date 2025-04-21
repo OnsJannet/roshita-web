@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, ReactNode } from "react";
-import { startOfWeek, format } from "date-fns";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ClipLoader } from "react-spinners";
 import {
@@ -11,14 +11,6 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "../ui/pagination";
 import { logAction } from "@/lib/logger";
 import {
   Dialog,
@@ -26,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -46,6 +37,7 @@ interface Appointment {
       first_name: string;
       last_name: string;
       phone: string;
+      id: number;
     };
     reservation_date: string;
     reservation_payment_status: string;
@@ -80,10 +72,8 @@ interface AppointmentSlot {
 }
 
 const Planner = ({ language = "en" }: { language?: string }) => {
-  const [selectedAppointment, setSelectedAppointment] = useState([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
@@ -92,35 +82,32 @@ const Planner = ({ language = "en" }: { language?: string }) => {
   const [appointmentDoctorId, setAppointmentDoctorId] = useState("");
   const [isSendToAnotherDoctorModalOpen, setIsSendToAnotherDoctorModalOpen] =
     useState(false);
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<
-    number | null
-  >(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
-  const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(
-    null
-  );
+  const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(null);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [doctorInfo, setDoctorInfo] = useState<Doctor | null>(null);
   const [selectedDoctorId, setSelectedDoctorId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [availableSlots, setAvailableSlots] = useState<AppointmentSlot[]>([]);
-  const [reservationId, setReservationId] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(
-    null
-  );
+  const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
   const [loading, setLoading] = useState(false);
   const [followUpError, setFollowUpError] = useState("");
   const [serviceType, setServiceType] = useState("");
   const [note, setNote] = useState("");
   const [patientId, setPatientId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  
   const APPOINTMENTS_PER_PAGE = 5;
   const paginatedAppointments = appointments.slice(
     (page - 1) * APPOINTMENTS_PER_PAGE,
     page * APPOINTMENTS_PER_PAGE
   );
+
+  const noDataMessage = language === "ar" ? "لا توجد مواعيد لعرضها" : "No appointments to display";
+  const nextText = language === "ar" ? "التالي" : "Next";
+  const previousText = language === "ar" ? "السابق" : "Previous";
 
   useEffect(() => {
     const fetchAllAppointments = async () => {
@@ -157,14 +144,9 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           }
         }
     
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-    
         const filteredAppointments = allAppointments
           .filter((appointment) => {
-            const appointmentDate = new Date(appointment.reservation.reservation_date);
             const status = appointment.reservation.reservation_payment_status;
-    
             return status !== "Cancelled" && status !== "Completed";
           })
           .sort((a, b) => {
@@ -268,7 +250,9 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       }
     };
 
-    fetchDoctorAndSpecialty();
+    if (appointmentDoctorId) {
+      fetchDoctorAndSpecialty();
+    }
   }, [appointmentDoctorId]);
 
   const handleSameDoctorFollowUp = async (appointmentId: number) => {
@@ -431,11 +415,11 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     },
   };
 
-  const t = translations[language as keyof typeof translations];
+  const t = translations[language as keyof typeof translations] || translations.en;
 
-  const handleRemoveSlot = async (index: number) => {
+  const handleRemoveSlot = async (appointmentId: number) => {
     setIsProcessing(true);
-    if (!index) {
+    if (!appointmentId) {
       console.error("Appointment ID not found");
       setIsProcessing(false);
       return;
@@ -450,7 +434,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/appointment-reservations/${index}/`,
+        `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
         {
           method: "DELETE",
           headers: {
@@ -465,17 +449,19 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (response.ok) {
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
-          { appointmentId: index },
+          `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+          { appointmentId },
           "success",
           response.status
         );
+        // Update local state after successful deletion
+        setAppointments(prev => prev.filter(app => app.id !== appointmentId));
       } else {
         const errorData = await response.json();
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
-          { appointmentId: index },
+          `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+          { appointmentId },
           "error",
           response.status,
           errorData.message || "Failed to delete appointment"
@@ -487,8 +473,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
-          { appointmentId: index },
+          `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+          { appointmentId },
           "error",
           error instanceof Error ? 500 : 500,
           error instanceof Error ? error.message : "An unknown error occurred"
@@ -538,6 +524,16 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           "success",
           response.status
         );
+        // Update local state after marking as not attended
+        setAppointments(prev => prev.map(app => 
+          app.id === appointmentId ? {
+            ...app,
+            reservation: {
+              ...app.reservation,
+              reservation_payment_status: "No Show"
+            }
+          } : app
+        ));
       } else {
         const errorData = await response.json();
         await logAction(
@@ -567,13 +563,13 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     }
   };
 
-  const handleEndSlot = async (index: number) => {
+  const handleEndSlot = async (appointmentId: number) => {
     setIsProcessing(true);
     const url =
       "http://test-roshita.net/api/complete-appointment-reservations/";
     const token = localStorage.getItem("access");
     const data = {
-      appointment_reservation_id: index,
+      appointment_reservation_id: appointmentId,
     };
 
     try {
@@ -597,17 +593,28 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         await logAction(
           token,
           url,
-          { appointmentId: index },
+          { appointmentId },
           "success",
           response.status
         );
       }
+      
+      // Update local state after completing appointment
+      setAppointments(prev => prev.map(app => 
+        app.id === appointmentId ? {
+          ...app,
+          reservation: {
+            ...app.reservation,
+            reservation_payment_status: "Completed"
+          }
+        } : app
+      ));
     } catch (error) {
       if (token) {
         await logAction(
           token,
           url,
-          { appointmentId: index },
+          { appointmentId },
           "error",
           error instanceof Error ? 500 : 500,
           error instanceof Error ? error.message : "An unknown error occurred"
@@ -649,17 +656,29 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     setIsSendToAnotherDoctorModalOpen(true);
   };
 
-  const handleNextPage = () => setPage((prev) => prev + 1);
-  const handlePreviousPage = () => setPage((prev) => Math.max(1, prev - 1));
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
 
   return (
     <div className="p-4 border rounded-md shadow">
-      {isLoading || appointments.length === 0 ? (
+      {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <LoadingDoctors />
         </div>
       ) : (
         <>
+          {error && (
+            <p className="text-red-500 text-center">{error}</p>
+          )}
           {followUpError && (
             <p className="text-red-500 text-center">{followUpError}</p>
           )}
@@ -667,343 +686,284 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow className="text-center">
-                  {Object.values(t)
-                    .slice(0, 8)
-                    .map((header, index) => (
-                      <TableHead key={index} className="text-center">
-                        {header as ReactNode}
-                      </TableHead>
-                    ))}
+                  {[
+                    t.appointmentRef,
+                    t.patientFullName,
+                    t.patientPhone,
+                    t.doctorFullName,
+                    t.appointmentPrice,
+                    t.appointmentDate,
+                    t.appointmentStatus,
+                    t.action
+                  ].map((header, index) => (
+                    <TableHead key={index} className="text-center">
+                      {header}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedAppointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell className="text-center">
-                      #{appointment.reservation.id || "-"}
+                {paginatedAppointments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      {noDataMessage}
                     </TableCell>
-                    <TableCell className="text-center">
-                      {appointment.reservation.patient.first_name}{" "}
-                      {appointment.reservation.patient.last_name}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {appointment.reservation.patient.phone || "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {appointment.doctor
-                        ? `${appointment.doctor.name} ${appointment.doctor.last_name}`
-                        : "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {appointment.doctor_price || "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {format(
-                        new Date(appointment.reservation.reservation_date),
-                        "yyyy-MM-dd"
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {appointment.reservation.reservation_payment_status}
-                    </TableCell>
-
-                    {appointment.reservation.reservation_payment_status !==
-                    "pendings" ? (
-                      <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          className="mr-2 bg-yellow-500 text-white"
-                          onClick={() => handleMarkNotAttend(appointment.id)}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <ClipLoader size={20} color="#ffffff" />
-                          ) : (
-                            t.noShow
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="mr-2 bg-green-500 text-white"
-                          onClick={() =>
-                            handleDoneClick(
-                              appointment.id,
-                              //@ts-ignore
-                              appointment.reservation.patient.id,
-                              appointment.confirmation_code,
-                              appointment.doctor.id
-                            )
-                          }
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <ClipLoader size={20} color="#ffffff" />
-                          ) : (
-                            t.done
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="bg-red-500 text-white"
-                          onClick={() => handleRemoveSlot(appointment.id)}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <ClipLoader size={20} color="#ffffff" />
-                          ) : (
-                            t.cancel
-                          )}
-                        </Button>
-                      </TableCell>
-                    ) : (
-                      <p className="text-center p-4">-</p>
-                    )}
                   </TableRow>
-                ))}
+                ) : (
+                  paginatedAppointments.map((appointment) => (
+                    <TableRow key={appointment.id}>
+                      <TableCell className="text-center">
+                        #{appointment.reservation.id || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {appointment.reservation.patient.first_name}{" "}
+                        {appointment.reservation.patient.last_name}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {appointment.reservation.patient.phone || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {appointment.doctor
+                          ? `${appointment.doctor.name} ${appointment.doctor.last_name}`
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {appointment.doctor_price || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {format(
+                          new Date(appointment.reservation.reservation_date),
+                          "yyyy-MM-dd"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {appointment.reservation.reservation_payment_status}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center space-x-2">
+                          <Button
+                            variant="outline"
+                            className="bg-yellow-500 text-white hover:bg-yellow-600"
+                            onClick={() => handleMarkNotAttend(appointment.id)}
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? (
+                              <ClipLoader size={20} color="#ffffff" />
+                            ) : (
+                              t.noShow
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="bg-green-500 text-white hover:bg-green-600"
+                            onClick={() =>
+                              handleDoneClick(
+                                appointment.id,
+                                appointment.reservation.patient.id,
+                                appointment.confirmation_code,
+                                appointment.doctor.id
+                              )
+                            }
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? (
+                              <ClipLoader size={20} color="#ffffff" />
+                            ) : (
+                              t.done
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="bg-red-500 text-white hover:bg-red-600"
+                            onClick={() => handleRemoveSlot(appointment.id)}
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? (
+                              <ClipLoader size={20} color="#ffffff" />
+                            ) : (
+                              t.cancel
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
 
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handlePreviousPage}
+                  disabled={page === 1 || isProcessing}
+                  variant="outline"
+                >
+                  {previousText}
+                </Button>
+                <Button
+                  onClick={handleNextPage}
+                  disabled={page === totalPages || isProcessing}
+                  variant="outline"
+                >
+                  {nextText}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Modal for appointment actions */}
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="text-center">{t.done}</DialogTitle>
-              </DialogHeader>
-              <div className="flex lg:flex-row flex-col gap-4 justify-center">
-                <Button onClick={handleEndAppointment} disabled={isProcessing}>
-                  {isProcessing ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" className="mr-2" />
-                      {t.processing}
-                    </>
-                  ) : (
-                    t.endAppointment
-                  )}
-                </Button>
-                <Button
-                  onClick={handleFollowUpAppointment}
-                  disabled={isProcessing}
-                >
-                  {t.followUpAppointment}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog
-            open={isFollowUpModalOpen}
-            onOpenChange={setIsFollowUpModalOpen}
-          >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-center">
-                  {t.followUpAppointment}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-4">
-                <Button
-                  onClick={() =>
-                    handleSameDoctorFollowUp(selectedAppointmentId!)
-                  }
-                  disabled={isProcessing}
-                >
-                  {t.sameDoctorFollowUp}
-                </Button>
-                <Button
-                  onClick={handleSendToAnotherDoctor}
-                  disabled={isProcessing}
-                >
-                  {t.sendToAnotherDoctor}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog
-            open={isSameDoctorModalOpen}
-            onOpenChange={setIsSameDoctorModalOpen}
-          >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-center">
-                  {t.sameDoctorFollowUp}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {doctorInfo?.appointments?.map((slot, index) => (
-                  <Button
-                    key={slot.id || index}
-                    onClick={() => handleSlotSelection(slot)}
-                    disabled={isProcessing}
-                    className={`w-full px-4 py-2 rounded ${
-                      selectedSlot?.id === slot.id
-                        ? "bg-gray-400"
-                        : "bg-gray-200"
-                    } text-black hover:bg-gray-300 transition-colors`}
-                  >
-                    {slot.scheduled_date} - {slot.start_time} to {slot.end_time}
-                  </Button>
-                ))}
-                <Button
-                  onClick={handleSameDoctorFollowUpSubmit}
-                  className="w-full"
-                  disabled={isProcessing || !selectedSlot}
-                >
-                  {isProcessing ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" className="mr-2" />
-                      {t.processing}
-                    </>
-                  ) : (
-                    t.submit
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog
-            open={isSendToAnotherDoctorModalOpen}
-            onOpenChange={setIsSendToAnotherDoctorModalOpen}
-          >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-center">
-                  {t.sendToAnotherDoctor}
-                </DialogTitle>
+                <DialogTitle>{t.endAppointment}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <Select
-                  onValueChange={(value) =>
-                    setSelectedHospitalId(Number(value))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.selectHospital} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hospitals.map((hospital) => (
-                      <SelectItem
-                        key={hospital.id}
-                        value={hospital.id.toString()}
-                      >
-                        {hospital.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <p>{language === "ar" ? "ما الذي تريد القيام به؟" : "What would you like to do?"}</p>
+                <div className="flex space-x-2">
+                  <Button onClick={handleEndAppointment}>
+                    {t.endAppointment}
+                  </Button>
+                  <Button onClick={handleFollowUpAppointment}>
+                    {t.followUpAppointment}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
 
-                {selectedHospitalId && (
+          {/* Follow-up Modal */}
+          <Dialog open={isFollowUpModalOpen} onOpenChange={setIsFollowUpModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t.followUpAppointment}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p>{language === "ar" ? "اختر نوع المتابعة:" : "Choose follow-up type:"}</p>
+                <div className="flex space-x-2">
+                  <Button onClick={() => handleSameDoctorFollowUp(selectedAppointmentId!)}>
+                    {t.sameDoctorFollowUp}
+                  </Button>
+                  <Button onClick={handleSendToAnotherDoctor}>
+                    {t.sendToAnotherDoctor}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Same Doctor Follow-up Modal */}
+          <Dialog open={isSameDoctorModalOpen} onOpenChange={setIsSameDoctorModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t.sameDoctorFollowUp}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {isProcessing ? (
+                  <div className="flex justify-center">
+                    <ClipLoader size={30} color="#3b82f6" />
+                  </div>
+                ) : (
+                  <>
+                    <p>{t.confirmationCode}: {appointmentNumber}</p>
+                    <div className="grid gap-2">
+                      {availableSlots.map((slot) => (
+                        <div
+                          key={slot.id}
+                          className={`p-2 border rounded cursor-pointer ${
+                            selectedSlot?.id === slot.id ? "bg-blue-100" : ""
+                          }`}
+                          onClick={() => handleSlotSelection(slot)}
+                        >
+                          <p>{t.reservationDate}: {slot.scheduled_date}</p>
+                          <p>{t.startTime}: {slot.start_time}</p>
+                          <p>{t.endTime}: {slot.end_time}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={handleSameDoctorFollowUpSubmit}
+                      disabled={!selectedSlot || isProcessing}
+                    >
+                      {isProcessing ? t.processing : t.submit}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Send to Another Doctor Modal */}
+          <Dialog open={isSendToAnotherDoctorModalOpen} onOpenChange={setIsSendToAnotherDoctorModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t.sendToAnotherDoctor}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label>{t.selectHospital}</label>
                   <Select
-                    onValueChange={(value) =>
-                      setSelectedDoctorId(Number(value))
-                    }
+                    onValueChange={(value) => setSelectedHospitalId(Number(value))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={t.selectDoctor} />
+                      <SelectValue placeholder={t.selectHospital} />
                     </SelectTrigger>
                     <SelectContent>
-                      {hospitals
-                        .find((hospital) => hospital.id === selectedHospitalId)
-                        ?.doctors.map((doctor) => (
-                          <SelectItem
-                            key={doctor.id}
-                            value={doctor.id.toString()}
-                          >
+                      {hospitals.map((hospital) => (
+                        <SelectItem key={hospital.id} value={hospital.id.toString()}>
+                          {hospital.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedHospitalId && (
+                  <div>
+                    <label>{t.selectDoctor}</label>
+                    <Select
+                      onValueChange={(value) => setSelectedDoctorId(Number(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.selectDoctor} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredDoctors.map((doctor) => (
+                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
                             {doctor.name}
                           </SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
-
-                <Select onValueChange={(value) => setServiceType(value)}>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        language === "ar"
-                          ? "اختر نوع الخدمة"
-                          : "Select Service Type"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Shelter">
-                      {language === "ar" ? "مأوى" : "Shelter"}
-                    </SelectItem>
-                    <SelectItem value="Shelter_Operation">
-                      {language === "ar" ? "عملية مأوى" : "Shelter Operation"}
-                    </SelectItem>
-                    <SelectItem value="Operation">
-                      {language === "ar" ? "عملية" : "Operation"}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  placeholder="Additional Notes"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-
+                <div>
+                  <label>{language === "ar" ? "نوع الخدمة" : "Service Type"}</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={serviceType}
+                    onChange={(e) => setServiceType(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label>{language === "ar" ? "ملاحظات" : "Notes"}</label>
+                  <textarea
+                    className="w-full p-2 border rounded"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                </div>
                 <Button
                   onClick={handleSendToAnotherDoctorSubmit}
-                  className="w-full"
-                  disabled={
-                    isProcessing ||
-                    !selectedHospitalId ||
-                    !selectedDoctorId ||
-                    !serviceType
-                  }
+                  disabled={isProcessing || !selectedHospitalId || !selectedDoctorId}
                 >
-                  {isProcessing ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" className="mr-2" />
-                      {t.processing}
-                    </>
-                  ) : (
-                    t.submit
-                  )}
+                  {isProcessing ? t.processing : t.submit}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
-
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={handlePreviousPage}
-                  //@ts-ignore
-                  disabled={page === 1}
-                />
-              </PaginationItem>
-
-              {[...Array(totalPages)].map((_, index) => {
-                const pageNumber = index + 1;
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      onClick={() => setPage(pageNumber)}
-                      className={
-                        page === pageNumber ? "bg-blue-500 text-white" : ""
-                      }
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={handleNextPage}
-                  //@ts-ignore
-                  disabled={page >= totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
         </>
       )}
     </div>

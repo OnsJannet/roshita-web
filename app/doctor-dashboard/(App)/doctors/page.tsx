@@ -876,7 +876,9 @@ export default function Page() {
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 imageSrc={
-                  doctor?.staff.staff_avatar ?? "/Images/default-doctor.jpg"
+                  doctor?.staff.staff_avatar
+                    ? doctor.staff.staff_avatar.replace("https://", "http://")
+                    : "/Images/default-doctor.jpg"
                 }
                 language={language}
               />
