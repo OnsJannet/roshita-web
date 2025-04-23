@@ -101,7 +101,7 @@ const Page = () => {
 
   const handleSendResponse = async () => {
     const token = localStorage.getItem("access");
-    const patient_id = localStorage.getItem("patient_id") || "";
+    const patient_id = localStorage.getItem("patientId") || "";
   
     if (responseMessage.trim() === "") {
       setErrorMessage("Please enter a response message.");
@@ -113,7 +113,7 @@ const Page = () => {
   
     try {
       const formData = new FormData();
-      formData.append("patient_id", patient_id || "9"); // Use the patient_id from localStorage or a default value
+      formData.append("patient_id", patient_id); // Use the patient_id from localStorage or a default value
       formData.append("diagnosis_description_request", responseMessage);
       formData.append("specialty_id", selectedSpecialty); // Use the selected specialty
       formData.append("type", type);

@@ -23,6 +23,26 @@ import {
 } from "@/components/ui/select";
 
 // Define the types for the data you're expecting from the API
+interface ConsultationResponse {
+  consultation_request: {
+    id: number;
+    diagnosis_description_request: string;
+    patient: {
+      id: number;
+      full_name: string;
+    };
+    specialty: {
+      id: number;
+      name: string;
+    };
+    patient_files: { id: number; file: string; file_type: string; content_file_type: string; description: string; create_date: string }[];
+    status: string;
+    consultation_response: any;
+    create_date: string;
+  };
+  consultation_response: any;
+}
+
 interface Consultation {
   id: number;
   diagnosis_description_request: string;
@@ -38,6 +58,7 @@ interface Consultation {
   status: string;
   requestDate?: string; // Add this field if available in the API response
   doctor_appointment_date_id: number;
+  consultation_response?: any;
 }
 
 type Language = "ar" | "en";
@@ -45,7 +66,7 @@ type Language = "ar" | "en";
 export default function Page() {
   const params = useParams<{ id: string }>();
   const id = params?.id; // Get the dynamic ID from the URL
-
+  const [userType, setUserType] = useState<string>("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
   const [loading, setLoading] = useState<boolean>(true);
@@ -54,6 +75,19 @@ export default function Page() {
   const [serviceType, setServiceType] = useState("");
   const [estimatedPrice, setEstimatedPrice] = useState("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Get user type from localStorage safely (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      const storedUserType = localStorage.getItem("type");
+      if (storedUserType) {
+        setUserType(storedUserType);
+        console.log("Setting userType from localStorage:", storedUserType);
+      }
+    }
+  }, []);
+
+  console.log("userType state value:", userType)
 
   // Fetch consultation details based on the ID
   const fetchConsultationDetails = async () => {
@@ -80,8 +114,33 @@ export default function Page() {
         throw new Error("Failed to fetch consultation details");
       }
 
-      const data: Consultation = await response.json();
-      setConsultation(data);
+      const responseData: ConsultationResponse = await response.json();
+      
+      // Extract consultation data from the nested structure
+      if (responseData.consultation_request) {
+        const consultationData = responseData.consultation_request;
+        
+        // Transform the patient_files format to match the expected format
+        const formattedFiles = consultationData.patient_files.map(file => ({
+          name: file.description || file.content_file_type,
+          url: file.file
+        }));
+        
+        // Create a consultation object with the expected structure
+        const formattedConsultation: Consultation = {
+          id: consultationData.id,
+          diagnosis_description_request: consultationData.diagnosis_description_request,
+          patient: consultationData.patient,
+          specialty: consultationData.specialty,
+          patient_files: formattedFiles,
+          status: consultationData.status,
+          requestDate: consultationData.create_date ? new Date(consultationData.create_date).toISOString().split('T')[0] : '',
+          doctor_appointment_date_id: 0, // Default value as it might not be in the response
+          consultation_response: consultationData.consultation_response
+        };
+        
+        setConsultation(formattedConsultation);
+      }
     } catch (error) {
       console.error("Error fetching consultation details:", error);
     } finally {
@@ -198,6 +257,9 @@ export default function Page() {
     }
   };
 
+
+  console.log("userType", userType)
+
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
       <LoadingDoctors />
@@ -258,7 +320,7 @@ export default function Page() {
                     {/* Consultation message */}
                     <div className="p-4">
                       <ConsultationMessage
-                        message={consultation.diagnosis_description_request}
+                        message={consultation.diagnosis_description_request || ""}
                       />
                     </div>
 
@@ -291,7 +353,7 @@ export default function Page() {
                       </div>
                     )}
 
-                    {consultation.status !== "Completed" && (
+                    {consultation.status !== "Completed" && userType !== '"Hospital"' && (
                       <div>
                         {/* Service Type Selection Dropdown */}
                         <div className="p-4">

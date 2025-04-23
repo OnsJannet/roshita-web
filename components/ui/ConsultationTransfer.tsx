@@ -194,7 +194,7 @@ export function ConsultationTransfer({
         return;
       }
 
-      //window.location.reload()
+      window.location.reload()
       closeAppointmentsModal();
     } catch (error) {
       console.error("Error accepting appointment:", error);

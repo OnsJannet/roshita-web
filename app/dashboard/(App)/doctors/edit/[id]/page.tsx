@@ -524,92 +524,79 @@ export default function Page() {
 
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
-
-    const updatedAppointments =
-      doctor.appointments?.filter((existingAppointment) => {
-        return !appointmentDates.some(
-          (newAppointment) =>
-            newAppointment.scheduled_date ===
-              existingAppointment.scheduled_date &&
-            newAppointment.start_time === existingAppointment.start_time &&
-            newAppointment.appointment_status ===
-              existingAppointment.appointment_status
-        );
-      }) || [];
-
-    const newAppointments = appointmentDates.filter((newAppointment) => {
-      return !doctor.appointments?.some(
-        (existingAppointment) =>
-          existingAppointment.scheduled_date ===
-            newAppointment.scheduled_date &&
-          existingAppointment.start_time === newAppointment.start_time &&
-          existingAppointment.appointment_status ===
-            newAppointment.appointment_status
-      );
-    });
-
-    const data = {
-      appointment_dates: [
-        ...updatedAppointments.map((appointment) => ({
-          scheduled_date: appointment.scheduled_date,
-          start_time: appointment.start_time,
-          end_time: appointment.end_time,
-          appointment_status: appointment.appointment_status,
-          price: appointment.price,
-        })),
-        ...newAppointments.map((appointment) => ({
-          scheduled_date: appointment.scheduled_date,
-          start_time: appointment.start_time,
-          end_time: appointment.end_time,
-          appointment_status: appointment.appointment_status,
-          price: appointment.price,
-        })),
-      ],
-      fixed_price: doctor.fixed_price,
+  
+    // Prepare the complete data object in the desired structure
+    const requestData = {
+      fixed_price: parseFloat(doctor.fixed_price) || 150.0, // Convert to float
+      rating: parseFloat(doctor.rating) || 0.0, // Convert to float
+      is_consultant: doctor.is_consultant || false, // Boolean
+      specialty: doctor.specialty.id, // Specialty ID as integer
+      staff: {
+        first_name: doctor.staff.first_name,
+        last_name: doctor.staff.last_name,
+        email: doctor.staff.email || 'doctor@example.com',
+        city: doctor.staff.city.id // City ID as integer
+      },
+      data: {
+        appointment_dates: backendSlots.map(slot => ({
+          scheduled_date: slot.date, // Should be in YYYY-MM-DD format
+          start_time: slot.startTime, // Should be in HH:MM format
+          end_time: slot.endTime, // Should be in HH:MM format
+          price: parseFloat(doctor?.fixed_price) || 150.0, // Convert to float
+          notes: slot.notes || '' // Optional notes
+        }))
+      }
     };
-
-    const staff = {
-      first_name: doctor.staff.first_name,
-      last_name: doctor.staff.last_name,
-      //@ts-ignore
-      email: doctor.staff.email,
-      city: doctor.staff.city.id,
-    };
-
+  
+    // Create FormData object
     const formData = new FormData();
-    formData.append("data", JSON.stringify(data));
-    formData.append("staff", JSON.stringify(staff));
-
+    
+    // Append all fields except the file
+    formData.append('fixed_price', requestData.fixed_price.toString());
+    formData.append('rating', requestData.rating.toString());
+    formData.append('is_consultant', requestData.is_consultant.toString());
+    formData.append('specialty', requestData.specialty.toString());
+    
+    // Append staff data as JSON string
+    formData.append('staff', JSON.stringify(requestData.staff));
+    
+    // Append appointment data as JSON string
+    formData.append('data', JSON.stringify(requestData.data));
+    
+    // Append image file if available
     if (imageFile) {
-      formData.append("staff_avatar", imageFile);
+      formData.append('staff_avatar', imageFile, imageFile.name || 'doctor-image.jpg');
     }
-
+  
     try {
-      const accessToken = localStorage.getItem("access");
-
+      // Get access token from localStorage
+      const accessToken = localStorage.getItem('access') || '';
+  
+      // Make the API request
       const response = await fetch(
         `http://test-roshita.net/api/doctors/${doctor.id}/`,
         {
-          method: "PUT",
+          method: 'PUT',
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            // No Content-Type header as it's set automatically with FormData
           },
           body: formData,
         }
       );
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
-        console.log("Doctor updated successfully:", result);
-        window.location.reload();
+        console.log('Doctor updated successfully:', result);
+        //window.location.reload();
       } else {
-        console.error("Error updating doctor:", result);
-        setError(result.message || "Error updating doctor information");
+        console.error('Error updating doctor:', result);
+        setError(result.message || 'Error updating doctor information');
       }
     } catch (error) {
-      console.error("Error updating doctor:", error);
-      setError("An error occurred while updating doctor information");
+      console.error('Error updating doctor:', error);
+      setError('An error occurred while updating doctor information');
     }
   };
 
