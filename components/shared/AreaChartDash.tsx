@@ -40,6 +40,24 @@ interface ApiResponse {
   lastUpdated: string;
 }
 
+const getArabicMonth = (month: string): string => {
+  const monthMap: { [key: string]: string } = {
+    'January': 'يناير',
+    'February': 'فبراير',
+    'March': 'مارس',
+    'April': 'أبريل',
+    'May': 'مايو',
+    'June': 'يونيو',
+    'July': 'يوليو',
+    'August': 'أغسطس',
+    'September': 'سبتمبر',
+    'October': 'أكتوبر',
+    'November': 'نوفمبر',
+    'December': 'ديسمبر'
+  };
+  return monthMap[month] || month;
+};
+
 export function AreaChartDash() {
   const [timeRange, setTimeRange] = React.useState("90d");
   const [language, setLanguage] = React.useState<Language>("ar");
@@ -186,10 +204,11 @@ export function AreaChartDash() {
                 minTickGap={32}
                 tickFormatter={(value) => {
                   const date = new Date(value);
-                  return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
-                    month: "short",
-                    day: "numeric",
-                  });
+                  const month = date.toLocaleDateString('en-US', { month: 'long' });
+                  const day = date.getDate();
+                  return language === "ar" 
+                    ? `${day} ${getArabicMonth(month)}`
+                    : `${month} ${day}`;
                 }}
               />
               <ChartTooltip
@@ -197,10 +216,12 @@ export function AreaChartDash() {
                 content={
                   <ChartTooltipContent
                     labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
-                        month: "short",
-                        day: "numeric",
-                      });
+                      const date = new Date(value);
+                      const month = date.toLocaleDateString('en-US', { month: 'long' });
+                      const day = date.getDate();
+                      return language === "ar" 
+                        ? `${day} ${getArabicMonth(month)}`
+                        : `${month} ${day}`;
                     }}
                     indicator="dot"
                   />
