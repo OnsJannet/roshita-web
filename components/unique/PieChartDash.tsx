@@ -2,7 +2,7 @@
 
 import { TrendingUp } from "lucide-react";
 import { LabelList, RadialBar, RadialBarChart } from "recharts";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -20,50 +20,66 @@ import {
 import { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
+type Period = "6m" | "12m";
+
+interface ApiResponse {
+  data: {
+    metric: string;
+    value: number;
+    percentage: number;
+    localizedLabel: string;
+    color: string;
+  }[];
+  stats: {
+    totalCases: number;
+    percentageChange: number;
+    trendDirection: string;
+    comparisonPeriod: string;
+  };
+  metadata: {
+    period: string;
+    lastUpdated: string;
+  };
+}
 
 const translations = {
   en: {
     value: "Value",
-    doctors: "Doctors",
-    tests: "Tests",
-    xRays: "X-rays",
+    title: "Pie Chart",
+    description: "Statistics for the Last",
+    months6: "6 Months",
+    months12: "12 Months",
+    increase: "Increase This Month",
+    decrease: "Decrease This Month",
+    showsTotal: "Shows Total Data for the Selected Period",
+    loading: "Loading...",
+    error: "Failed to load data",
   },
   ar: {
     value: "القيمة",
-    doctors: "الأطباء",
-    tests: "التحاليل",
-    xRays: "الأشعة",
+    title: "رسم بياني دائري",
+    description: "إحصائيات لأخر",
+    months6: "6 أشهر",
+    months12: "12 شهر",
+    increase: "ارتفاع بنسبة",
+    decrease: "انخفاض بنسبة",
+    showsTotal: "يعرض إجمالي البيانات للفترة المحددة",
+    loading: "جاري التحميل...",
+    error: "فشل في تحميل البيانات",
   },
 };
 
 export function PieChartDash() {
   const [language, setLanguage] = useState<Language>("ar");
-  // Updated fake data for doctors, tests, and X-rays
-  const chartData = [
-    { category: translations[language].doctors, value: 50, fill: "#FF6F1E" }, // Doctors
-    { category: translations[language].tests, value: 35, fill: "#17C653" }, // Tests
-    { category: translations[language].xRays, value: 25, fill: "#7239EA" }, // X-rays
-  ];
+  const [period, setPeriod] = useState<Period>("6m");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [stats, setStats] = useState<{
+    percentageChange: number;
+    trendDirection: string;
+  } | null>(null);
 
-  // Updated chart configuration with dynamic labels and colors based on language
-  const chartConfig = {
-    value: {
-      label: translations[language].value,
-    },
-    [translations[language].doctors]: {
-      label: translations[language].doctors,
-      color: "#FF6F1E",
-    },
-    [translations[language].tests]: {
-      label: translations[language].tests,
-      color: "#17C653",
-    },
-    [translations[language].xRays]: {
-      label: translations[language].xRays,
-      color: "#7239EA",
-    },
-  };
-  
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {
@@ -85,56 +101,151 @@ export function PieChartDash() {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const accessToken = localStorage.getItem('access');
+        
+        if (!accessToken) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await fetch(
+          `http://www.test-roshita.net/api/kpis/hospital/consultation-and-appointment-reservation?lang=${language}&period=${period}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data: ApiResponse = await response.json();
+        
+        const transformedData = data.data.map(item => ({
+          category: item.localizedLabel,
+          value: Math.max(item.value, 1),
+          percentage: item.percentage,
+          fill: item.color
+        }));
+
+        setChartData(transformedData);
+        setStats({
+          percentageChange: data.stats.percentageChange,
+          trendDirection: data.stats.trendDirection
+        });
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(translations[language].error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [language, period]);
+
+  const handlePeriodChange = (value: Period) => {
+    setPeriod(value);
+  };
+
+  // Create dynamic chart config from the data
+  const chartConfig: ChartConfig = {
+    value: {
+      label: translations[language].value,
+    },
+    ...Object.fromEntries(
+      chartData.map(item => [
+        item.category,
+        {
+          label: item.category,
+          color: item.fill,
+        },
+      ])
+    ),
+  };
+
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col pb-[30px]">
       <CardHeader className="pb-0 flex flex-col justify-start">
-      <CardTitle className={language === "ar" ? "text-end" : ""}>
-          {language === "ar" ? "رسم بياني دائري" : "Pie Chart"}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className={language === "ar" ? "text-end w-full" : ""}>
+            {language === "ar" ? translations.ar.title : translations.en.title}
+          </CardTitle>
+          <Select value={period} onValueChange={handlePeriodChange as (value: string) => void}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder={period === "6m" ? 
+                (language === "ar" ? translations.ar.months6 : translations.en.months6) : 
+                (language === "ar" ? translations.ar.months12 : translations.en.months12)} 
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="6m">{language === "ar" ? translations.ar.months6 : translations.en.months6}</SelectItem>
+              <SelectItem value="12m">{language === "ar" ? translations.ar.months12 : translations.en.months12}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <CardDescription className={language === "ar" ? "text-end" : ""}>
-          {language === "ar"
-            ? "إحصائيات لأخر 6 أشهر"
-            : "Statistics for the Last 6 Months"}
+          {language === "ar" 
+            ? `${translations.ar.description} ${period === "6m" ? translations.ar.months6 : translations.ar.months12}`
+            : `${translations.en.description} ${period === "6m" ? translations.en.months6 : translations.en.months12}`}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0 flex flex-col justify-center">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
-        >
-          <RadialBarChart
-            data={chartData}
-            startAngle={-90}
-            endAngle={380}
-            innerRadius={30}
-            outerRadius={110}
+      <CardContent className="flex-1 pb-0">
+        {loading ? (
+          <div className="flex items-center justify-center h-[250px]">
+            <p>{translations[language].loading}</p>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-[250px]">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square max-h-[250px]"
           >
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel nameKey="category" />}
-            />
-            <RadialBar dataKey="value" background>
-              <LabelList
-                position="insideStart"
-                dataKey="category"
-                className="fill-white capitalize mix-blend-luminosity"
-                fontSize={11}
+            <RadialBarChart
+              data={chartData}
+              startAngle={-90}
+              endAngle={380}
+              innerRadius={30}
+              outerRadius={110}
+            >
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel nameKey="category" />}
               />
-            </RadialBar>
-          </RadialBarChart>
-        </ChartContainer>
+              <RadialBar dataKey="value" background>
+                <LabelList
+                  position="insideStart"
+                  dataKey="category"
+                  className="fill-white capitalize mix-blend-luminosity"
+                  fontSize={11}
+                />
+              </RadialBar>
+            </RadialBarChart>
+          </ChartContainer>
+        )}
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 font-medium leading-none">
-          {language === "ar"
-            ? "ارتفاع بنسبة 5.2% هذا الشهر"
-            : "5.2% Increase This Month"}{" "}
-          <TrendingUp className="h-4 w-4" />
-        </div>
+        {stats && (
+          <div className="flex items-center gap-2 font-medium leading-none">
+            {language === "ar"
+              ? `${stats.trendDirection === "up" ? translations.ar.increase : translations.ar.decrease} ${stats.percentageChange}%`
+              : `${stats.percentageChange}% ${stats.trendDirection === "up" ? translations.en.increase : translations.en.decrease}`}{" "}
+            <TrendingUp className={`h-4 w-4 ${stats.trendDirection === "down" ? "rotate-180" : ""}`} />
+          </div>
+        )}
         <div className="leading-none text-muted-foreground">
           {language === "ar"
-            ? "يعرض إجمالي البيانات للأشهر الستة الماضية"
-            : "Shows Total Data for the Last 6 Months"}
+            ? translations.ar.showsTotal
+            : translations.en.showsTotal}
         </div>
       </CardFooter>
     </Card>

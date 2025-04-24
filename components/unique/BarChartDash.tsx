@@ -18,65 +18,45 @@ import {
 } from "@/components/ui/chart";
 
 type Language = "ar" | "en";
+type View = "day" | "week" | "month" | "year";
 
-// Define datasets for different views
+interface DayData {
+  period: string;
+  value: number;
+  timestamp: string;
+}
 
+interface OtherData {
+  date: string;
+  value: number;
+}
 
+interface ApiResponse {
+  totalAmount: number;
+  currency: string;
+  data: (DayData | OtherData)[];
+  lastUpdated: string;
+}
 
-// Chart configuration
 const chartConfig = {
   value: {
     label: "المعاملات",
-    color: "hsl(210, 76%, 66%)", // Blue shade
+    color: "hsl(210, 76%, 66%)",
   },
 } satisfies ChartConfig;
 
-export function BarChartDash() {
-  const [view, setView] = useState<"day" | "week" | "month" | "year">("month");
-  const [language, setLanguage] = useState<Language>("ar");
+interface TransactionData {
+  date: string;
+  value: number;
+}
 
-  const chartData = {
-    day: [
-      { date: language === "ar" ? "6 صباحًا" : "6 AM", value: 300 },
-      { date: language === "ar" ? "9 صباحًا" : "9 AM", value: 450 },
-      { date: language === "ar" ? "12 ظهرًا" : "12 PM", value: 400 },
-      { date: language === "ar" ? "3 مساءً" : "3 PM", value: 550 },
-      { date: language === "ar" ? "6 مساءً" : "6 PM", value: 700 },
-      { date: language === "ar" ? "9 مساءً" : "9 PM", value: 600 },
-    ],
-    week: [
-      { date: language === "ar" ? "الإثنين" : "Mon", value: 3200 },
-      { date: language === "ar" ? "الثلاثاء" : "Tue", value: 2800 },
-      { date: language === "ar" ? "الأربعاء" : "Wed", value: 3400 },
-      { date: language === "ar" ? "الخميس" : "Thu", value: 2900 },
-      { date: language === "ar" ? "الجمعة" : "Fri", value: 3100 },
-      { date: language === "ar" ? "السبت" : "Sat", value: 3700 },
-      { date: language === "ar" ? "الأحد" : "Sun", value: 3500 },
-    ],
-    month: [
-      { date: language === "ar" ? "22 يونيو" : "June 22", value: 1740 },
-      { date: language === "ar" ? "23 يونيو" : "June 23", value: 600 },
-      { date: language === "ar" ? "24 يونيو" : "June 24", value: 1000 },
-      { date: language === "ar" ? "25 يونيو" : "June 25", value: 800 },
-      { date: language === "ar" ? "26 يونيو" : "June 26", value: 1500 },
-      { date: language === "ar" ? "27 يونيو" : "June 27", value: 2000 },
-      { date: language === "ar" ? "28 يونيو" : "June 28", value: 1740 },
-    ],
-    year: [
-      { date: language === "ar" ? "يناير" : "Jan", value: 40000 },
-      { date: language === "ar" ? "فبراير" : "Feb", value: 35000 },
-      { date: language === "ar" ? "مارس" : "Mar", value: 45000 },
-      { date: language === "ar" ? "أبريل" : "Apr", value: 30000 },
-      { date: language === "ar" ? "مايو" : "May", value: 50000 },
-      { date: language === "ar" ? "يونيو" : "Jun", value: 42000 },
-      { date: language === "ar" ? "يوليو" : "Jul", value: 48000 },
-      { date: language === "ar" ? "أغسطس" : "Aug", value: 52000 },
-      { date: language === "ar" ? "سبتمبر" : "Sep", value: 46000 },
-      { date: language === "ar" ? "أكتوبر" : "Oct", value: 49000 },
-      { date: language === "ar" ? "نوفمبر" : "Nov", value: 43000 },
-      { date: language === "ar" ? "ديسمبر" : "Dec", value: 51000 },
-    ],
-  };
+export function BarChartDash() {
+  const [view, setView] = useState<View>("month");
+  const [language, setLanguage] = useState<Language>("ar");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<TransactionData[]>([]);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -99,56 +79,123 @@ export function BarChartDash() {
     };
   }, []);
 
+  const transformData = (data: ApiResponse) => {
+    if (!data.data || data.data.length === 0) return [];
+
+    // Check if it's day data by looking for the period property
+    if ('period' in data.data[0]) {
+      return (data.data as DayData[]).map(item => ({
+        date: item.period,
+        value: item.value
+      }));
+    }
+
+    // For other views, data already has the correct format
+    return data.data as OtherData[];
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const accessToken = localStorage.getItem('access');
+        
+        if (!accessToken) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await fetch(
+          `http://www.test-roshita.net/api/kpis/transactions/summary?view=${view}&lang=${language}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data: ApiResponse = await response.json();
+        const transformedData = transformData(data);
+        setChartData(transformedData);
+        setTotalAmount(data.totalAmount);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(language === "ar" ? "فشل في تحميل البيانات" : "Failed to load data");
+        setChartData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [view, language]);
+
   return (
     <Card className={`flex flex-col h-full ${language === "ar" ? "rtl" : ""}`}>
-    <CardHeader className="flex flex-col justify-start pb-0">
-      <CardTitle className={language === "ar" ? "text-end" : ""}>
-        {language === "ar" ? "صافي" : "Net"}
-      </CardTitle>
-      <CardDescription className={language === "ar" ? "text-end" : ""}>
-        {language === "ar" ? "المعاملات" : "Transactions"}
-      </CardDescription>
-    </CardHeader>
-    <CardContent className="flex-1 flex flex-col justify-center">
-      <div className="text-3xl font-bold text-center mb-4">$9,395.72</div>
-      <ChartContainer config={chartConfig}>
-        <BarChart width={300} height={200} data={chartData[view]}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="date"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={10}
-          />
-          <ChartTooltip
-            cursor={false}
-            content={<ChartTooltipContent indicator="dashed" />}
-          />
-          <Bar dataKey="value" fill="hsl(210, 76%, 66%)" radius={4} />
-        </BarChart>
-      </ChartContainer>
-    </CardContent>
-    <CardFooter className="flex justify-around text-sm mt-auto">
-      {[
-        language === "ar" ? "اليوم" : "Today",
-        language === "ar" ? "الأسبوع" : "Week",
-        language === "ar" ? "الشهر" : "Month",
-        language === "ar" ? "السنة" : "Year",
-      ].map((label, index) => {
-        const value = ["day", "week", "month", "year"][index];
-        return (
-          <button
-            key={value}
-            onClick={() => setView(value as "day" | "week" | "month" | "year")}
-            className={`px-4 py-2 rounded ${
-              view === value ? "bg-gray-300 font-bold" : "bg-gray-100"
-            }`}
-          >
-            {label}
-          </button>
-        );
-      })}
-    </CardFooter>
-  </Card>
+      <CardHeader className="flex flex-col justify-start pb-0">
+        <CardTitle className={language === "ar" ? "text-end" : ""}>
+          {language === "ar" ? "صافي" : "Net"}
+        </CardTitle>
+        <CardDescription className={language === "ar" ? "text-end" : ""}>
+          {language === "ar" ? "المعاملات" : "Transactions"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col justify-center">
+        {loading ? (
+          <div className="text-center">
+            {language === "ar" ? "جاري التحميل..." : "Loading..."}
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
+        ) : (
+          <>
+            <div className="text-3xl font-bold text-center mb-4">
+              {totalAmount.toLocaleString()} {language === "ar" ? "د.ل" : "LYD"}
+            </div>
+            <ChartContainer config={chartConfig}>
+              <BarChart width={300} height={200} data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={10}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dashed" />}
+                />
+                <Bar dataKey="value" fill="hsl(210, 76%, 66%)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-around text-sm mt-auto">
+        {[
+          language === "ar" ? "اليوم" : "Today",
+          language === "ar" ? "الأسبوع" : "Week",
+          language === "ar" ? "الشهر" : "Month",
+          language === "ar" ? "السنة" : "Year",
+        ].map((label, index) => {
+          const value = ["day", "week", "month", "year"][index] as View;
+          return (
+            <button
+              key={value}
+              onClick={() => setView(value)}
+              className={`px-4 py-2 rounded ${
+                view === value ? "bg-gray-300 font-bold" : "bg-gray-100"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </CardFooter>
+    </Card>
   );
 }

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-
 import {
   Card,
   CardContent,
@@ -109,11 +108,11 @@ export function AreaChartDash() {
   const chartConfig = {
     الأطباء: {
       label: language === "ar" ? "الأطباء" : "Doctors",
-      color: "#1683c5",
+      color: "hsl(var(--chart-1))",
     },
     الحجوزات: {
       label: language === "ar" ? "الحجوزات" : "Reservations",
-      color: "#17c653",
+      color: "hsl(var(--chart-2))",
     },
   } satisfies ChartConfig;
 
@@ -169,11 +168,11 @@ export function AreaChartDash() {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="fillDoctors" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="40%" stopColor="#1683c51A" stopOpacity={2} />
+                  <stop offset="40%" stopColor="#1B84FF1A" stopOpacity={2} />
                   <stop offset="60%" stopColor="#FFFFFF00" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="fillReservations" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="40%" stopColor="#17c6531A" stopOpacity={2} />
+                  <stop offset="40%" stopColor="#17C6531A" stopOpacity={2} />
                   <stop offset="60%" stopColor="#FFFFFF00" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
@@ -210,14 +209,14 @@ export function AreaChartDash() {
                 dataKey="الأطباء"
                 type="natural"
                 fill="url(#fillDoctors)"
-                stroke="#1683c5"
+                stroke="hsl(var(--chart-1))"
                 strokeWidth={2}
               />
               <Area
                 dataKey="الحجوزات"
                 type="natural"
                 fill="url(#fillReservations)"
-                stroke="#17c653"
+                stroke="hsl(var(--chart-2))"
                 strokeWidth={2}
               />
               <ChartLegend content={<ChartLegendContent />} />
