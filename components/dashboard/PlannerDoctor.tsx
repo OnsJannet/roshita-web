@@ -740,42 +740,42 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
                       {appointment.reservation.reservation_payment_status}
                     </TableCell>
 
-                    {appointment.reservation.reservation_payment_status !==
-                    "pendings" ? (
-                      <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          className="mr-2 bg-yellow-500 text-white"
-                          onClick={() => handleMarkNotAttend(appointment.id)}
-                        >
-                          {t.noShow}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="mr-2 bg-green-500 text-white"
-                          onClick={() =>
-                            handleDoneClick(
-                              appointment.id,
-                              //@ts-ignore
-                              appointment.reservation.patient.id,
-                              appointment.confirmation_code,
-                              appointment.doctor.id
-                            )
-                          }
-                        >
-                          {t.done}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="mr-2 bg-red-500 text-white"
-                          onClick={() => handleRemoveSlot(appointment.id)}
-                        >
-                          {t.cancel}
-                        </Button>
-                      </TableCell>
-                    ) : (
-                      <p className="text-center p-4">-</p>
-                    )}
+                    <TableCell className="text-center">
+                      {appointment.reservation.reservation_payment_status === "Cancelled By Patient" ? (
+                        <span>-</span>
+                      ) : (
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            className="bg-yellow-500 text-white hover:bg-yellow-600"
+                            onClick={() => handleMarkNotAttend(appointment.id)}
+                          >
+                            {t.noShow}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="bg-green-500 text-white hover:bg-green-600"
+                            onClick={() =>
+                              handleDoneClick(
+                                appointment.id,
+                                appointment.reservation.id,
+                                appointment.confirmation_code,
+                                appointment.doctor.id
+                              )
+                            }
+                          >
+                            {t.done}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="bg-red-500 text-white hover:bg-red-600"
+                            onClick={() => handleRemoveSlot(appointment.id)}
+                          >
+                            {t.cancel}
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
                     </TableRow>
                   )))
                 }

@@ -740,6 +740,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                         {appointment.reservation.reservation_payment_status}
                       </TableCell>
                       <TableCell className="text-center">
+                      {appointment.reservation.reservation_payment_status !== "Cancelled By Patient" ? (
                         <div className="flex justify-center space-x-2">
                           <Button
                             variant="outline"
@@ -785,6 +786,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                             )}
                           </Button>
                         </div>
+                      ) : "-"}
                       </TableCell>
                     </TableRow>
                   ))

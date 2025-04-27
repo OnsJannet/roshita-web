@@ -171,14 +171,14 @@ export function PieChartDash() {
   };
 
   return (
-    <Card className="flex flex-col pb-[30px]">
+    <Card className="flex flex-col h-full pb-[32px]">
       <CardHeader className="pb-0 flex flex-col justify-start">
-        <div className="flex justify-between items-center">
-          <CardTitle className={language === "ar" ? "text-end w-full" : ""}>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+          <CardTitle className={`${language === "ar" ? "text-end" : ""} w-full`}>
             {language === "ar" ? translations.ar.title : translations.en.title}
           </CardTitle>
           <Select value={period} onValueChange={handlePeriodChange as (value: string) => void}>
-            <SelectTrigger className="w-[100px]">
+            <SelectTrigger className="w-[120px] sm:w-[100px]">
               <SelectValue placeholder={period === "6m" ? 
                 (language === "ar" ? translations.ar.months6 : translations.en.months6) : 
                 (language === "ar" ? translations.ar.months12 : translations.en.months12)} 
@@ -198,24 +198,24 @@ export function PieChartDash() {
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         {loading ? (
-          <div className="flex items-center justify-center h-[250px]">
+          <div className="flex items-center justify-center h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
             <p>{translations[language].loading}</p>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-[250px]">
+          <div className="flex items-center justify-center h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
             <p className="text-red-500">{error}</p>
           </div>
         ) : (
           <ChartContainer
             config={chartConfig}
-            className="mx-auto aspect-square max-h-[250px]"
+            className="mx-auto aspect-square max-h-[250px] sm:max-h-[300px] md:max-h-[350px] lg:max-h-[400px] w-full"
           >
             <RadialBarChart
               data={chartData}
               startAngle={-90}
               endAngle={380}
-              innerRadius={30}
-              outerRadius={110}
+              innerRadius="30%"
+              outerRadius="80%"
             >
               <ChartTooltip
                 cursor={false}
@@ -225,7 +225,7 @@ export function PieChartDash() {
                 <LabelList
                   position="insideStart"
                   dataKey="category"
-                  className="fill-white capitalize mix-blend-luminosity"
+                  className="fill-white capitalize mix-blend-luminosity text-xs sm:text-sm"
                   fontSize={11}
                 />
               </RadialBar>
@@ -233,16 +233,16 @@ export function PieChartDash() {
           </ChartContainer>
         )}
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
+      <CardFooter className="flex-col items-center gap-2 text-sm px-4 sm:px-6">
         {stats && (
-          <div className="flex items-center gap-2 font-medium leading-none">
+          <div className="flex items-center justify-center gap-2 font-medium leading-none w-full">
             {language === "ar"
               ? `${stats.trendDirection === "up" ? translations.ar.increase : translations.ar.decrease} ${stats.percentageChange}%`
               : `${stats.percentageChange}% ${stats.trendDirection === "up" ? translations.en.increase : translations.en.decrease}`}{" "}
             <TrendingUp className={`h-4 w-4 ${stats.trendDirection === "down" ? "rotate-180" : ""}`} />
           </div>
         )}
-        <div className="leading-none text-muted-foreground">
+        <div className="leading-none text-muted-foreground text-center w-full">
           {language === "ar"
             ? translations.ar.showsTotal
             : translations.en.showsTotal}

@@ -76,6 +76,11 @@ export default function Page() {
 
         {/* Main Content Section */}
         <div className=" p-4 flex  flex-col justify-center">
+        <div className=" p-4 flex  flex-col justify-center">
+            <div className="mb-4">
+              <PlannerDoctor language={language} />
+            </div>
+          </div>
           <div className="grid lg:grid-cols-3 gap-4 w-full mb-2">
             <div className="h-[400px]">
               <DoctorBarChat />
@@ -87,11 +92,7 @@ export default function Page() {
               <DoctorAreaChart />
             </div>
           </div>
-          <div className=" p-4 flex  flex-col justify-center">
-            <div className="mb-4">
-              <PlannerDoctor language={language} />
-            </div>
-          </div>
+
         </div>
       </SidebarInset>
 
