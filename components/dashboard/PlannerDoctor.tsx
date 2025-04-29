@@ -419,6 +419,16 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       submit: "Submit",
       selectHospital: "Select Hospital",
       selectDoctor: "Select Doctor",
+      statuses: {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "cancelled by patient": "Cancelled By Patient",
+        "cancelled by doctor": "Cancelled By Doctor",
+        "not attend": "Not Attend",
+        "rejected": "Rejected"
+      }
     },
     ar: {
       appointmentRef: "الموعد",
@@ -443,6 +453,16 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       submit: "إرسال",
       selectHospital: "اختر المستشفى",
       selectDoctor: "اختر الطبيب",
+      statuses: {
+        "pending": "قيد الانتظار",
+        "confirmed": "مؤكد",
+        "completed": "مكتمل",
+        "cancelled": "ملغى",
+        "cancelled by patient": "ملغى من قبل المريض",
+        "cancelled by doctor": "ملغى من قبل الطبيب",
+        "not attend": "لم يحضر",
+        "rejected": "مرفوض"
+      }
     },
   };
   //@ts-ignore
@@ -675,6 +695,35 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   const disableNextPage = page >= totalPages;
   const disablePreviousPage = page === 1;
 
+    // Add Arabic translations for status values
+    const getStatusTranslation = (status: string): string => {
+      if (language !== "ar") return status;
+      
+      // Convert to lowercase for case-insensitive comparison
+      const lowerStatus = status.toLowerCase();
+      
+      switch (lowerStatus) {
+        case "pending payment":
+          return "في انتظار الدفع";
+        case "cancelled by patient":
+          return "ملغى من قبل المريض";        
+        case "confirmed":
+          return "مؤكد";
+        case "completed":
+          return "مكتمل";
+        case "not attend":
+          return "لم يحضر";
+        case "rejected":
+          return "مرفوض";
+        case "cancelled by doctor":
+          return "ملغى من قبل الطبيب";
+        case "cancelled":
+          return "ملغى";
+        default:
+          return status;
+      }
+    };
+
   return (
     <div
       className="p-4 border rounded-md shadow"
@@ -737,13 +786,11 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      {appointment.reservation.reservation_payment_status}
-                    </TableCell>
+  {getStatusTranslation(appointment.reservation.reservation_payment_status)}
+</TableCell>
 
                     <TableCell className="text-center">
-                      {appointment.reservation.reservation_payment_status === "Cancelled By Patient" ? (
-                        <span>-</span>
-                      ) : (
+                      {!["Cancelled By Patient", "Not Attend", "Rejected", "Cancelled By Doctor", "Cancelled"].includes(appointment.reservation.reservation_payment_status) ? (
                         <div className="flex justify-center gap-2">
                           <Button
                             variant="outline"
@@ -758,7 +805,8 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
                             onClick={() =>
                               handleDoneClick(
                                 appointment.id,
-                                appointment.reservation.id,
+                                //ts-ignore
+                                appointment.reservation.patient.id,
                                 appointment.confirmation_code,
                                 appointment.doctor.id
                               )
@@ -774,6 +822,8 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
                             {t.cancel}
                           </Button>
                         </div>
+                      ) : (
+                        <span>-</span>
                       )}
                     </TableCell>
                     </TableRow>

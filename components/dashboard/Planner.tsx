@@ -107,7 +107,37 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   const noDataMessage = language === "ar" ? "لا توجد مواعيد لعرضها" : "No appointments to display";
   const nextText = language === "ar" ? "التالي" : "Next";
+  
   const previousText = language === "ar" ? "السابق" : "Previous";
+
+  // Add Arabic translations for status values
+  const getStatusTranslation = (status: string): string => {
+    if (language !== "ar") return status;
+    
+    // Convert to lowercase for case-insensitive comparison
+    const lowerStatus = status.toLowerCase();
+    
+    switch (lowerStatus) {
+      case "pending payment":
+        return "في انتظار الدفع";
+      case "cancelled by patient":
+        return "ملغى من قبل المريض";        
+      case "confirmed":
+        return "مؤكد";
+      case "completed":
+        return "مكتمل";
+      case "not attend":
+        return "لم يحضر";
+      case "rejected":
+        return "مرفوض";
+      case "cancelled by doctor":
+        return "ملغى من قبل الطبيب";
+      case "cancelled":
+        return "ملغى";
+      default:
+        return status;
+    }
+  };
 
   useEffect(() => {
     const fetchAllAppointments = async () => {
@@ -737,10 +767,10 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {appointment.reservation.reservation_payment_status}
-                      </TableCell>
+  {getStatusTranslation(appointment.reservation.reservation_payment_status)}
+</TableCell>
                       <TableCell className="text-center">
-                      {appointment.reservation.reservation_payment_status !== "Cancelled By Patient" ? (
+                      {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show"].includes(appointment.reservation.reservation_payment_status) ? (
                         <div className="flex justify-center space-x-2">
                           <Button
                             variant="outline"
