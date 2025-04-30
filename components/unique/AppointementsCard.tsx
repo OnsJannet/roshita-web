@@ -290,6 +290,35 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     }
   };
 
+  const getStatusTranslation = (status: string): string => {
+    if (language !== "ar") return status;
+    
+    const lowerStatus = status.toLowerCase();
+    
+    switch (lowerStatus) {
+      case "pending payment":
+        return "في انتظار الدفع";
+      case "cancelled by patient":
+        return "ملغى من قبل المريض";        
+      case "confirmed":
+        return "مؤكد";
+      case "completed":
+        return "مكتمل";
+      case "not attend":
+        return "لم يحضر";
+      case "rejected":
+        return "مرفوض";
+      case "cancelled by doctor":
+        return "ملغى من قبل الطبيب";
+      case "cancelled":
+        return "ملغى";
+      case "no show":
+        return "لم يحضر";
+      default:
+        return status;
+    }
+  };
+
   return (
     <div
       className={`flex ${
@@ -356,13 +385,15 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
                   {language === "ar" ? "تم الإلغاء" : "Cancelled"}
                 </span>
               ) : (
-                <Button
-                  className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50"
-                  onClick={handleCancelClick}
-                >
-                  {language === "ar" ? "إلغاء" : "Cancel"}{" "}
-                  <Trash className="text-red-500 w-6 h-6 ml-2" />
-                </Button>
+                ["pending payment", "confirmed"].includes(status.toLowerCase()) && (
+                  <Button
+                    className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50"
+                    onClick={handleCancelClick}
+                  >
+                    {language === "ar" ? "إلغاء" : "Cancel"}{" "}
+                    <Trash className="text-red-500 w-6 h-6 ml-2" />
+                  </Button>
+                )
               )}
             </div>
             <div
@@ -372,13 +403,15 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
                   : "lg:justify-end justify-end w-full"
               } mt-4`}
             >
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50 flex"
-              >
-                {language === "ar" ? "قيّم" : "Rate"}
-                <Star className="text-yellow-500 w-6 h-6 ml-2" />
-              </button>
+              {status.toLowerCase() === "completed" && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-transparent border-transparent text-black text-lg shadow-none hover:bg-gray-50 flex"
+                >
+                  {language === "ar" ? "قيّم" : "Rate"}
+                  <Star className="text-yellow-500 w-6 h-6 ml-2" />
+                </button>
+              )}
             </div>
           </div>
         </div>

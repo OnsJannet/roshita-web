@@ -43,6 +43,7 @@ interface Appointment {
     id: number;
     patient: {
       first_name: string;
+      id: string;
       last_name: string;
       phone: string;
     };
@@ -656,13 +657,13 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
   const handleDoneClick = (
     appointmentId: number,
-    appointmentReservationId: number,
+    appointmentReservationId: string,
     appointmentNumber: string,
     appointmentDoctorId: number
+
   ) => {
     setSelectedAppointmentId(appointmentId);
     setAppointmentNumber(appointmentNumber);
-    //@ts-ignore
     setPatientId(appointmentReservationId);
     //@ts-ignore
     setAppointmentDoctorId(appointmentDoctorId);

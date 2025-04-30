@@ -20,9 +20,44 @@ const RequestCard: React.FC<RequestCardProps> = ({
   speciality,
   userType,
   status
-  //doctors,
 }) => {
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false); // State to control modal
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false); // Add state for delete operation
+
+  // Add new handler for hide/delete operation
+  const handleHideConsultation = async () => {
+    setIsDeleting(true);
+    try {
+      const token = localStorage.getItem('access');
+      if (!token) {
+        console.error('No access token found');
+        return;
+      }
+
+      const response = await fetch(
+        `http://test-roshita.net/api/consultation-requests/${requestNumber}/hide/`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to hide consultation');
+      }
+
+      // Optionally refresh the page or update the UI
+      //window.location.reload();
+    } catch (error) {
+      console.error('Error hiding consultation:', error);
+      // You might want to show an error message to the user
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Text content based on language
   const content = {
@@ -52,13 +87,11 @@ const handleDetailsClick = () => {
 };
 
   return (
-    <div
-      className={`w-full rounded-lg overflow-hidden  flex lg:justify-between items-center lg:h-40 h-full p-4 bg-gray-50 ${
-        language === "ar"
-          ? "text-right lg:flex-row-reverse flex-col"
-          : "text-left lg:flex-row flex-col"
-      }`}
-    >
+    <div className={`w-full rounded-lg overflow-hidden  flex lg:justify-between items-center lg:h-40 h-full p-4 bg-gray-50 ${
+      language === "ar"
+        ? "text-right lg:flex-row-reverse flex-col"
+        : "text-left lg:flex-row flex-col"
+    }`}>
       <div
         className={`text-gray-700 text-base flex  w-[60%] lg:gap-20 gap-4 items-center ${
           language === "ar"
@@ -108,12 +141,21 @@ const handleDetailsClick = () => {
           </button>
         )}
         {userType === "hospital" && status === "Pending" &&(
+          <>
           <button
             className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2"
             onClick={handleTransferClick} // Open the modal on click
           >
             {content.transferButton}
           </button>
+          <button
+            className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2"
+            onClick={handleHideConsultation}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (language === "ar" ? "جاري الحذف..." : "Deleting...") : content.deleteButton}
+          </button>
+        </>
         )}
         {userType !== "hospital" && userType !=="doctor" && (
           <>

@@ -26,6 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import LoadingDoctors from "../layout/LoadingDoctors";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
 
 const API_URL = "http://www.test-roshita.net/api/appointment-reservations/";
 
@@ -107,14 +115,11 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   const noDataMessage = language === "ar" ? "لا توجد مواعيد لعرضها" : "No appointments to display";
   const nextText = language === "ar" ? "التالي" : "Next";
-  
   const previousText = language === "ar" ? "السابق" : "Previous";
 
-  // Add Arabic translations for status values
   const getStatusTranslation = (status: string): string => {
     if (language !== "ar") return status;
     
-    // Convert to lowercase for case-insensitive comparison
     const lowerStatus = status.toLowerCase();
     
     switch (lowerStatus) {
@@ -484,7 +489,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           "success",
           response.status
         );
-        // Update local state after successful deletion
         setAppointments(prev => prev.filter(app => app.id !== appointmentId));
       } else {
         const errorData = await response.json();
@@ -554,7 +558,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           "success",
           response.status
         );
-        // Update local state after marking as not attended
         setAppointments(prev => prev.map(app => 
           app.id === appointmentId ? {
             ...app,
@@ -629,7 +632,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         );
       }
       
-      // Update local state after completing appointment
       setAppointments(prev => prev.map(app => 
         app.id === appointmentId ? {
           ...app,
@@ -698,8 +700,11 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     }
   };
 
+  const disableNextPage = page >= totalPages;
+  const disablePreviousPage = page === 1;
+
   return (
-    <div className="p-4 border rounded-md shadow">
+    <div className="p-4 border rounded-md shadow" dir={language === "ar" ? "rtl" : "ltr"}>
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <LoadingDoctors />
@@ -716,20 +721,29 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow className="text-center">
-                  {[
-                    t.appointmentRef,
-                    t.patientFullName,
-                    t.patientPhone,
-                    t.doctorFullName,
-                    t.appointmentPrice,
-                    t.appointmentDate,
-                    t.appointmentStatus,
-                    t.action
-                  ].map((header, index) => (
-                    <TableHead key={index} className="text-center">
-                      {header}
-                    </TableHead>
-                  ))}
+                  {language === "ar" ? (
+                    <>
+                    <TableHead className="text-center">{t.appointmentRef}</TableHead>
+                    <TableHead className="text-center">{t.patientFullName}</TableHead>
+                    <TableHead className="text-center">{t.patientPhone}</TableHead>
+                    <TableHead className="text-center">{t.doctorFullName}</TableHead>
+                    <TableHead className="text-center">{t.appointmentPrice}</TableHead>
+                    <TableHead className="text-center">{t.appointmentDate}</TableHead>
+                    <TableHead className="text-center">{t.appointmentStatus}</TableHead>
+                    <TableHead className="text-center">{t.action}</TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className="text-center">{t.appointmentRef}</TableHead>
+                      <TableHead className="text-center">{t.patientFullName}</TableHead>
+                      <TableHead className="text-center">{t.patientPhone}</TableHead>
+                      <TableHead className="text-center">{t.doctorFullName}</TableHead>
+                      <TableHead className="text-center">{t.appointmentPrice}</TableHead>
+                      <TableHead className="text-center">{t.appointmentDate}</TableHead>
+                      <TableHead className="text-center">{t.appointmentStatus}</TableHead>
+                      <TableHead className="text-center">{t.action}</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -742,82 +756,159 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                 ) : (
                   paginatedAppointments.map((appointment) => (
                     <TableRow key={appointment.id}>
-                      <TableCell className="text-center">
-                        #{appointment.reservation.id || "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {appointment.reservation.patient.first_name}{" "}
-                        {appointment.reservation.patient.last_name}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {appointment.reservation.patient.phone || "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {appointment.doctor
-                          ? `${appointment.doctor.name} ${appointment.doctor.last_name}`
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {appointment.doctor_price || "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {format(
-                          new Date(appointment.reservation.reservation_date),
-                          "yyyy-MM-dd"
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-  {getStatusTranslation(appointment.reservation.reservation_payment_status)}
-</TableCell>
-                      <TableCell className="text-center">
-                      {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show"].includes(appointment.reservation.reservation_payment_status) ? (
-                        <div className="flex justify-center space-x-2">
-                          <Button
-                            variant="outline"
-                            className="bg-yellow-500 text-white hover:bg-yellow-600"
-                            onClick={() => handleMarkNotAttend(appointment.id)}
-                            disabled={isProcessing}
-                          >
-                            {isProcessing ? (
-                              <ClipLoader size={20} color="#ffffff" />
-                            ) : (
-                              t.noShow
+                      {language === "ar" ? (
+                        <>
+                          <TableCell className="text-right">
+                          #{appointment.reservation.id }
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {`${appointment.reservation.patient.first_name} ${appointment.reservation.patient.last_name}`}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {appointment.reservation.patient.phone}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {`${appointment.doctor.name} ${appointment.doctor.last_name}`}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {appointment.doctor_price}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {format(new Date(appointment.reservation.reservation_date), "yyyy-MM-dd")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {getStatusTranslation(appointment.reservation.reservation_payment_status)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                            {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show"].includes(appointment.reservation.reservation_payment_status) ? (
+                              <div className={`flex justify-center gap-2 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+                                <Button
+                                  variant="outline"
+                                  className="bg-yellow-500 text-white hover:bg-yellow-600"
+                                  onClick={() => handleMarkNotAttend(appointment.id)}
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? (
+                                    <ClipLoader size={20} color="#ffffff" />
+                                  ) : (
+                                    t.noShow
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="bg-green-500 text-white hover:bg-green-600"
+                                  onClick={() =>
+                                    handleDoneClick(
+                                      appointment.id,
+                                      appointment.reservation.patient.id,
+                                      appointment.confirmation_code,
+                                      appointment.doctor.id
+                                    )
+                                  }
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? (
+                                    <ClipLoader size={20} color="#ffffff" />
+                                  ) : (
+                                    t.done
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="bg-red-500 text-white hover:bg-red-600"
+                                  onClick={() => handleRemoveSlot(appointment.id)}
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? (
+                                    <ClipLoader size={20} color="#ffffff" />
+                                  ) : (
+                                    t.cancel
+                                  )}
+                                </Button>
+                              </div>
+                            ) : "-"}
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="text-center">
+                            #{appointment.reservation.id || "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {appointment.reservation.patient.first_name}{" "}
+                            {appointment.reservation.patient.last_name}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {appointment.reservation.patient.phone || "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {appointment.doctor
+                              ? `${appointment.doctor.name} ${appointment.doctor.last_name}`
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {appointment.doctor_price || "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {format(
+                              new Date(appointment.reservation.reservation_date),
+                              "yyyy-MM-dd"
                             )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="bg-green-500 text-white hover:bg-green-600"
-                            onClick={() =>
-                              handleDoneClick(
-                                appointment.id,
-                                appointment.reservation.patient.id,
-                                appointment.confirmation_code,
-                                appointment.doctor.id
-                              )
-                            }
-                            disabled={isProcessing}
-                          >
-                            {isProcessing ? (
-                              <ClipLoader size={20} color="#ffffff" />
-                            ) : (
-                              t.done
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="bg-red-500 text-white hover:bg-red-600"
-                            onClick={() => handleRemoveSlot(appointment.id)}
-                            disabled={isProcessing}
-                          >
-                            {isProcessing ? (
-                              <ClipLoader size={20} color="#ffffff" />
-                            ) : (
-                              t.cancel
-                            )}
-                          </Button>
-                        </div>
-                      ) : "-"}
-                      </TableCell>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {getStatusTranslation(appointment.reservation.reservation_payment_status)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show"].includes(appointment.reservation.reservation_payment_status) ? (
+                              <div className="flex justify-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  className="bg-yellow-500 text-white hover:bg-yellow-600"
+                                  onClick={() => handleMarkNotAttend(appointment.id)}
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? (
+                                    <ClipLoader size={20} color="#ffffff" />
+                                  ) : (
+                                    t.noShow
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="bg-green-500 text-white hover:bg-green-600"
+                                  onClick={() =>
+                                    handleDoneClick(
+                                      appointment.id,
+                                      appointment.reservation.patient.id,
+                                      appointment.confirmation_code,
+                                      appointment.doctor.id
+                                    )
+                                  }
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? (
+                                    <ClipLoader size={20} color="#ffffff" />
+                                  ) : (
+                                    t.done
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="bg-red-500 text-white hover:bg-red-600"
+                                  onClick={() => handleRemoveSlot(appointment.id)}
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? (
+                                    <ClipLoader size={20} color="#ffffff" />
+                                  ) : (
+                                    t.cancel
+                                  )}
+                                </Button>
+                              </div>
+                            ) : "-"}
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   ))
                 )}
@@ -826,27 +917,35 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <div className="flex space-x-2">
-                <Button
-                  onClick={handlePreviousPage}
-                  disabled={page === 1 || isProcessing}
-                  variant="outline"
-                >
-                  {previousText}
-                </Button>
-                <Button
-                  onClick={handleNextPage}
-                  disabled={page === totalPages || isProcessing}
-                  variant="outline"
-                >
-                  {nextText}
-                </Button>
-              </div>
-            </div>
+            <Pagination className={`mt-4 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={handlePreviousPage}
+                    //@ts-ignore
+                    disabled={disablePreviousPage || isProcessing}
+                    className={language === "ar" ? "flex-row-reverse" : ""}
+                  >
+                    {previousText}
+                  </PaginationPrevious>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationLink>{page}</PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={handleNextPage}
+                                        //@ts-ignore
+                    disabled={disableNextPage || isProcessing}
+                    className={language === "ar" ? "flex-row-reverse" : ""}
+                  >
+                    {nextText}
+                  </PaginationNext>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
 
-          {/* Modal for appointment actions */}
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogContent>
               <DialogHeader>
@@ -866,7 +965,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             </DialogContent>
           </Dialog>
 
-          {/* Follow-up Modal */}
           <Dialog open={isFollowUpModalOpen} onOpenChange={setIsFollowUpModalOpen}>
             <DialogContent>
               <DialogHeader>
@@ -886,7 +984,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             </DialogContent>
           </Dialog>
 
-          {/* Same Doctor Follow-up Modal */}
           <Dialog open={isSameDoctorModalOpen} onOpenChange={setIsSameDoctorModalOpen}>
             <DialogContent>
               <DialogHeader>
@@ -927,7 +1024,6 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             </DialogContent>
           </Dialog>
 
-          {/* Send to Another Doctor Modal */}
           <Dialog open={isSendToAnotherDoctorModalOpen} onOpenChange={setIsSendToAnotherDoctorModalOpen}>
             <DialogContent>
               <DialogHeader>
