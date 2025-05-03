@@ -319,6 +319,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     }
   };
 
+  console.log("imageUrl", imageUrl)
+
   return (
     <div
       className={`flex ${
@@ -339,6 +341,18 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         >
           <h1 className="text-2xl font-bold text-gray-800 mb-1">{name}</h1>
           <p className="text-sm text-gray-500 mb-2 text-end">{specialty}</p>
+          <div className={`mb-2 ${language === "ar" ? "text-right" : "text-left"}`}>
+            <span className={`px-3 py-1 rounded-full text-sm ${
+              status.toLowerCase() === "completed" ? "bg-green-100 text-green-800" :
+              status.toLowerCase() === "confirmed" ? "bg-blue-100 text-blue-800" :
+              status.toLowerCase() === "pending payment" ? "bg-yellow-100 text-yellow-600" :
+              status.toLowerCase().includes("cancelled") ? "bg-red-100 text-red-600" :
+              status.toLowerCase() === "not attend" || status.toLowerCase() === "no show" ? "bg-gray-100 text-gray-800" :
+              "bg-gray-100 text-gray-800"
+            }`}>
+              {getStatusTranslation(status)}
+            </span>
+          </div>
           <div className="bg-gray-50 lg:p-4 p-2 flex lg:flex-row flex-col w-full justify-between lg:gap-20 gap-4 rounded">
             <div
               className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
@@ -421,8 +435,12 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             src={
               imageUrl &&
               imageUrl !== null &&
-              !imageUrl.startsWith("/media/media/")
-                ? imageUrl
+              !imageUrl.startsWith("http://www.test-roshita.net/media/media/") &&
+              /*!imageUrl.startsWith("/media/media/") &&*/
+              !imageUrl.startsWith("/avatar/")
+                ? imageUrl.startsWith("http")
+                  ? imageUrl
+                  : `http://www.test-roshita.net/${imageUrl}`
                 : "/Images/default-doctor.jpeg"
             }
             alt={name}

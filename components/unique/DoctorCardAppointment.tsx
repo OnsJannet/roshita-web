@@ -83,7 +83,6 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
     address: "",
   });
   const [patients, setPatients] = useState([]); // State to store patients from profile
-
   // Fetch the user's profile using the access token from localStorage
   const fetchProfile = async () => {
     try {
@@ -459,8 +458,12 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                 src={
                   imageUrl &&
                   imageUrl !== null &&
-                  !imageUrl.startsWith("/media/media/")
-                    ? imageUrl
+                  !imageUrl.startsWith("http://www.test-roshita.net/media/media/") &&
+                  /*!imageUrl.startsWith("/media/media/") &&*/
+                  !imageUrl.startsWith("/avatar/")
+                    ? imageUrl.startsWith("http")
+                      ? imageUrl
+                      : `http://www.test-roshita.net/${imageUrl}`
                     : "/Images/default-doctor.jpeg"
                 }
                 alt={name}

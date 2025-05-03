@@ -362,22 +362,22 @@ export function DataTable({
       accessorKey: "دكاترة",
       header: language === "ar" ? "دكاترة" : "Doctors",
       cell: ({ row }) => {
-        const img = row.original.img?.replace(/^http:/, "https:");
-
+        //const img = row.original.img?.replace(/^http:/, "https:");
+        const img = row.original.img
         const name = row.getValue<string>("دكاترة");
 
         return (
           <div className="flex items-center space-x-3 gap-6">
 
               <img
-                src={
-                  img &&
-                  img !== null &&
-                  !img.startsWith("/media/media/") &&
-                  !img.startsWith("/avatar/")
-                    ? img
-                    : "/Images/default-doctor.jpeg"
-                }
+          src={
+            img &&
+            img !== null &&
+            !img.startsWith("/media/media/") &&
+            !img.startsWith("/avatar/")
+              ? img
+              : "/Images/default-doctor.jpeg"
+          }
                 alt={name}
                 className="h-10 w-10 rounded-full object-cover"
               />

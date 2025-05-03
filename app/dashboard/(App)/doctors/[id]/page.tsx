@@ -35,6 +35,8 @@ interface User {
   phone: string;
 }
 
+
+
 interface Doctor {
   id: string;
   staff: {
@@ -249,6 +251,32 @@ const translations = {
  */
 
 export default function Page() {
+  const getStatusTranslation = (status: string): string => {
+    if (language !== "ar") return status;
+    
+    const lowerStatus = status.toLowerCase();
+    
+    switch (lowerStatus) {
+      case "pending payment":
+        return "في انتظار الدفع";
+      case "confirmed":
+        return "مؤكد";
+      case "completed":
+        return "مكتمل";
+      case "not attend":
+        return "لم يحضر";
+      case "rejected":
+        return "مرفوض";
+      case "cancelled by patient":
+        return "ملغى من قبل المريض";
+      case "cancelled by doctor":
+        return "ملغى من قبل الطبيب";
+      case "cancelled":
+        return "ملغى";
+      default:
+        return status;
+    }
+  };
   const params = useParams<Params>();
   const id = params?.id;
   // Define the state types
@@ -864,7 +892,7 @@ export default function Page() {
                 location={
                   (language === "en"
                     ? doctor?.staff.medical_organization[0]?.city.foreign_name
-                    : doctor?.staff.medical_organization[0]?.city.name) ??
+                    : doctor?.staff.medical_organization[0]?.city?.name) ??
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 phone={
@@ -1125,7 +1153,10 @@ export default function Page() {
                                 <p className="text-center p-4">-</p>
                               )}
                               <TableCell className="text-center">
-                                {slot.reservation.reservation_payment_status}
+                                {language === "ar" 
+                                  ? getStatusTranslation(slot.reservation.reservation_payment_status)
+                                  : slot.reservation.reservation_payment_status
+                                }
                               </TableCell>
                               <TableCell className="text-center">
                                 {slot.end_time ? slot.end_time : "-"}
@@ -1169,7 +1200,11 @@ export default function Page() {
                                 {slot.end_time}
                               </TableCell>
                               <TableCell className="text-center">
-                                {slot.reservation.reservation_payment_status}
+                                {/*@ts-ignore*/}
+                                {language === "ar" 
+                                  ? getStatusTranslation(slot.reservation.reservation_payment_status)
+                                  : slot.reservation.reservation_payment_status
+                                }
                               </TableCell>
                               {slot.reservation.reservation_payment_status ===
                               "pending" ? (

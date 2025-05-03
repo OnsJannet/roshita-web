@@ -66,7 +66,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
               : "/Images/default-doctor.jpeg"
           }
           alt={name}
-          className="h-[120px] w-[120px] rounded-full object-contain"
+          className="h-[140px] w-[200px] rounded-full object-cover"
         />
 
         {/* Text Section */}

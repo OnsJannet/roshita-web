@@ -14,7 +14,7 @@ interface Doctor {
   reviewsCount: number;
   price: string;
   location: string;
-  imageUrl: string;
+  image: string;
   medical_organizations: { id: number; name: string };
 }
 
@@ -144,6 +144,7 @@ const Appointment = () => {
     );
   }
 
+  console.log("doctor info", doctor)
   return (
     <div className="container mx-auto p-4 max-w-[1280px]">
       {/* Doctor Details */}
@@ -157,7 +158,7 @@ const Appointment = () => {
         price={doctor.price}
         // @ts-ignore
         location={doctor.medical_organizations[0].city.name}
-        imageUrl={doctor.imageUrl}
+        imageUrl={doctor.image}
         day={appointmentDay}
         time={appointmentTime}
         endTime={appointmentEndTime}
