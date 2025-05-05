@@ -102,7 +102,7 @@ export default function Page() {
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/consultation-requests/${id}/`,
+        `https://test-roshita.net/api/consultation-requests/${id}/`,
         {
           method: "GET",
           headers: {
@@ -171,7 +171,7 @@ export default function Page() {
       if (!token) throw new Error("Access token not found");
 
       const response = await fetch(
-        `http://test-roshita.net/api/doctor-response-consultation/${responseData?.id}/`,
+        `https://test-roshita.net/api/doctor-response-consultation/${responseData?.id}/`,
         {
           method: "POST",
           headers: {

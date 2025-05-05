@@ -52,7 +52,7 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({
     const fetchCountries = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/countries-list/",
+          "https://test-roshita.net/api/countries-list/",
           {
             method: "GET",
             headers: {
@@ -73,7 +73,7 @@ const GuideFiltration: React.FC<GuideFiltrationProps> = ({
     const fetchSpecialties = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/specialty-list/",
+          "https://test-roshita.net/api/specialty-list/",
           {
             method: "GET",
             headers: {

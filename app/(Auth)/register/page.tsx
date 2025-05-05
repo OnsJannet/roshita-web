@@ -56,7 +56,7 @@ const Page = () => {
     try {
       // Send POST request to API for registration
       const response = await fetch(
-        "http://test-roshita.net/api/account/register/",
+        "https://test-roshita.net/api/account/register/",
         {
           method: "POST",
           headers: {
@@ -96,7 +96,7 @@ const Page = () => {
     try {
       // Send OTP to the server for verification
       const response = await fetch(
-        "http://test-roshita.net/api/account/verify-otp/",
+        "https://test-roshita.net/api/account/verify-otp/",
         {
           method: "POST",
           headers: {

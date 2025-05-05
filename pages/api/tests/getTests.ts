@@ -64,7 +64,7 @@ export default async function getTests(
 
     // Fetch fresh data from the API
     const response = await fetch(
-      `http://test-roshita.net/api/guide-medical/by-type/2/`,
+      `https://test-roshita.net/api/guide-medical/by-type/2/`,
       {
         method: "GET",
         headers: {

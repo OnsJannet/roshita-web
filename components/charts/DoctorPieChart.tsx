@@ -130,7 +130,7 @@ export function DoctorPieChart() {
         
         // Fetch data from API using fetch with authorization header
         const response = await fetch(
-          `http://test-roshita.net/api/kpis/doctors/${userId}/consultation-and-appointment-reservation?lang=${language}&period=6m`,
+          `https://test-roshita.net/api/kpis/doctors/${userId}/consultation-and-appointment-reservation?lang=${language}&period=6m`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`

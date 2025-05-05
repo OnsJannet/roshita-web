@@ -64,7 +64,7 @@ export default async function handler(
 
   try {
     const apiResponse = await fetch(
-      "http://test-roshita.net/api/user-appointment-reservations/",
+      "https://test-roshita.net/api/user-appointment-reservations/",
       {
         method: "POST",
         headers: {

@@ -207,7 +207,7 @@ const Page = () => {
     const fetchSpecialties = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/specialty-list/",
+          "https://test-roshita.net/api/specialty-list/",
           {
             method: "GET",
             headers: {
@@ -229,7 +229,7 @@ const Page = () => {
 
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/cities-list/",
+          "https://test-roshita.net/api/cities-list/",
           {
             method: "GET",
             headers: {
@@ -263,8 +263,8 @@ const Page = () => {
     }
 
     // Proceed with form submission if all fields are filled
-    const endpoint = "http://test-roshita.net/api/auth/staff-register/";
-    const backendEndpoint = "http://test-roshita.net/api/auth/staff-register/";
+    const endpoint = "https://test-roshita.net/api/auth/staff-register/";
+    const backendEndpoint = "https://test-roshita.net/api/auth/staff-register/";
     const token = localStorage.getItem("access");
 
     const payload = {
@@ -404,7 +404,7 @@ const Page = () => {
   
     try {
       const response = await fetch(
-        "http://test-roshita.net/api/register-doctor/",
+        "https://test-roshita.net/api/register-doctor/",
         {
           method: "POST",
           headers: {

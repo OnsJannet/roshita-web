@@ -77,7 +77,7 @@ export default function Page() {
       const token = localStorage.getItem("access");
       const userId = localStorage.getItem("userId")
       const response = await fetch(
-        `http://test-roshita.net/api/consultation-requests/by_doctor/${userId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+        `https://test-roshita.net/api/consultation-requests/by_doctor/${userId}/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -109,7 +109,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://test-roshita.net/api/specialty-list/",
+        "https://test-roshita.net/api/specialty-list/",
         {
           method: "GET",
           headers: {

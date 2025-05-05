@@ -68,7 +68,7 @@ export default async function updateTest(
 
     // Send the PUT request to the Roshita API
     const response = await fetch(
-      `http://test-roshita.net/api/laboratory-guide-medical/${testId}/`,
+      `https://test-roshita.net/api/laboratory-guide-medical/${testId}/`,
       {
         method: "PUT",
         headers: {

@@ -469,7 +469,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+        `https://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
         {
           method: "DELETE",
           headers: {
@@ -484,7 +484,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (response.ok) {
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+          `https://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
           { appointmentId },
           "success",
           response.status
@@ -494,7 +494,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+          `https://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
           { appointmentId },
           "error",
           response.status,
@@ -507,7 +507,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
+          `https://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
           { appointmentId },
           "error",
           error instanceof Error ? 500 : 500,
@@ -599,7 +599,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
   const handleEndSlot = async (appointmentId: number) => {
     setIsProcessing(true);
     const url =
-      "http://test-roshita.net/api/complete-appointment-reservations/";
+      "https://test-roshita.net/api/complete-appointment-reservations/";
     const token = localStorage.getItem("access");
     const data = {
       appointment_reservation_id: appointmentId,

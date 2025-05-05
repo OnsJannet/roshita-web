@@ -483,7 +483,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/appointment-reservations/${index}/`,
+        `https://test-roshita.net/api/appointment-reservations/${index}/`,
         {
           method: "DELETE",
           headers: {
@@ -499,7 +499,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         console.log("Appointment deleted successfully");
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
+          `https://test-roshita.net/api/appointment-reservations/${index}/`,
           { appointmentId: index },
           "success",
           response.status
@@ -509,7 +509,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
+          `https://test-roshita.net/api/appointment-reservations/${index}/`,
           { appointmentId: index },
           "error",
           response.status,
@@ -522,7 +522,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
+          `https://test-roshita.net/api/appointment-reservations/${index}/`,
           { appointmentId: index },
           "error",
           //@ts-ignore
@@ -603,7 +603,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
   const handleEndSlot = async (index: number) => {
     const url =
-      "http://test-roshita.net/api/complete-appointment-reservations/";
+      "https://test-roshita.net/api/complete-appointment-reservations/";
     const token = localStorage.getItem("access");
     const data = {
       appointment_reservation_id: index,

@@ -167,7 +167,7 @@ const Page = () => {
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/notifications/${patientId}`,
+        `https://test-roshita.net/api/notifications/${patientId}`,
         {
           method: "GET",
           headers: {

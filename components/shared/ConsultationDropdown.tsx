@@ -70,7 +70,7 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
     const token = localStorage.getItem("access");
     try {
       const response = await fetch(
-        `http://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
+        `https://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
         {
           method: "POST",
           headers: {
@@ -118,7 +118,7 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
     const token = localStorage.getItem("access");
     try {
       const response = await fetch(
-        `http://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
+        `https://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
         {
           method: "POST",
           headers: {

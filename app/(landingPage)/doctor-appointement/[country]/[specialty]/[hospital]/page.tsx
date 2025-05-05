@@ -178,7 +178,7 @@ const Page = () => {
         }
         
         const response = await fetch(
-          `http://test-roshita.net/api/user-doctors/?${queryParams.toString()}`
+          `https://test-roshita.net/api/user-doctors/?${queryParams.toString()}`
         );
         
         if (!response.ok) {

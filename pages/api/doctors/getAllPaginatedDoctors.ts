@@ -61,7 +61,7 @@ export default async function getAllPaginatedDoctors(
       });
     }
 
-    const baseUrl = `http://test-roshita.net/api/doctors/?limit=5`;
+    const baseUrl = `https://test-roshita.net/api/doctors/?limit=5`;
     let allDoctors: Doctor[] = [];
     let nextPageUrl: string | null = baseUrl;
 

@@ -176,7 +176,7 @@ export default function Page() {
   
     try {
       const accessToken = localStorage.getItem("access");
-      const url = "http://test-roshita.net/api/doctors/";
+      const url = "https://test-roshita.net/api/doctors/";
   
       // Prepare the request data structure
       const requestData = {
@@ -256,7 +256,7 @@ export default function Page() {
     const fetchSpecialties = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/specialty-list/"
+          "https://test-roshita.net/api/specialty-list/"
         );
         const data = await response.json();
         if (data) {
@@ -276,7 +276,7 @@ export default function Page() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/cities-list/"
+          "https://test-roshita.net/api/cities-list/"
         );
         const data = await response.json();
         if (data) {

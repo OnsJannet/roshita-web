@@ -166,7 +166,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       console.log("daysDifference:", daysDifference);
   
       // Send the cancellation request
-      const url = `http://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
+      const url = `https://test-roshita.net/api/user-appointment-reservations/${appointementId}/`;
       console.log("Sending cancellation request to:", url);
   
       const response = await fetch(url, {
@@ -190,7 +190,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
           // Refund request logic has been temporarily commented out
           try {
             const token = localStorage.getItem("access");
-            const refundUrl = "http://test-roshita.net/api/reservation/refund/";
+            const refundUrl = "https://test-roshita.net/api/reservation/refund/";
             console.log("Refund request URL:", refundUrl);
   
             const refundBody = {
@@ -254,7 +254,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
       const payload = { rating };
       const token = localStorage.getItem("access");
       const doctorId = doctorID;
-      const url = `http://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
+      const url = `https://test-roshita.net/api/doctor/${doctorId}/update-rating/`;
 
       const response = await fetch(url, {
         method: "POST",
@@ -325,7 +325,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     <div
       className={`flex ${
         language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
-      } flex-col p-4 bg-white  rounded-xl w-full max-w-[80%] lg:max-w-[80%] mx-auto`}
+      } flex-col p-4 bg-white rounded-xl w-full max-w-[1024px] lg:max-w-[1024px] mx-auto`}
     >
       <div
         className={`flex flex-1 ${
@@ -337,12 +337,12 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         <div
           className={`flex flex-col ${
             language === "ar" ? "items-end" : "items-start"
-          }`}
+          } flex-1`}
         >
           <h1 className="text-2xl font-bold text-gray-800 mb-1">{name}</h1>
           <p className="text-sm text-gray-500 mb-2 text-end">{specialty}</p>
-          <div className={`mb-2 ${language === "ar" ? "text-right" : "text-left"}`}>
-            <span className={`px-3 py-1 rounded-full text-sm ${
+          <div className={`mb-2 ${language === "ar" ? "text-right" : "text-left"} w-full`}>
+            <span className={`px-3 py-1 rounded-full text-sm inline-block ${
               status.toLowerCase() === "completed" ? "bg-green-100 text-green-800" :
               status.toLowerCase() === "confirmed" ? "bg-blue-100 text-blue-800" :
               status.toLowerCase() === "pending payment" ? "bg-yellow-100 text-yellow-600" :
@@ -353,11 +353,11 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               {getStatusTranslation(status)}
             </span>
           </div>
-          <div className="bg-gray-50 lg:p-4 p-2 flex lg:flex-row flex-col w-full justify-between lg:gap-20 gap-4 rounded">
+          <div className="bg-gray-50 lg:p-6 p-2 flex lg:flex-row flex-col w-full justify-between lg:gap-8 gap-4 rounded">
             <div
               className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
                 language === "ar" ? "flex-row-reverse" : ""
-              } gap-2`}
+              } gap-2 flex-1`}
             >
               <Clock className="text-roshitaDarkBlue" />
               <span>
@@ -367,7 +367,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             <div
               className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
                 language === "ar" ? "flex-row-reverse" : ""
-              } gap-2`}
+              } gap-2 flex-1`}
             >
               <Calendar className="text-roshitaDarkBlue" />
               <span>{language === "ar" ? `اليوم ${day}` : `Day ${day}`}</span>
@@ -375,7 +375,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
             <div
               className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
                 language === "ar" ? "flex-row" : "flex-row-reverse"
-              } gap-2`}
+              } gap-2 flex-1`}
             >
               <span>
                 {language === "ar"
@@ -430,17 +430,17 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
           </div>
         </div>
 
-        <div className="ml-4 h-40 w-40 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
+        <div className="lg:ml-8 ml-4 h-40 w-40 lg:h-48 lg:w-48 rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden flex-shrink-0">
           <img
             src={
               imageUrl &&
               imageUrl !== null &&
-              !imageUrl.startsWith("http://www.test-roshita.net/media/media/") &&
+              !imageUrl.startsWith("https://www.test-roshita.net/media/media/") &&
               /*!imageUrl.startsWith("/media/media/") &&*/
               !imageUrl.startsWith("/avatar/")
                 ? imageUrl.startsWith("http")
                   ? imageUrl
-                  : `http://www.test-roshita.net/${imageUrl}`
+                  : `https://www.test-roshita.net/${imageUrl}`
                 : "/Images/default-doctor.jpeg"
             }
             alt={name}

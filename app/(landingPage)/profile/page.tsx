@@ -78,7 +78,7 @@ const editUserProfile = async (
 ): Promise<any> => {
   try {
     const response = await fetch(
-      "http://test-roshita.net/api/account/profile/edit/",
+      "https://test-roshita.net/api/account/profile/edit/",
       {
         method: "POST",
         headers: {
@@ -160,7 +160,7 @@ const Profile = () => {
     if (!token) throw new Error("No token found. Please log in.");
 
     try {
-      const response = await fetch("http://test-roshita.net/api/user-wallet/", {
+      const response = await fetch("https://test-roshita.net/api/user-wallet/", {
         method: "GET",
         headers: {
           accept: "application/json",
@@ -197,7 +197,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch("http://test-roshita.net/api/user-wallet/recharge/", {
+      const response = await fetch("https://test-roshita.net/api/user-wallet/recharge/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

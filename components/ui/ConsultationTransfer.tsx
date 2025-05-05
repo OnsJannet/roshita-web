@@ -173,7 +173,7 @@ export function ConsultationTransfer({
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/accept-consultations/${consultationID}/`,
+        `https://test-roshita.net/api/accept-consultations/${consultationID}/`,
         {
           method: "POST",
           headers: {

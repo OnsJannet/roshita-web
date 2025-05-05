@@ -21,7 +21,7 @@ export default async function getHospitals(
   res: NextApiResponse<ApiResponse>
 ) {
   try {
-    const response = await fetch("http://test-roshita.net/api/user-hospitals-list/", {
+    const response = await fetch("https://test-roshita.net/api/user-hospitals-list/", {
       method: "GET",
       headers: {
         accept: "application/json",

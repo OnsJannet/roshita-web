@@ -108,7 +108,7 @@ export function DoctorAreaChart() {
         const accessToken = localStorage.getItem('access');
 
         const response = await fetch(
-          `http://test-roshita.net/api/kpis/doctors/${userId}/appointment-reservation-summary?lang=${language}&period=6m`,
+          `https://test-roshita.net/api/kpis/doctors/${userId}/appointment-reservation-summary?lang=${language}&period=6m`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`

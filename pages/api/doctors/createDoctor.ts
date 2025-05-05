@@ -108,7 +108,7 @@ export default async function handler(
     const authToken = authorizationHeader.split(" ")[1];
 
     // Send the POST request to the Swagger endpoint with the bearer token
-    const response = await fetch("http://test-roshita.net/api/doctors/", {
+    const response = await fetch("https://test-roshita.net/api/doctors/", {
       method: "POST",
       headers: {
         accept: "application/json",

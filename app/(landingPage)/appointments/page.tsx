@@ -90,7 +90,7 @@ const Page = () => {
 
         do {
           const response = await fetch(
-            `http://test-roshita.net/api/user-appointment-reservations/filter-appointments/?user_id=${userID}&page=${page}`,
+            `https://test-roshita.net/api/user-appointment-reservations/filter-appointments/?user_id=${userID}&page=${page}`,
             {
               method: "GET",
               headers: {
@@ -330,7 +330,7 @@ const Page = () => {
                       specialty={appointment.doctor.specialty}
                       price={appointment.price}
                       location=""
-                      imageUrl=""
+                      imageUrl={appointment.doctor.doctor_image}
                       day={new Date(
                         appointment.reservation.reservation_date
                       ).toLocaleDateString(language)}

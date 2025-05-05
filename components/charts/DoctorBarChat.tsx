@@ -98,7 +98,7 @@ export function DoctorBarChat() {
         
         // Fetch data from API using fetch with authorization header
         const response = await fetch(
-          `http://test-roshita.net/api/kpis/doctors/${userId}/appointment-reservation-stats?lang=${language}&period=6m`,
+          `https://test-roshita.net/api/kpis/doctors/${userId}/appointment-reservation-stats?lang=${language}&period=6m`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`

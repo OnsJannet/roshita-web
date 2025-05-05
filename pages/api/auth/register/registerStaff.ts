@@ -123,7 +123,7 @@ export default async function registerStaff(
 
     // Send the POST request to the Swagger endpoint
     const response = await fetch(
-      "http://test-roshita.net/api/auth/staff-register/",
+      "https://test-roshita.net/api/auth/staff-register/",
       {
         method: "POST",
         headers: {

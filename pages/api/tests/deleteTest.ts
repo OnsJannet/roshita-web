@@ -47,7 +47,7 @@ export default async function deleteTest(
 
     // Send the DELETE request to the Roshita API
     const response = await fetch(
-      `http://test-roshita.net/api/laboratory-guide-medical/${testId}/`,
+      `https://test-roshita.net/api/laboratory-guide-medical/${testId}/`,
       {
         method: "DELETE",
         headers: {

@@ -202,7 +202,7 @@ const Page = () => {
         const token = localStorage.getItem("access");
         const patientId = localStorage.getItem("patientId");
         const response = await fetch(
-          `http://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/?page=${currentPage}&page_size=${itemsPerPage}`,
           {
             method: "GET",
             headers: {

@@ -33,7 +33,7 @@ export default async function getLabs(
       return res.status(500).json({ error: "CSRF token not configured" });
     }
 
-    const response = await fetch("http://test-roshita.net/api/user-labs-list/", {
+    const response = await fetch("https://test-roshita.net/api/user-labs-list/", {
       method: "GET",
       headers: {
         accept: "application/json",

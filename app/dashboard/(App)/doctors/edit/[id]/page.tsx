@@ -196,7 +196,7 @@ export default function Page() {
         }
 
         const response = await fetch(
-          `http://test-roshita.net/api/appointment-reservations/${id}/`,
+          `https://test-roshita.net/api/appointment-reservations/${id}/`,
           {
             method: "DELETE",
             headers: {
@@ -211,7 +211,7 @@ export default function Page() {
         if (response.ok) {
           await logAction(
             token,
-            `http://test-roshita.net/api/appointment-reservations/${index}/`,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "success",
             response.status
@@ -235,7 +235,7 @@ export default function Page() {
           const errorData = await response.json();
           await logAction(
             token,
-            `http://test-roshita.net/api/appointment-reservations/${index}/`,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
             response.status,
@@ -248,7 +248,7 @@ export default function Page() {
         if (token) {
           await logAction(
             token,
-            `http://test-roshita.net/api/appointment-reservations/${index}/`,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
             error instanceof Error ? 500 : 500,
@@ -288,7 +288,7 @@ export default function Page() {
 
     try {
       const response = await fetch(
-        "http://test-roshita.net/api/appointment-reservations/",
+        "https://test-roshita.net/api/appointment-reservations/",
         {
           method: "POST",
           headers: {
@@ -383,7 +383,7 @@ export default function Page() {
           setDoctor(doctorData.data);
 
           const specialtiesResponse = await fetch(
-            "http://test-roshita.net/api/specialty-list/"
+            "https://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
@@ -409,7 +409,7 @@ export default function Page() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/cities-list/"
+          "https://test-roshita.net/api/cities-list/"
         );
         const citiesData: City[] = await response.json();
         if (response.ok) {
@@ -425,7 +425,7 @@ export default function Page() {
     const fetchSpecialities = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/specialty-list/"
+          "https://test-roshita.net/api/specialty-list/"
         );
         const data: Specialities = await response.json();
 
@@ -582,7 +582,7 @@ export default function Page() {
   
       // Make the API request
       const response = await fetch(
-        `http://test-roshita.net/api/doctors/${doctor.id}/`,
+        `https://test-roshita.net/api/doctors/${doctor.id}/`,
         {
           method: 'PUT',
           headers: {

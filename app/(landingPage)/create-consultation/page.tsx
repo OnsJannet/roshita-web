@@ -198,7 +198,7 @@ const Page = () => {
     const fetchSpecialties = async () => {
       try {
         const specialtiesResponse = await fetch(
-          "http://test-roshita.net/api/specialty-list/"
+          "https://test-roshita.net/api/specialty-list/"
         );
         const specialtiesData: Specialty[] = await specialtiesResponse.json();
         if (specialtiesResponse.ok) {

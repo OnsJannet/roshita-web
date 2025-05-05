@@ -33,7 +33,7 @@ const ModifyDialog: React.FC<ModifyDialogProps> = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://test-roshita.net/api/services-categories/");
+        const response = await fetch("https://test-roshita.net/api/services-categories/");
         if (!response.ok) {
           throw new Error("Failed to fetch categories");
         }
@@ -52,7 +52,7 @@ const ModifyDialog: React.FC<ModifyDialogProps> = ({
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch("http://test-roshita.net/api/medical-services-list/");
+        const response = await fetch("https://test-roshita.net/api/medical-services-list/");
         if (!response.ok) {
           throw new Error("Failed to fetch medical services");
         }

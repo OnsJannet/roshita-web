@@ -427,7 +427,7 @@ export default function Page() {
 
         // Send the DELETE request
         const response = await fetch(
-          `http://test-roshita.net/api/appointment-reservations/${index}/`,
+          `https://test-roshita.net/api/appointment-reservations/${index}/`,
           {
             method: "DELETE",
             headers: {
@@ -445,7 +445,7 @@ export default function Page() {
           // Log the action as a success
           await logAction(
             token,
-            `http://test-roshita.net/api/appointment-reservations/${index}/`,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "success",
             response.status // HTTP status code (e.g., 200)
@@ -470,7 +470,7 @@ export default function Page() {
           const errorData = await response.json(); // Parse the error response
           await logAction(
             token,
-            `http://test-roshita.net/api/appointment-reservations/${index}/`,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
             response.status, // HTTP status code (e.g., 400, 500)
@@ -485,7 +485,7 @@ export default function Page() {
         if (token) {
           await logAction(
             token,
-            `http://test-roshita.net/api/appointment-reservations/${index}/`,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
             { appointmentId: index },
             "error",
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -503,7 +503,7 @@ export default function Page() {
   const handleEndSlot = async (index: number) => {
     // Define the URL of the API endpoint
     const url =
-      "http://test-roshita.net/api/complete-appointment-reservations/";
+      "https://test-roshita.net/api/complete-appointment-reservations/";
 
     // Retrieve the Bearer token from localStorage
     const token = localStorage.getItem("access");
@@ -604,7 +604,7 @@ export default function Page() {
 
     try {
       const response = await fetch(
-        "http://test-roshita.net/api/appointment-reservations/",
+        "https://test-roshita.net/api/appointment-reservations/",
         {
           method: "POST",
           headers: {
@@ -724,7 +724,7 @@ export default function Page() {
 
           // Fetch specialties
           const specialtiesResponse = await fetch(
-            "http://test-roshita.net/api/specialty-list/"
+            "https://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 

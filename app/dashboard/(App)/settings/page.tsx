@@ -182,7 +182,7 @@ export default function Page() {
           }
 
           const specialtiesResponse = await fetch(
-            "http://test-roshita.net/api/specialty-list/"
+            "https://test-roshita.net/api/specialty-list/"
           );
           const specialtiesData: Specialty[] = await specialtiesResponse.json();
 
@@ -208,7 +208,7 @@ export default function Page() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/cities-list/"
+          "https://test-roshita.net/api/cities-list/"
         );
         const citiesData: City[] = await response.json();
         if (response.ok) {

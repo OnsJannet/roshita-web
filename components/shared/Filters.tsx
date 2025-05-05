@@ -49,7 +49,7 @@ const Filters = () => {
     const fetchSpecialties = async () => {
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/specialty-list/",
+          "https://test-roshita.net/api/specialty-list/",
           {
             method: "GET",
             headers: {
@@ -71,7 +71,7 @@ const Filters = () => {
 
       try {
         const response = await fetch(
-          "http://test-roshita.net/api/countries-list/",
+          "https://test-roshita.net/api/countries-list/",
           {
             method: "GET",
             headers: {

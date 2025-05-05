@@ -43,7 +43,7 @@ export default async function getDoctors(
 
     // Fetch data from the external API
     const response = await fetch(
-      `http://test-roshita.net/api/user-doctors/?page=${currentPage}`,
+      `https://test-roshita.net/api/user-doctors/?page=${currentPage}`,
       {
         method: "GET",
         headers: {

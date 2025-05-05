@@ -226,7 +226,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
         };
     
         try {
-          const response = await fetch("http://test-roshita.net/api/user-appointment-reservations/", {
+          const response = await fetch("https://test-roshita.net/api/user-appointment-reservations/", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -270,7 +270,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     
 
   const handleOtpSubmit = async () => {
-    const confirmUrl = `http://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`;
+    const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`;
     const token = localStorage.getItem("access");
     const requestBody = {
       process_id: `${processID}`,

@@ -40,7 +40,7 @@ export default async function removeDoctor(
     }
 
     // Send the DELETE request to the API for the specific doctor by ID
-    const response = await fetch(`http://test-roshita.net/api/doctors/${id}/`, {
+    const response = await fetch(`https://test-roshita.net/api/doctors/${id}/`, {
       method: "DELETE",
       headers: {
         accept: "application/json",
