@@ -92,7 +92,9 @@ const Page = () => {
   
         // Save user data to localStorage
         localStorage.setItem("refresh", data.refreshToken);
-        localStorage.setItem("userId", data.user.medical_organization_type === "Hospital" ? data.user.user_id : data.user.doctor_id);
+        //localStorage.setItem("userId", data.user.medical_organization_type === "Hospital" ? data.user.user_id : data.user.doctor_id);
+        const userId = data.user.doctor_id || data.user.user_id;
+        localStorage.setItem("userId", userId.toString());
         localStorage.setItem("access", data.token);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userRole", data.user.user_type);

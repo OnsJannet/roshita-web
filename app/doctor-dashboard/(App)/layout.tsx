@@ -30,6 +30,7 @@ export default function RootLayout({
       if (
         parsedUser.medical_organization_type !== "Laboratory" &&
         parsedUser.medical_organization_type !== "hospital" &&
+        parsedUser.medical_organization_type !== "Hospital" &&
         parsedUser.medical_organization_type !== "Radiologic" &&
         parsedUser.medical_organization_type !== "Doctor Hospital"
       ) {

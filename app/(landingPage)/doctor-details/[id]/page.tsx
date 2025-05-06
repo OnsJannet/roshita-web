@@ -309,6 +309,18 @@ const DoctorDetailsPage = () => {
     window.location.href = `/appointment/${doctor.doctor_id}`;
   };
 
+  // Function to filter out past dates
+  const filterFutureDates = (appointments: AppointmentDate[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate date comparison
+    
+    return appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.scheduled_date);
+      appointmentDate.setHours(0, 0, 0, 0);
+      return appointmentDate >= today;
+    });
+  };
+
   // Define the days array as an array of keys from Translations
   const weekdays: Array<keyof Translations> = [
     "monday",
@@ -357,7 +369,7 @@ const DoctorDetailsPage = () => {
               <CarouselPrevious className="bg-gray-300" />
               <CarouselNext className="bg-gray-300" />
               <CarouselContent className="flex justify-center">
-                {doctor.appointment_dates.map((appointment, index) => (
+                {filterFutureDates(doctor.appointment_dates).map((appointment, index) => (
                   <CarouselItem
                     key={index}
                     className="p-4 rounded-md md:basis-1/2 lg:basis-1/6"

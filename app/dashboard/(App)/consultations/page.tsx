@@ -359,7 +359,7 @@ export default function Page() {
                       key={consultation.id}
                       requestNumber={consultation.id.toString()}
                       patientName={consultation.patient.full_name}
-                      requestDate={"2025-10-01"} // Replace with actual date if available
+                      requestDate={""} // Replace with actual date if available
                       speciality={consultation.specialty.name}
                       status={consultation.status}
                       language={language}

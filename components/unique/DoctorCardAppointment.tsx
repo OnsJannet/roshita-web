@@ -390,31 +390,31 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
       ${language === "ar" ? "right-0" : "left-0"}`}
                         >
                           {[
-                            { value: "Father", en: "Father", ar: "أب" },
-                            { value: "Mother", en: "Mother", ar: "أم" },
-                            { value: "Daughter", en: "Daughter", ar: "ابنة" },
-                            { value: "Son", en: "Son", ar: "ابن" },
+                            { value: "father", en: "Father", ar: "أب" },
+                            { value: "mother", en: "Mother", ar: "أم" },
+                            { value: "daughter", en: "Daughter", ar: "ابنة" },
+                            { value: "son", en: "Son", ar: "ابن" },
                             {
-                              value: "Grandfather",
+                              value: "grandfather",
                               en: "Grandfather",
                               ar: "جد",
                             },
                             {
-                              value: "Grandmother",
+                              value: "grandmother",
                               en: "Grandmother",
                               ar: "جدة",
                             },
-                            { value: "Brother", en: "Brother", ar: "أخ" },
-                            { value: "Sister", en: "Sister", ar: "أخت" },
-                            { value: "Uncle", en: "Uncle", ar: "عم / خال" },
-                            { value: "Aunt", en: "Aunt", ar: "عمة / خالة" },
+                            { value: "brother", en: "Brother", ar: "أخ" },
+                            { value: "sister", en: "Sister", ar: "أخت" },
+                            { value: "uncle", en: "Uncle", ar: "عم / خال" },
+                            { value: "aunt", en: "Aunt", ar: "عمة / خالة" },
                             {
-                              value: "Cousin",
+                              value: "cousin",
                               en: "Cousin",
                               ar: "ابن عم / ابن خال",
                             },
-                            { value: "Husband", en: "Husband", ar: "زوج" },
-                            { value: "Wife", en: "Wife", ar: "زوجة" },
+                            { value: "husband", en: "Husband", ar: "زوج" },
+                            { value: "wife", en: "Wife", ar: "زوجة" },
                           ].map((item) => (
                             <SelectItem
                               key={item.value}

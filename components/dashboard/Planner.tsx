@@ -35,7 +35,7 @@ import {
   PaginationPrevious,
 } from "../ui/pagination";
 
-const API_URL = "http://www.test-roshita.net/api/appointment-reservations/";
+const API_URL = "https://www.test-roshita.net/api/appointment-reservations/";
 
 interface Appointment {
   id: number;
@@ -182,7 +182,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         const filteredAppointments = allAppointments
           .filter((appointment) => {
             const status = appointment.reservation.reservation_payment_status;
-            return status !== "Cancelled" && status !== "Completed";
+            //return status !== "Cancelled" && status !== "Completed";
+            return status !== "Cancelled" && status !== "Cancelled By Patient" && status !== "Cancelled By Doctor";
           })
           .sort((a, b) => {
             const dateA = new Date(a.reservation.reservation_date);
@@ -224,11 +225,14 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     fetchHospitals();
   }, []);
 
+  console.log("hospitals", hospitals)
+
   useEffect(() => {
     if (selectedHospitalId) {
       const selectedHospital = hospitals.find(
         (h) => h.id === selectedHospitalId
       );
+      console.log("these are the doctors: ", selectedHospital);
       setFilteredDoctors(selectedHospital?.doctors || []);
     } else {
       setFilteredDoctors([]);
@@ -240,7 +244,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       setIsProcessing(true);
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `http://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
+        `/api/doctors/getDoctorById?id=${doctorId}`,
         {
           method: "GET",
           headers: {
@@ -252,7 +256,11 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (!response.ok) throw new Error("Failed to fetch available slots");
 
       const data = await response.json();
-      setAvailableSlots(data);
+      console.log("these are the available slots: ", data);
+      const pendingSlots = (data.data?.appointments || []).filter((slot: AppointmentSlot) => {
+        return slot.status === "pending" || !slot.status;
+      });
+      setAvailableSlots(pendingSlots);
     } catch (error) {
       console.error("Error fetching available slots:", error);
     } finally {
@@ -333,7 +341,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
         {
           method: "POST",
           headers: {
@@ -375,7 +383,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/doctor-suggestions/",
+        "https://www.test-roshita.net/api/doctor-suggestions/",
         {
           method: "POST",
           headers: {
@@ -536,7 +544,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+        `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
         {
           method: "POST",
           headers: {
@@ -553,7 +561,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (response.ok) {
         await logAction(
           token,
-          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "success",
           response.status
@@ -571,7 +579,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           response.status,
@@ -584,7 +592,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           error instanceof Error ? 500 : 500,
@@ -949,11 +957,11 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t.endAppointment}</DialogTitle>
+                <DialogTitle className="text-center">{t.endAppointment}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <p>{language === "ar" ? "ما الذي تريد القيام به؟" : "What would you like to do?"}</p>
-                <div className="flex space-x-2">
+                <p className="text-center">{language === "ar" ? "ما الذي تريد القيام به؟" : "What would you like to do?"}</p>
+                <div className="flex justify-center space-x-2">
                   <Button onClick={handleEndAppointment}>
                     {t.endAppointment}
                   </Button>
@@ -968,11 +976,11 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           <Dialog open={isFollowUpModalOpen} onOpenChange={setIsFollowUpModalOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t.followUpAppointment}</DialogTitle>
+                <DialogTitle className="text-center">{t.followUpAppointment}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <p>{language === "ar" ? "اختر نوع المتابعة:" : "Choose follow-up type:"}</p>
-                <div className="flex space-x-2">
+              <div className={`space-y-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                <p>{language === "ar" ? "اختر نوع المتابعة" : "Choose follow-up type"}</p>
+                <div className="flex justify-center space-x-2">
                   <Button onClick={() => handleSameDoctorFollowUp(selectedAppointmentId!)}>
                     {t.sameDoctorFollowUp}
                   </Button>
@@ -987,7 +995,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           <Dialog open={isSameDoctorModalOpen} onOpenChange={setIsSameDoctorModalOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t.sameDoctorFollowUp}</DialogTitle>
+                <DialogTitle className="text-center">{t.sameDoctorFollowUp}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 {isProcessing ? (
@@ -996,21 +1004,23 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                   </div>
                 ) : (
                   <>
-                    <p>{t.confirmationCode}: {appointmentNumber}</p>
-                    <div className="grid gap-2">
-                      {availableSlots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className={`p-2 border rounded cursor-pointer ${
-                            selectedSlot?.id === slot.id ? "bg-blue-100" : ""
-                          }`}
-                          onClick={() => handleSlotSelection(slot)}
-                        >
-                          <p>{t.reservationDate}: {slot.scheduled_date}</p>
-                          <p>{t.startTime}: {slot.start_time}</p>
-                          <p>{t.endTime}: {slot.end_time}</p>
-                        </div>
-                      ))}
+                    <p className="text-center">{t.confirmationCode}: {appointmentNumber}</p>
+                    <div className="h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid gap-2">
+                        {availableSlots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className={`p-2 border rounded cursor-pointer text-center ${
+                              selectedSlot?.id === slot.id ? "bg-blue-100" : ""
+                            }`}
+                            onClick={() => handleSlotSelection(slot)}
+                          >
+                            <p>{t.reservationDate}: {slot.scheduled_date}</p>
+                            <p>{t.startTime}: {slot.start_time}</p>
+                            <p>{t.endTime}: {slot.end_time}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <Button
                       onClick={handleSameDoctorFollowUpSubmit}
@@ -1027,18 +1037,19 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           <Dialog open={isSendToAnotherDoctorModalOpen} onOpenChange={setIsSendToAnotherDoctorModalOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t.sendToAnotherDoctor}</DialogTitle>
+                <DialogTitle className="text-center">{t.sendToAnotherDoctor}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label>{t.selectHospital}</label>
+              <div className={`space-y-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                  <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectHospital}</label>
                   <Select
                     onValueChange={(value) => setSelectedHospitalId(Number(value))}
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
                       <SelectValue placeholder={t.selectHospital} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
                       {hospitals.map((hospital) => (
                         <SelectItem key={hospital.id} value={hospital.id.toString()}>
                           {hospital.name}
@@ -1048,15 +1059,16 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                   </Select>
                 </div>
                 {selectedHospitalId && (
-                  <div>
-                    <label>{t.selectDoctor}</label>
+                  <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                    <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectDoctor}</label>
                     <Select
                       onValueChange={(value) => setSelectedDoctorId(Number(value))}
+                      dir={language === 'ar' ? 'rtl' : 'ltr'}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
                         <SelectValue placeholder={t.selectDoctor} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
                         {filteredDoctors.map((doctor) => (
                           <SelectItem key={doctor.id} value={doctor.id.toString()}>
                             {doctor.name}
@@ -1068,12 +1080,25 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                 )}
                 <div>
                   <label>{language === "ar" ? "نوع الخدمة" : "Service Type"}</label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded"
+                  <Select
                     value={serviceType}
-                    onChange={(e) => setServiceType(e.target.value)}
-                  />
+                    onValueChange={(value) => setServiceType(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={language === "ar" ? "اختر نوع الخدمة" : "Select service type"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Shelter">
+                        {language === "ar" ? "مأوى" : "Shelter"}
+                      </SelectItem>
+                      <SelectItem value="Shelter_Operation">
+                        {language === "ar" ? "عملية المأوى" : "Shelter Operation"}
+                      </SelectItem>
+                      <SelectItem value="Operation">
+                        {language === "ar" ? "عملية" : "Operation"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label>{language === "ar" ? "ملاحظات" : "Notes"}</label>

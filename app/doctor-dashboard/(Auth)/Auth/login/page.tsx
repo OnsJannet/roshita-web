@@ -88,11 +88,14 @@ const Page = () => {
       const contentType = response.headers.get("Content-Type");
       if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
-        console.log("data", data);
+        console.log("login data", data);
   
         // Save user data to localStorage
         localStorage.setItem("refresh", data.refreshToken);
-        localStorage.setItem("userId", data.user.user_id);
+        // Set userId based on user type and organization type
+        const userId = data.user.doctor_id || data.user.user_id;
+        console.log("data.user.doctor_id", data.user.doctor_id)
+        localStorage.setItem("userId", userId);
         localStorage.setItem("access", data.token);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userRole", data.user.user_type);
@@ -109,11 +112,11 @@ const Page = () => {
         );
   
         // Redirect logic based on user_type
-        if (data.user.user_type === "Doctor") {
+        /*if (data.user.user_type === "Doctor") {
           router.push(`/dashboard/doctors/dashboard`);
         } else if (redirectUrl) {
           router.push(redirectUrl); // Default redirect
-        }
+        }*/
       } else {
         const errorText = await response.text();
   

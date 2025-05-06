@@ -75,6 +75,7 @@ export default function Page() {
   const [serviceType, setServiceType] = useState("");
   const [estimatedPrice, setEstimatedPrice] = useState("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   // Get user type from localStorage safely (client-side only)
   useEffect(() => {
@@ -143,6 +144,7 @@ export default function Page() {
       }
     } catch (error) {
       console.error("Error fetching consultation details:", error);
+      setError(error instanceof Error ? error.message : "An error occurred while fetching consultation details");
     } finally {
       setLoading(false);
     }
@@ -263,6 +265,10 @@ export default function Page() {
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
       <LoadingDoctors />
+    </div>
+  ) : error ? (
+    <div className={`text-red-500 bg-red-100 p-4 rounded ${language === "ar" ? "text-end" : "text-start"}`}>
+      {language === "ar" ? "حدث خطأ ما، يرجى المحاولة مرة أخرى" : "An error occurred. Please try again."}
     </div>
   ) : (
     <SidebarProvider>

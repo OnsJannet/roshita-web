@@ -279,6 +279,10 @@ const Page = () => {
     router.push("/consultations");
   };
 
+  const handleNotificationsClick = () => {
+    router.push("/notifications");
+  };
+
   const handleError = (errorMessage: string) => {
     console.error("Error from child:", errorMessage);
     setErrorMessage(errorMessage);
@@ -358,7 +362,7 @@ const Page = () => {
                 <p>{translations[language].consultations}</p>
               </div>
               <div
-                onClick={handleAppointmentsClick}
+                onClick={handleNotificationsClick}
                 className="flex p-2 bg-gray-50 text-end flex-row-reverse gap-2 items-center mb-4 rounded-lg cursor-pointer"
               >
                 <div className="rounded-full bg-white h-6 w-6 flex items-center justify-center">

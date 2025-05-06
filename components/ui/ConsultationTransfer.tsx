@@ -72,14 +72,39 @@ export function ConsultationTransfer({
       return {};
     }
 
-    return appointments.reduce((acc, appointment) => {
-      const date = appointment.scheduled_date;
-      if (!acc[date]) {
-        acc[date] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+    // First, group appointments by date
+    const grouped = appointments.reduce((acc, appointment) => {
+      const appointmentDate = new Date(appointment.scheduled_date);
+      appointmentDate.setHours(0, 0, 0, 0); // Reset time to start of day
+
+      // Only include appointments from today onwards
+      if (appointmentDate >= today) {
+        const date = appointment.scheduled_date;
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(appointment);
       }
-      acc[date].push(appointment);
       return acc;
     }, {} as Record<string, Doctor["appointments"]>);
+
+    // Sort dates chronologically
+    const sortedDates = Object.keys(grouped).sort((a, b) => 
+      new Date(a).getTime() - new Date(b).getTime()
+    );
+
+    // For each date, sort appointments by time
+    const sortedGrouped = sortedDates.reduce((acc, date) => {
+      acc[date] = grouped[date].sort((a, b) => 
+        a.start_time.localeCompare(b.start_time)
+      );
+      return acc;
+    }, {} as Record<string, Doctor["appointments"]>);
+
+    return sortedGrouped;
   };
 
   const fetchDoctors = async (page: number) => {

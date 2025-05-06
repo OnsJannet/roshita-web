@@ -470,7 +470,7 @@ export function DataTable({
             if (response.ok) {
               console.log(`Deleted doctor with ID: ${id}`);
               // Refresh the page or update the list to reflect the changes
-              //window.location.reload();
+              window.location.reload();
             } else {
               console.error("Failed to delete doctor");
             }

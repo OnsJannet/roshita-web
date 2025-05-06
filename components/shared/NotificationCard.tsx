@@ -1,20 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-
-interface Notification {
-  id: number;
-  patient: string;
-  doctor: string;
-  service_type: string;
-  note: string;
-}
+import { formatDistanceToNow } from 'date-fns';
+import { ar, enUS } from 'date-fns/locale';
+import { Notification } from "@/types/notification";
 
 interface NotificationCardProps {
   notification: Notification;
   language: string;
-  onAccept: (id: number) => void;
-  onDeny: (id: number) => void;
+  onAccept?: (id: number) => void;
+  onDeny?: (id: number) => void;
+  onMarkAsRead?: (id: number) => void;
 }
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
@@ -22,45 +18,93 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   language,
   onAccept,
   onDeny,
+  onMarkAsRead,
 }) => {
-  const { id, patient, doctor, service_type, note } = notification;
+  const { id, patient, doctor, service_type, note, timestamp, status, type, organization, appointment_date } = notification;
+
+  const timeAgo = timestamp
+    ? formatDistanceToNow(new Date(timestamp), {
+        addSuffix: true,
+        locale: language === "ar" ? ar : enUS,
+      })
+    : "";
 
   return (
-    <Card className="mb-4">
-      <CardHeader>
-        <CardTitle>
-          {language === "ar" ? "إشعار جديد" : "New Notification"}
-        </CardTitle>
+    <Card className={`mb-4 ${status === 'unread' ? 'border-l-4 border-l-blue-500' : ''}`}>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-lg">
+            {language === "ar" ? "إشعار" : type === 'consultation' ? 'Consultation Request' : type === 'suggestion' ? 'Doctor Suggestion' : 'Response'}
+          </CardTitle>
+          <p className="text-sm text-gray-500">{timeAgo}</p>
+        </div>
+        {status === 'unread' && onMarkAsRead && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onMarkAsRead(id)}
+            className="text-blue-500 hover:text-blue-600"
+          >
+            {language === "ar" ? "تحديد كمقروء" : "Mark as read"}
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
-        <p>
-          <strong>{language === "ar" ? "المريض:" : "Patient:"}</strong> {patient}
-        </p>
-        <p>
-          <strong>{language === "ar" ? "الطبيب:" : "Doctor:"}</strong> {doctor}
-        </p>
-        <p>
-          <strong>{language === "ar" ? "نوع الخدمة:" : "Service Type:"}</strong>{" "}
-          {service_type}
-        </p>
-        <p>
-          <strong>{language === "ar" ? "ملاحظة:" : "Note:"}</strong> {note}
-        </p>
+        <div className="space-y-2">
+          {patient && (
+            <p>
+              <strong>{language === "ar" ? "المريض:" : "Patient:"}</strong> {patient}
+            </p>
+          )}
+          {doctor && (
+            <p>
+              <strong>{language === "ar" ? "الطبيب:" : "Doctor:"}</strong> {doctor}
+            </p>
+          )}
+          {organization && (
+            <p>
+              <strong>{language === "ar" ? "المستشفى:" : "Hospital:"}</strong> {organization.name}
+            </p>
+          )}
+          {service_type && (
+            <p>
+              <strong>{language === "ar" ? "نوع الخدمة:" : "Service Type:"}</strong>{" "}
+              {service_type}
+            </p>
+          )}
+          {appointment_date && (
+            <p>
+              <strong>{language === "ar" ? "موعد:" : "Appointment:"}</strong>{" "}
+              {new Date(appointment_date).toLocaleDateString(language === "ar" ? "ar-SA" : "en-US")}
+            </p>
+          )}
+          {note && (
+            <p>
+              <strong>{language === "ar" ? "ملاحظة:" : "Note:"}</strong> {note}
+            </p>
+          )}
+        </div>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        <Button
-          onClick={() => onAccept(id)}
-          className="bg-green-500 hover:bg-green-600"
-        >
-          {language === "ar" ? "قبول" : "Accept"}
-        </Button>
-        <Button
-          onClick={() => onDeny(id)}
-          className="bg-red-500 hover:bg-red-600"
-        >
-          {language === "ar" ? "رفض" : "Deny"}
-        </Button>
-      </CardFooter>
+      {(onAccept || onDeny) && (
+        <CardFooter className="flex justify-end gap-2">
+          {onAccept && (
+            <Button
+              onClick={() => onAccept(id)}
+              className="bg-green-500 hover:bg-green-600"
+            >
+              {language === "ar" ? "قبول" : "Accept"}
+            </Button>
+          )}
+          {onDeny && (
+            <Button
+              onClick={() => onDeny(id)}
+              variant="destructive"
+            >
+              {language === "ar" ? "رفض" : "Deny"}
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 };
