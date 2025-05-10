@@ -231,7 +231,7 @@ const Page = () => {
       };
   
       connect();
-      return socket;
+      return socket!; // Assert socket is defined since it's initialized in connect()
     };
   
     // Create WebSocket connections

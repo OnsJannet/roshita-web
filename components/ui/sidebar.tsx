@@ -509,7 +509,7 @@ const Sidebar = React.forwardRef<
     React.useEffect(() => {
       if (typeof window !== "undefined") {
         const userString = localStorage.getItem("user");
-        console.log("useruseruser", userString);
+
 
         if (userString) {
           const user = JSON.parse(userString);
@@ -526,10 +526,7 @@ const Sidebar = React.forwardRef<
               user?.user_type === "Doctor",
           });
 
-          console.log("Is Laboratory staff:", userRoles.lab);
-          console.log("Is Hospital Admin or staff:", userRoles.hospital);
-          console.log("Is Radiologic staff:", userRoles.xRays);
-          console.log("Is Hospital Doctor:", userRoles.doctor);
+
         }
       }
     }, []); // Runs once on mount
@@ -542,7 +539,6 @@ const Sidebar = React.forwardRef<
       ? dataRadiologic
       : dataDoctor;
 
-    console.log("dataToMap", dataToMap);
 
     if (isMobile) {
       return (

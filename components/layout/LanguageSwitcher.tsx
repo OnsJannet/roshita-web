@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 const LanguageSwitcher: React.FC = () => {
   const [language, setLanguage] = useState<string>('ar');
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const changeLanguage = (lang: string) => {
     localStorage.setItem('language', lang);
@@ -19,9 +21,19 @@ const LanguageSwitcher: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownHeight = 90; // Approximate height of dropdown (adjust as needed)
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpwards(spaceBelow < dropdownHeight);
+    }
+  }, [isOpen]);
+
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
       >
@@ -51,7 +63,10 @@ const LanguageSwitcher: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-full bg-white rounded-lg border border-gray-200 shadow-lg py-1 z-50">
+        <div
+          className={`absolute right-0 w-full bg-white rounded-lg border border-gray-200 shadow-lg py-1 z-50
+            ${openUpwards ? 'bottom-full mb-2' : 'mt-1'}`}
+        >
           <button
             onClick={() => {
               changeLanguage('ar');

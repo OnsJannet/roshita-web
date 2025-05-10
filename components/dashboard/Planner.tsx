@@ -1071,6 +1071,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           </SelectTrigger>
           <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
             {/* Filter unique hospitals by ID */}
+            {/*@ts-ignore*/}
             {[...new Map(hospitals.map(h => [h.id, h])).values()].map((hospital) => (
               <SelectItem key={hospital.id} value={hospital.id.toString()}>
                 {hospital.name}
