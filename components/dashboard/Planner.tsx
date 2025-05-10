@@ -186,7 +186,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           .filter((appointment) => {
             const status = appointment.reservation.reservation_payment_status;
             //return status !== "Cancelled" && status !== "Completed";
-            return status !== "Cancelled" && status !== "Cancelled By Patient" && status !== "Cancelled By Doctor" && status !== "Completed";
+            return status !== "Cancelled" && status !== "not attend" && status !== "Cancelled By Patient" && status !== "Cancelled By Doctor" && status !== "No Show" && status !== "Completed";
           })
           .sort((a, b) => {
             const dateA = new Date(a.reservation.reservation_date);
@@ -379,6 +379,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       appointment_reservation: selectedAppointmentId,
       medical_organization_ids: [selectedHospitalId],
       service_type: serviceType,
+      doctor_id: selectedDoctorId,
       note: note,
     };
 
@@ -808,7 +809,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                           {getStatusTranslation(appointment.reservation.reservation_payment_status)}
                         </TableCell>
                         <TableCell className="text-center">
-                            {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show"].includes(appointment.reservation.reservation_payment_status) ? (
+                            {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show", "not attend"].includes(appointment.reservation.reservation_payment_status) ? (
                               <div className={`flex justify-center gap-2 ${language === "ar" ? "flex-row-reverse" : ""}`}>
                                 <Button
                                   variant="outline"
@@ -887,7 +888,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                             {getStatusTranslation(appointment.reservation.reservation_payment_status)}
                           </TableCell>
                           <TableCell className="text-center">
-                            {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show"].includes(appointment.reservation.reservation_payment_status) ? (
+                            {!["Cancelled By Patient", "Not Attend", "rejected", "Cancelled By Doctor", "Cancelled", "No Show", "not attend"].includes(appointment.reservation.reservation_payment_status) ? (
                               <div className="flex justify-center gap-2">
                                 <Button
                                   variant="outline"

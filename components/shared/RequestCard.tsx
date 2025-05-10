@@ -9,7 +9,7 @@ interface RequestCardProps {
   userType: string;
   status: string;
   language: "ar" | "en";
-  //doctors: any;
+  diagnosisDescription?: string;
 }
 
 const RequestCard: React.FC<RequestCardProps> = ({
@@ -19,12 +19,13 @@ const RequestCard: React.FC<RequestCardProps> = ({
   language,
   speciality,
   userType,
-  status
+  status,
+  diagnosisDescription
 }) => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false); // Add state for delete operation
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Add new handler for hide/delete operation
   const handleHideConsultation = async () => {
     setIsDeleting(true);
     try {
@@ -48,18 +49,13 @@ const RequestCard: React.FC<RequestCardProps> = ({
       if (!response.ok) {
         throw new Error('Failed to hide consultation');
       }
-
-      // Optionally refresh the page or update the UI
-      //window.location.reload();
     } catch (error) {
       console.error('Error hiding consultation:', error);
-      // You might want to show an error message to the user
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Text content based on language
   const content = {
     title: language === "ar" ? "تفاصيل الطلب" : "Request Details",
     requestNumberLabel: language === "ar" ? "رقم الطلب" : "Request Number",
@@ -72,101 +68,121 @@ const RequestCard: React.FC<RequestCardProps> = ({
     transferButton: language === "ar" ? "تحويل" : "Transfer",
   };
 
-  // Function to open the transfer modal
   const handleTransferClick = () => {
     setIsTransferModalOpen(true);
   };
 
-// Function to navigate to the details page
-const handleDetailsClick = () => {
-  const url =
-    userType === "doctor"
-      ? `/doctor-dashboard/consultations/${requestNumber}`
-      : `/dashboard/consultations/${requestNumber}`;
-  window.location.href = url;
-};
+  const handleDetailsClick = () => {
+    const url =
+      userType === "doctor"
+        ? `/doctor-dashboard/consultations/${requestNumber}`
+        : `/dashboard/consultations/${requestNumber}`;
+    window.location.href = url;
+  };
+
+  // Fixed date formatting
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date');
+      }
+      
+      return date.toLocaleDateString(language === "ar" ? "en-GB" : "en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return language === "ar" ? "تاريخ غير صالح" : "Invalid date";
+    }
+  };
+
+  const formattedDate = formatDate(requestDate);
+  console.log("requestDate", requestDate)
+  console.log("formattedDate", formattedDate)
 
   return (
-    <div className={`w-full rounded-lg overflow-hidden  flex lg:justify-between items-center lg:h-40 h-full p-4 bg-gray-50 ${
-      language === "ar"
-        ? "text-right lg:flex-row-reverse flex-col"
-        : "text-left lg:flex-row flex-col"
-    }`}>
-      <div
-        className={`text-gray-700 text-base flex  w-[60%] lg:gap-20 gap-4 items-center ${
-          language === "ar"
-            ? "lg:flex-row-reverse flex-col justify-start"
-            : "lg:flex-row flex-col"
-        }`}
-      >
-        <div className="flex flex-col gap-4">
-          <p>
-            <strong>{content.requestNumberLabel}</strong>
-          </p>
-          <p>{requestNumber}</p>
-        </div>
-        <div className="flex flex-col gap-4">
-          <p>
-            <strong>{content.patientNameLabel}</strong>
-          </p>
-          <p>{patientName}</p>
-        </div>
-        <div className="flex flex-col gap-4">
-          <p>
-            <strong>{content.requestDateLabel}</strong>
-          </p>
-          <p>{requestDate}</p>
-        </div>
-        <div className="flex flex-col gap-4">
-          <p>
-            <strong>{content.specialityLabel}</strong>
-          </p>
-          <p>{speciality}</p>
-        </div>
-      </div>
-      <div
-        className={`lg:mt-2 mt-4 flex gap-4 ${
-          language === "ar" ? "flex-row-reverse  justify-start" : "flex-row "
-        } `}
-      >
-        <button
-          className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleDetailsClick} // Navigate to details page
-        >
-          {content.detailsButton}
-        </button>
-        {userType !== "hospital" && userType !=="doctor" && (
-          <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2">
-            {content.deleteButton}
-          </button>
-        )}
-        {userType === "hospital" && status === "Pending" &&(
-          <>
+    <div className={`w-full rounded-lg overflow-hidden flex flex-col p-4 transition-all duration-300 ${
+      isExpanded ? "h-auto" : "h-40"
+    } bg-gray-50 ${language === "ar" ? "text-right" : "text-left"}`}>
+      
+      {/* Main content row */}
+      <div className={`flex flex-col lg:flex-${language === "en" ? "row-reverse" : "row"} lg:justify-between lg:items-center gap-4`}>
+        
+        {/* Buttons section */}
+        <div className={`flex gap-4 ${language === "ar" ? "flex-row justify-start order-first lg:order-none" : "flex-row-reverse justify-end"}`}>
           <button
-            className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2"
-            onClick={handleTransferClick} // Open the modal on click
+            className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => setIsExpanded(!isExpanded)}
           >
-            {content.transferButton}
+            {isExpanded ? (language === "ar" ? "إخفاء التفاصيل" : "Hide Details") : content.detailsButton}
           </button>
-          <button
-            className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2"
-            onClick={handleHideConsultation}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (language === "ar" ? "جاري الحذف..." : "Deleting...") : content.deleteButton}
-          </button>
-        </>
-        )}
-        {userType !== "hospital" && userType !=="doctor" && (
-          <>
-            <button className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
+          
+          {userType !== "hospital" && userType !== "doctor" && (
+            <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded">
+              {content.deleteButton}
+            </button>
+          )}
+          
+          {userType === "hospital" && status === "Pending" && (
+            <>
+              <button
+                className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleTransferClick}
+              >
+                {content.transferButton}
+              </button>
+              <button
+                className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded"
+                onClick={handleHideConsultation}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (language === "ar" ? "جاري الحذف..." : "Deleting...") : content.deleteButton}
+              </button>
+            </>
+          )}
+          
+          {userType !== "hospital" && userType !== "doctor" && (
+            <button className="bg-[#cfe187] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
               {content.editButton}
             </button>
-          </>
-        )}
+          )}
+        </div>
+        
+        {/* Information section */}
+        <div className={`text-gray-700 text-base flex lg:w-[60%] gap-4 lg:gap-20 ${
+          language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
+        } flex-col`}>
+          <div className="flex flex-col gap-1">
+            <p><strong>{content.requestNumberLabel}</strong></p>
+            <p>{requestNumber}</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p><strong>{content.patientNameLabel}</strong></p>
+            <p>{patientName}</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p><strong>{content.requestDateLabel}</strong></p>
+            <p>{formattedDate}</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p><strong>{content.specialityLabel}</strong></p>
+            <p>{speciality}</p>
+          </div>
+        </div>
+
       </div>
 
-      {/* Render the ConsultationTransfer modal */}
+      {/* Expanded content - appears below everything */}
+      {isExpanded && (
+        <div className="w-full mt-4 bg-transparent rounded-lg p-4">
+          <strong>{language === "ar" ? "وصف التشخيص" : "Diagnosis Description"}</strong>
+          <p className="mt-2">{diagnosisDescription || (language === "ar" ? "لا يوجد وصف" : "No description provided")}</p>
+        </div>
+      )}
+
       <ConsultationTransfer
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}

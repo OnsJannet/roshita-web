@@ -226,6 +226,9 @@ export default function Page() {
     },
   ];
 
+
+  console.log("these are the consultations", consultations)
+
   // Filter consultations based on selected date and specialty
   const filterConsultations = (consultations: Consultation[]) => {
     let filteredConsultations = consultations;
@@ -359,10 +362,11 @@ export default function Page() {
                       key={consultation.id}
                       requestNumber={consultation.id.toString()}
                       patientName={consultation.patient.full_name}
-                      requestDate={""} // Replace with actual date if available
+                      requestDate={consultation.create_date ? consultation.create_date : "-"} // Replace with actual date if available
                       speciality={consultation.specialty.name}
                       status={consultation.status}
                       language={language}
+                      diagnosisDescription={consultation.diagnosis_description_request}
                       userType="hospital"
                     />
                   ))
