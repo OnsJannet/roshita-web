@@ -999,7 +999,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
                 <DialogTitle className="text-center">{t.followUpAppointment}</DialogTitle>
               </DialogHeader>
               <div className={`space-y-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                <p>{language === "ar" ? "اختر نوع المتابعة" : "Choose follow-up type"}</p>
+                <p className="text-center">{language === "ar" ? "اختر نوع المتابعة" : "Choose follow-up type"}</p>
                 <div className="flex justify-center space-x-2">
                   <Button onClick={() => handleSameDoctorFollowUp(selectedAppointmentId!)}>
                     {t.sameDoctorFollowUp}
@@ -1055,88 +1055,89 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           </Dialog>
 
           <Dialog open={isSendToAnotherDoctorModalOpen} onOpenChange={setIsSendToAnotherDoctorModalOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-center">{t.sendToAnotherDoctor}</DialogTitle>
-              </DialogHeader>
-              <div className={`space-y-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                  <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectHospital}</label>
-                  <Select
-                    onValueChange={(value) => setSelectedHospitalId(Number(value))}
-                    dir={language === 'ar' ? 'rtl' : 'ltr'}
-                  >
-                    <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
-                      <SelectValue placeholder={t.selectHospital} />
-                    </SelectTrigger>
-                    <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
-                      {hospitals.map((hospital) => (
-                        <SelectItem key={hospital.id} value={hospital.id.toString()}>
-                          {hospital.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {selectedHospitalId && (
-                  <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                    <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectDoctor}</label>
-                    <Select
-                      onValueChange={(value) => setSelectedDoctorId(Number(value))}
-                      dir={language === 'ar' ? 'rtl' : 'ltr'}
-                    >
-                      <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
-                        <SelectValue placeholder={t.selectDoctor} />
-                      </SelectTrigger>
-                      <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
-                        {filteredDoctors.map((doctor) => (
-                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                            {doctor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div>
-                  <label>{language === "ar" ? "نوع الخدمة" : "Service Type"}</label>
-                  <Select
-                    value={serviceType}
-                    onValueChange={(value) => setServiceType(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={language === "ar" ? "اختر نوع الخدمة" : "Select service type"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Shelter">
-                        {language === "ar" ? "مأوى" : "Shelter"}
-                      </SelectItem>
-                      <SelectItem value="Shelter_Operation">
-                        {language === "ar" ? "عملية المأوى" : "Shelter Operation"}
-                      </SelectItem>
-                      <SelectItem value="Operation">
-                        {language === "ar" ? "عملية" : "Operation"}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label>{language === "ar" ? "ملاحظات" : "Notes"}</label>
-                  <textarea
-                    className="w-full p-2 border rounded"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={handleSendToAnotherDoctorSubmit}
-                  disabled={isProcessing || !selectedHospitalId || !selectedDoctorId}
-                >
-                  {isProcessing ? t.processing : t.submit}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle className="text-center">{t.sendToAnotherDoctor}</DialogTitle>
+    </DialogHeader>
+    <div className={`space-y-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+      <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+        <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectHospital}</label>
+        <Select
+          onValueChange={(value) => setSelectedHospitalId(Number(value))}
+          dir={language === 'ar' ? 'rtl' : 'ltr'}
+        >
+          <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
+            <SelectValue placeholder={t.selectHospital} />
+          </SelectTrigger>
+          <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
+            {/* Filter unique hospitals by ID */}
+            {[...new Map(hospitals.map(h => [h.id, h])).values()].map((hospital) => (
+              <SelectItem key={hospital.id} value={hospital.id.toString()}>
+                {hospital.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {selectedHospitalId && (
+        <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+          <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectDoctor}</label>
+          <Select
+            onValueChange={(value) => setSelectedDoctorId(Number(value))}
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
+          >
+            <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
+              <SelectValue placeholder={t.selectDoctor} />
+            </SelectTrigger>
+            <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
+              {(hospitals.find(h => h.id === selectedHospitalId)?.doctors || []).map((doctor) => (
+                <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                  {doctor.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div>
+        <label>{language === "ar" ? "نوع الخدمة" : "Service Type"}</label>
+        <Select
+          value={serviceType}
+          onValueChange={(value) => setServiceType(value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={language === "ar" ? "اختر نوع الخدمة" : "Select service type"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Shelter">
+              {language === "ar" ? "مأوى" : "Shelter"}
+            </SelectItem>
+            <SelectItem value="Shelter_Operation">
+              {language === "ar" ? "عملية المأوى" : "Shelter Operation"}
+            </SelectItem>
+            <SelectItem value="Operation">
+              {language === "ar" ? "عملية" : "Operation"}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <label>{language === "ar" ? "ملاحظات" : "Notes"}</label>
+        <textarea
+          className="w-full p-2 border rounded"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>
+      <Button
+        onClick={handleSendToAnotherDoctorSubmit}
+        disabled={isProcessing || !selectedHospitalId || !selectedDoctorId}
+      >
+        {isProcessing ? t.processing : t.submit}
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
         </>
       )}
     </div>
