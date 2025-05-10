@@ -202,9 +202,11 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                   language === "en" ? "flex-row-reverse" : ""
                 }`}
               >
-                <span>
-                  {language === "en" ? "Price: " : "سعر الكشف: "} {price}
-                </span>
+
+            <span>
+              {language === "en" ? "Price: " : "سعر الكشف: "} {price} {language === "en" ? "LYD" : "د.ل"}
+            </span>
+
                 <Banknote className="text-roshitaDarkBlue" />
               </div>
 

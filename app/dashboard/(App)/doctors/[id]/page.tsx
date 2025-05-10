@@ -816,6 +816,8 @@ export default function Page() {
       );
 
       setAppointments(filteredAppointments.reverse());
+
+      console.log("filteredAppointments", filteredAppointments)
       setCurrentPage(page);
       setTotalPages(Math.ceil(data.count / 5)); // Assuming 5 items per page
       setNextPage(data.next);

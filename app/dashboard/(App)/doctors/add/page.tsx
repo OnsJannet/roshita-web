@@ -203,6 +203,7 @@ export default function Page() {
       };
   
       const formDataObj = new FormData();
+
       
       // Append all data as JSON string
       formDataObj.append("doctor_phone", requestData.doctor_phone);
@@ -219,6 +220,9 @@ export default function Page() {
       if (formData.Image && typeof formData.Image !== 'string') {
         formDataObj.append("staff_avatar", formData.Image);
       }
+
+      
+      console.log("formDataObj", formDataObj)
   
       const response = await fetch(url, {
         method: "POST",
@@ -233,7 +237,7 @@ export default function Page() {
   
       if (response.ok) {
         console.log("✅ Doctor registered:", data);
-        window.location.href = "/dashboard/doctors";
+        //window.location.href = "/dashboard/doctors";
       } else {
         console.error("❌ Registration failed:", data);
         setErrorMessage(

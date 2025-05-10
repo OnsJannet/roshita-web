@@ -155,7 +155,7 @@ const Appointment = () => {
         specialty={doctor.specialization}
         rating={doctor.rating || 0}
         reviewsCount={doctor.reviewsCount || 0}
-        price={`${doctor.price} ${language === 'ar' ? 'د.ل' : 'DL'}`}
+        price={doctor.price}
         // @ts-ignore
         location={doctor.medical_organizations[0].city.name}
         imageUrl={doctor.image}
