@@ -342,7 +342,8 @@ const DoctorDetailsPage = () => {
         specialty={doctor.specialty}
         rating={doctor.rating}
         reviewsCount={doctor.reviewsCount}
-        price={doctor.price}
+        //@ts-ignore
+        price={`${doctor.price} ${language === 'ar' ? 'د.ل' : 'DL'}`}
         location={doctor.city}
         city={doctor.city}
         imageUrl={doctor.image}

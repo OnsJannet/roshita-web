@@ -131,6 +131,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         return "مؤكد";
       case "completed":
         return "مكتمل";
+        case "paid":
+          return "مدفوع";        
       case "not attend":
         return "لم يحضر";
       case "rejected":
@@ -144,6 +146,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     }
   };
 
+  console.log("these are the aailable slots", availableSlots)
   useEffect(() => {
     const fetchAllAppointments = async () => {
       setIsLoading(true);
@@ -183,7 +186,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
           .filter((appointment) => {
             const status = appointment.reservation.reservation_payment_status;
             //return status !== "Cancelled" && status !== "Completed";
-            return status !== "Cancelled" && status !== "Cancelled By Patient" && status !== "Cancelled By Doctor";
+            return status !== "Cancelled" && status !== "Cancelled By Patient" && status !== "Cancelled By Doctor" && status !== "Completed";
           })
           .sort((a, b) => {
             const dateA = new Date(a.reservation.reservation_date);
@@ -244,7 +247,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       setIsProcessing(true);
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `/api/doctors/getDoctorById?id=${doctorId}`,
+        `https://www.test-roshita.net/api/doctors/available-appointment-by-doctor/${doctorId}/`,
         {
           method: "GET",
           headers: {
@@ -256,11 +259,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       if (!response.ok) throw new Error("Failed to fetch available slots");
 
       const data = await response.json();
-      console.log("these are the available slots: ", data);
-      const pendingSlots = (data.data?.appointments || []).filter((slot: AppointmentSlot) => {
-        return slot.status === "pending" || !slot.status;
-      });
-      setAvailableSlots(pendingSlots);
+      console.log("Available slots from API:", data);
+      setAvailableSlots(data); // Assuming API returns directly the slots array
     } catch (error) {
       console.error("Error fetching available slots:", error);
     } finally {
@@ -329,6 +329,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       alert("Please select a slot.");
       return;
     }
+
+    console.log('thsi is the seleted slot', selectedSlot)
 
     setIsProcessing(true);
     const payload = {
@@ -672,12 +674,28 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     appointmentNumber: string,
     appointmentDoctorId: number
   ) => {
+    console.log('handleDoneClick called with:', {
+      appointmentId,
+      appointmentReservationId,
+      appointmentNumber,
+      appointmentDoctorId
+    });
+  
     setSelectedAppointmentId(appointmentId);
     setAppointmentNumber(appointmentNumber);
     setPatientId(appointmentReservationId.toString());
     setAppointmentDoctorId(appointmentDoctorId.toString());
     setIsModalOpen(true);
+  
+    console.log('State after update:', {
+      selectedAppointmentId: appointmentId,
+      appointmentNumber,
+      patientId: appointmentReservationId.toString(),
+      appointmentDoctorId: appointmentDoctorId.toString()
+    });
   };
+
+  console.log("appointmentNumber", appointmentNumber)
 
   const handleEndAppointment = async () => {
     if (selectedAppointmentId) {
@@ -710,6 +728,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   const disableNextPage = page >= totalPages;
   const disablePreviousPage = page === 1;
+
+  console.log("appointments", appointments);
 
   return (
     <div className="p-4 border rounded-md shadow" dir={language === "ar" ? "rtl" : "ltr"}>

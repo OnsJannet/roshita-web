@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 
 interface Notification {
   id: number;
-  patient: string;
-  doctor: string;
-  service_type: string;
-  note: string;
+  patient?: string;
+  doctor?: string;
+  service_type?: string;
+  note?: string;
   timestamp?: string;
   status?: string;
+  message: string;
+  data?: any;
 }
 
 interface UseNotificationSocketProps {
@@ -22,7 +24,13 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
 
   useEffect(() => {
     let socket: WebSocket;
-    let baseUrl = 'wss://test-roshita.net/ws/notifications';
+
+    if (!userId) {
+      setError('User ID is required for WebSocket connection');
+      return;
+    }
+
+    let baseUrl = 'wss://test-roshita.net:8080/ws/notifications';
     let endpoint = '';
 
     switch (userType) {
@@ -35,44 +43,66 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
       case 'hospital':
         endpoint = `${baseUrl}/hospital-new-consultation/${userId}/`;
         break;
+      default:
+        setError('Invalid user type');
+        return;
     }
 
-    try {
-      socket = new WebSocket(endpoint);
+    const connectWebSocket = () => {
+      try {
+        console.log('Attempting to connect to WebSocket at:', endpoint);
+        
+        socket = new WebSocket(endpoint);
 
-      socket.onopen = () => {
-        setIsConnected(true);
-        setError(null);
-      };
+        socket.onopen = () => {
+          setIsConnected(true);
+          setError(null);
+          console.log('WebSocket connected successfully');
+        };
 
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'send_notification') {
-          const notification = {
-            id: data.data.id,
-            patient: data.data.patient,
-            doctor: data.data.doctor,
-            service_type: data.data.service_type,
-            note: data.data.note,
-            timestamp: data.data.timestamp || new Date().toISOString(),
-            status: data.data.status || 'unread'
-          };
-          setNotifications((prev) => [notification, ...prev]);
-        }
-      };
+        socket.onmessage = (event) => {
+          console.log('Raw WebSocket message:', event.data);
+          try {
+            const data = JSON.parse(event.data);
+            console.log('Parsed WebSocket message:', data);
+            
+            const notification: Notification = {
+              id: Date.now(),
+              message: data.message || 'New notification',
+              status: 'unread',
+              timestamp: new Date().toISOString(),
+              data: data,
+              ...(data.data || {}) // Spread any additional data fields
+            };
+            
+            console.log('Processed notification:', notification);
+            setNotifications((prev) => [notification, ...prev]);
+          } catch (parseError) {
+            console.error('Error parsing WebSocket message:', parseError);
+            console.log('Raw message that failed to parse:', event.data);
+          }
+        };
 
-      socket.onerror = (error) => {
-        setError('WebSocket connection error');
+        socket.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          setError('WebSocket connection error');
+          setIsConnected(false);
+        };
+
+        socket.onclose = (event) => {
+          console.log('WebSocket closed:', event);
+          setIsConnected(false);
+          setTimeout(connectWebSocket, 5000);
+        };
+      } catch (err) {
+        console.error('WebSocket connection failed:', err);
+        setError('Failed to establish WebSocket connection');
         setIsConnected(false);
-      };
+        setTimeout(connectWebSocket, 5000);
+      }
+    };
 
-      socket.onclose = () => {
-        setIsConnected(false);
-      };
-    } catch (err) {
-      setError('Failed to establish WebSocket connection');
-      setIsConnected(false);
-    }
+    connectWebSocket();
 
     return () => {
       if (socket) {

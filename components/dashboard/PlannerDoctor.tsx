@@ -110,6 +110,10 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(
     null
   );
+  const [selectedSlotDate, setSelectedSlotDate] = useState("");
+  const [selectedSlotstart_time, setSelectedSlotstart_time] = useState("");
+  const [selectedSlotend_time, setSelectedSlotend_time] = useState("");
+  const [selectedSlotprice, setSelectedSlotprice] = useState("");
   const [loading, setLoading] = useState(false);
   const [followUpError, setFollowUpError] = useState("");
   const [serviceType, setServiceType] = useState("");
@@ -179,9 +183,8 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
             const status = appointment.reservation.reservation_payment_status;
 
             return (
-              //appointmentDate >= today &&
-              status !== "Cancelled"
-              //&& status !== "Completed"
+              status !== "Cancelled" &&
+              status !== "Completed"
             );
           })
           .sort((a, b) => {
@@ -303,7 +306,13 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   };
 
   const handleSlotSelection = (slot: AppointmentSlot) => {
-    setSelectedSlot(slot);
+    console.log("Selected slot:", slot);
+    //@ts-ignore
+    setSelectedSlot(slot.id);
+    setSelectedSlotDate(slot.scheduled_date)
+    setSelectedSlotstart_time(slot.start_time)
+    setSelectedSlotend_time(slot.end_time)
+    setSelectedSlotprice(slot.price)
   };
 
   const handleSameDoctorFollowUpSubmit = async () => {
@@ -314,10 +323,12 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
     const payload = {
       confirmation_code: appointmentNumber,
-      reservation_date: selectedSlot.scheduled_date,
-      start_time: selectedSlot.start_time,
-      end_time: selectedSlot.end_time,
+      reservation_date: selectedSlotDate,
+      start_time: selectedSlotstart_time,
+      end_time: selectedSlotend_time,
     };
+
+    console.log("Validated payload:", payload);
 
     try {
       const token = localStorage.getItem("access");
@@ -428,7 +439,9 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         "cancelled by patient": "Cancelled By Patient",
         "cancelled by doctor": "Cancelled By Doctor",
         "not attend": "Not Attend",
-        "rejected": "Rejected"
+        "rejected": "Rejected",
+        "paid": "Paid",
+        "Paid": "Paid"
       }
     },
     ar: {
@@ -462,7 +475,9 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         "cancelled by patient": "ملغى من قبل المريض",
         "cancelled by doctor": "ملغى من قبل الطبيب",
         "not attend": "لم يحضر",
-        "rejected": "مرفوض"
+        "rejected": "مرفوض",
+        "paid": "مدفوع",
+        "Paid": "مدفوع"
       }
     },
   };
@@ -712,6 +727,8 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
           return "مؤكد";
         case "completed":
           return "مكتمل";
+        case "paid":
+          return "مدفوع";
         case "not attend":
           return "لم يحضر";
         case "rejected":
@@ -727,7 +744,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
   return (
     <div
-      className="p-4 border rounded-md shadow"
+      className="p-4 border rounded-xl "
       dir={language === "ar" ? "rtl" : "ltr"}
     >
       {isLoading ? (
@@ -791,7 +808,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 </TableCell>
 
                     <TableCell className="text-center">
-                      {!["Cancelled By Patient", "Not Attend", "Rejected", "Cancelled By Doctor", "Cancelled"].includes(appointment.reservation.reservation_payment_status) ? (
+                      {!["Cancelled By Patient", "Not Attend", "Rejected", "Cancelled By Doctor", "Cancelled", "Completed"].includes(appointment.reservation.reservation_payment_status) ? (
                         <div className="flex justify-center gap-2">
                           <Button
                             variant="outline"

@@ -597,7 +597,7 @@ export default function Page() {
   
       if (response.ok) {
         console.log('Doctor updated successfully:', result);
-        //window.location.reload();
+        window.location.reload();
       } else {
         console.error('Error updating doctor:', result);
         setError(result.message || 'Error updating doctor information');
@@ -803,7 +803,7 @@ export default function Page() {
                 },
                 {
                   label: language === "ar" ? "سعر الحجز" : "Booking Price",
-                  value: doctor?.fixed_price || "",
+                  value: `${doctor?.fixed_price ? `${doctor.fixed_price} ${language === "ar" ? "د.ل" : "DL"}` : (language === "ar" ? "غير محدد" : "Not specified")}`,
                 },
               ]}
               picture={
@@ -887,7 +887,7 @@ export default function Page() {
               onSpecialityChange={handleSpecialityChange}
             />
 
-            <Table className="w-full border border-gray-300 shadow-sm rounded-sm">
+            <Table className="w-full border  !rounded-2xl">
               <thead>
                 <TableRow>
                   {language === "ar" ? (
@@ -936,22 +936,26 @@ export default function Page() {
                       {language === "ar" ? (
                         <>
                           <TableCell className="text-center">
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleRemoveSlot(index, slot.id)}
-                              className="text-white hover:text-red-800"
-                            >
-                              {t.remove}
-                            </Button>
-                            <Button
-                              onClick={() => handleBooked(index)}
-                              className="text-white bg-[#1685c7] ml-2"
-                            >
-                              {t.roshitaBook}
-                            </Button>
+                            {slot.appointment_status !== "available" && slot.appointment_status !== "reserved" &&(
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleRemoveSlot(index, slot.id)}
+                                className="text-white hover:text-red-800"
+                              >
+                                {t.remove}
+                              </Button>
+                            )}
+                            {slot.appointment_status !== "reserved" && (
+                              <Button
+                                onClick={() => handleBooked(index)}
+                                className="text-white bg-[#1685c7] ml-2"
+                              >
+                                {t.roshitaBook}
+                              </Button>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">
-                            {slot.appointment_status}
+                            {slot.appointment_status === "reserved" ? "محجوز" : "متاح"}
                           </TableCell>
                           <TableCell className="text-center">
                             {slot.end_time}
@@ -975,22 +979,26 @@ export default function Page() {
                             {slot.end_time}
                           </TableCell>
                           <TableCell className="text-center">
-                            {slot.appointment_status}
+                            {slot.appointment_status === "reserved" ? "Reserved" : "Available"}
                           </TableCell>
                           <TableCell className="text-center gap-2">
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleRemoveSlot(index, slot.id)}
-                              className="text-white hover:text-red-800"
-                            >
-                              {t.remove}
-                            </Button>
-                            <Button
-                              onClick={() => handleBooked(index)}
-                              className="text-white bg-[#1685c7] ml-2"
-                            >
-                              {t.roshitaBook}
-                            </Button>
+                            {slot.appointment_status !== "available" && slot.appointment_status !== "reserved" && (
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleRemoveSlot(index, slot.id)}
+                                className="text-white hover:text-red-800"
+                              >
+                                {t.remove}
+                              </Button>
+                            )}
+                            {slot.appointment_status !== "reserved" && (
+                              <Button
+                                onClick={() => handleBooked(index)}
+                                className="text-white bg-[#1685c7] ml-2"
+                              >
+                                {t.roshitaBook}
+                              </Button>
+                            )}
                           </TableCell>
                         </>
                       )}

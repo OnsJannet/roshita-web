@@ -42,7 +42,6 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
-  console.log("status222", status);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -304,6 +303,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
         return "مؤكد";
       case "completed":
         return "مكتمل";
+        case "paid":
+          return "مدفوع";  
       case "not attend":
         return "لم يحضر";
       case "rejected":

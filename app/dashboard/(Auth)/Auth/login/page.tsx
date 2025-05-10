@@ -248,16 +248,21 @@ const Page = () => {
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#0575E6] h-[70px] rounded-[30px]"
+              className="w-full bg-[#0575E6] h-[70px] rounded-[30px] flex items-center justify-center gap-2"
               disabled={loading}
             >
-              {loading
-                ? language === "ar"
-                  ? "جاري التسجيل..."
-                  : "Signing in..."
-                : language === "ar"
-                ? "تسجيل الدخول"
-                : "Sign In"}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>
+                    {language === "ar" ? "جاري تسجيل الدخول..." : "Signing in..."}
+                  </span>
+                </>
+              ) : (
+                <span>
+                  {language === "ar" ? "تسجيل الدخول" : "Sign In"}
+                </span>
+              )}
             </Button>
           </form>
 

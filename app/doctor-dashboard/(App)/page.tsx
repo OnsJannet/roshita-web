@@ -3,18 +3,13 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DoctorAreaChart } from "@/components/charts/DoctorAreaChart";
 import { DoctorBarChat } from "@/components/charts/DoctorBarChat";
 import { DoctorPieChart } from "@/components/charts/DoctorPieChart";
-import Planner from "@/components/dashboard/Planner";
 import PlannerDoctor from "@/components/dashboard/PlannerDoctor";
 import Breadcrumb from "@/components/layout/app-breadcrumb"; // Assuming your Breadcrumb component is here
-import { AreaChartDash } from "@/components/shared/AreaChartDash";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import AddDoctorCard from "@/components/unique/AddDoctorCard";
-import { BarChartDash } from "@/components/unique/BarChartDash";
-import { PieChartDash } from "@/components/unique/PieChartDash";
 import { useEffect, useState } from "react";
 
 type Language = "ar" | "en";
@@ -76,11 +71,11 @@ export default function Page() {
 
         {/* Main Content Section */}
         <div className=" p-4 flex  flex-col justify-center">
-        <div className=" p-4 flex  flex-col justify-center">
-            <div className="mb-4">
+
+            <div className="mb-4 w-full">
               <PlannerDoctor language={language} />
             </div>
-          </div>
+
           <div className="grid lg:grid-cols-3 gap-4 w-full mb-2">
             <div className="h-[400px]">
               <DoctorBarChat />

@@ -1230,8 +1230,16 @@ const Page = () => {
                       <Button
                         type="submit"
                         className="w-full bg-[#0575E6] h-[70px] rounded-[30px] lg:w-1/2"
+                        disabled={loading}
                       >
-                        {t.next}
+                        {loading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>{language === "ar" ? "جاري التسجيل..." : "Registering..."}</span>
+                          </div>
+                        ) : (
+                          <span>{language === "ar" ? "تسجيل" : "Register"}</span>
+                        )}
                       </Button>
                     </div>
                   </form>

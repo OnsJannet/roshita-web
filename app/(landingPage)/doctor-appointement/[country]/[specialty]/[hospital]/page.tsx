@@ -252,9 +252,13 @@ const Page = () => {
     }
     
     if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
-      const hospitalMatch = doctor.medical_organizations.some(org => 
-        selectedHospitals.includes(org.name) || selectedHospitals.includes(org.foreign_name)
-      );
+      console.log('Selected Hospitals:', selectedHospitals);
+      console.log('Doctor Medical Organizations:', doctor.medical_organizations);
+      const hospitalMatch = doctor.medical_organizations.some(org => {
+        console.log('Checking hospital:', org.name, org.foreign_name);
+        console.log('Match with selected:', selectedHospitals.includes(org.name), selectedHospitals.includes(org.foreign_name));
+        return selectedHospitals.includes(org.name) || selectedHospitals.includes(org.foreign_name);
+      });
       if (!hospitalMatch) return false;
     }
     
@@ -325,7 +329,7 @@ const Page = () => {
                   specialty={doctor.specialization}
                   rating={doctor.rating}
                   reviewsCount={0}
-                  price={doctor.price}
+                  price={`${doctor.price} ${language === 'ar' ? 'د.ل' : 'DL'}`}
                   location={doctor.city}
                   hospital={
                     language === "ar"

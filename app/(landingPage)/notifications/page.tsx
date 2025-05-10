@@ -165,79 +165,82 @@ const Page = () => {
 
   const setupWebSocket = useCallback((patientId: string) => {
     if (!patientId) return () => {};
-
-    const RECONNECT_DELAY = 3000; // 3 seconds
+  
     const MAX_RETRIES = 5;
+    const BASE_DELAY = 1000; // 1 second
+    const MAX_DELAY = 30000; // 30 seconds
     let retryCount = 0;
     let sockets: WebSocket[] = [];
-
+  
     const createSocket = (url: string): WebSocket => {
-      const socket = new WebSocket(url);
-
-      socket.onopen = () => {
-        console.log(`WebSocket connected: ${url}`);
-        retryCount = 0; // Reset retry count on successful connection
-      };
-
-      socket.onmessage = (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (data.type === 'send_notification') {
-            setNotifications(prev => {
-              const newNotification: Notification = {
-                id: Date.now(),
-                type: determineNotificationType(data.data),
-                message: data.data.message || getDefaultMessage(data.data),
-                status: 'unread',
-                created_at: new Date().toISOString(),
-                data: {
-                  consultation_id: data.data.consultation_request_id,
-                  doctor_id: data.data.doctor_id,
-                  hospital_id: data.data.organization?.id,
-                  patient: data.data.patient,
-                  doctor: data.data.doctor,
-                  appointment_date: data.data.appointment_date,
-                  organization: data.data.organization,
-                  consultation_request_id: data.data.consultation_request_id
-                }
-              };
-              return [newNotification, ...prev];
-            });
+      let socket: WebSocket;
+  
+      const connect = () => {
+        socket = new WebSocket(url);
+  
+        socket.onopen = () => {
+          console.log(`WebSocket connected: ${url}`);
+          retryCount = 0; // Reset retry count on successful connection
+        };
+  
+        socket.onmessage = (event: MessageEvent) => {
+          try {
+            const data = JSON.parse(event.data);
+  
+            if (data.type === 'send_notification') {
+              setNotifications(prev => {
+                const newNotification: Notification = {
+                  id: Date.now(),
+                  type: determineNotificationType(data.data),
+                  message: data.data.message || getDefaultMessage(data.data),
+                  status: 'unread',
+                  created_at: new Date().toISOString(),
+                  data: {
+                    consultation_id: data.data.consultation_request_id,
+                    doctor_id: data.data.doctor_id,
+                    hospital_id: data.data.organization?.id,
+                    patient: data.data.patient,
+                    doctor: data.data.doctor,
+                    appointment_date: data.data.appointment_date,
+                    organization: data.data.organization,
+                    consultation_request_id: data.data.consultation_request_id
+                  }
+                };
+                return [newNotification, ...prev];
+              });
+            }
+          } catch (error) {
+            console.error('Error processing WebSocket message:', error);
           }
-        } catch (error) {
-          console.error('Error processing WebSocket message:', error);
-        }
+        };
+  
+        socket.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+  
+        socket.onclose = (event) => {
+          console.log(`WebSocket closed: ${url}`, event.code, event.reason);
+  
+          if (event.code !== 1000 && retryCount < MAX_RETRIES) {
+            retryCount++;
+            const delay = Math.min(BASE_DELAY * 2 ** retryCount, MAX_DELAY);
+            console.log(`Attempting to reconnect in ${delay}ms...`);
+            setTimeout(connect, delay);
+          }
+        };
       };
-
-      socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-      socket.onclose = (event) => {
-        console.log(`WebSocket closed: ${url}`, event.code, event.reason);
-        
-        // Attempt to reconnect if the connection was not closed intentionally
-        if (event.code !== 1000 && retryCount < MAX_RETRIES) {
-          retryCount++;
-          console.log(`Attempting to reconnect (${retryCount}/${MAX_RETRIES})...`);
-          setTimeout(() => {
-            const newSocket = createSocket(url);
-            sockets = sockets.map(s => s === socket ? newSocket : s);
-          }, RECONNECT_DELAY * retryCount);
-        }
-      };
-
+  
+      connect();
       return socket;
     };
-
+  
     // Create WebSocket connections
     sockets = [
       `wss://test-roshita.net:8080/ws/notifications/patient-doctor-suggest/${patientId}/`,
-      //`wss://test-roshita.net:8080/ws/notifications/doctor-consultation-response-accepted/${patientId}/`,
+      `wss://test-roshita.net:8080/ws/notifications/doctor-consultation-response-accepted/${patientId}/`,
       `wss://test-roshita.net:8080/ws/notifications/patient-doctor-response/${patientId}/`
     ].map(url => createSocket(url));
-
+  
     // Cleanup function
     return () => {
       sockets.forEach(socket => {
@@ -303,7 +306,7 @@ const Page = () => {
 
   useEffect(() => {
     setLoading(false); // Set loading to false immediately since we're using WebSocket
-    const patientId = localStorage.getItem("patientId");
+    const patientId = localStorage.getItem("userId");
     if (patientId) {
       return setupWebSocket(patientId);
     }

@@ -920,10 +920,7 @@ export default function Page() {
                 },
                 {
                   label: language === "ar" ? "سعر الحجز" : "Booking Price",
-                  value: `${
-                    doctor?.fixed_price ??
-                    (language === "ar" ? "غير محدد" : "Not specified")
-                  }`,
+                  value: `${doctor?.fixed_price ? `${doctor.fixed_price} ${language === "ar" ? "د.ل" : "DL"}` : (language === "ar" ? "غير محدد" : "Not specified")}`,
                 },
               ]}
               picture={
@@ -999,7 +996,7 @@ export default function Page() {
               onSpecialityChange={handleSpecialityChange} // Pass the city change handler
             />
 
-            <Table className="w-full border border-gray-300  shadow-sm rounded-sm">
+            <Table className="w-full border border-gray-300  shadow-sm  rounded-xl">
               <thead>
                 <TableRow>
                   {language === "ar" ? (

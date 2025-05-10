@@ -19,6 +19,7 @@ const Page = () => {
   const [password, setPassword] = useState("");
   const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -43,6 +44,8 @@ const Page = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
 
     // Prepare the data for the API request
     const data = {
@@ -62,7 +65,7 @@ const Page = () => {
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken":
-              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE", // Replace with actual CSRF token
+              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE",
           },
           body: JSON.stringify(data),
         }
@@ -71,11 +74,8 @@ const Page = () => {
       const result = await response.json();
 
       if (response.ok) {
-        
         setIsOTPModalOpen(true);
         console.log("Registration Response:", result);
-        // Redirect to login or other actions after successful registration
-        //window.location.href = "/login";
       } else {
         const errorMessage =
           result.message ||
@@ -88,7 +88,9 @@ const Page = () => {
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      alert("An error occurred during registration.");
+      setError(language === "ar" ? "حدث خطأ أثناء التسجيل" : "An error occurred during registration");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -280,10 +282,29 @@ const Page = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-roshitaBlue">
-              {language === "ar" ? "تسجيل" : "Register"}
+            <Button 
+              type="submit" 
+              className="w-full bg-roshitaBlue" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting 
+                ? (language === "ar" ? "جاري التسجيل..." : "Registering...") 
+                : (language === "ar" ? "تسجيل" : "Register")}
             </Button>
           </form>
+
+          {isSubmitting && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-roshitaBlue mx-auto mb-4"></div>
+                <p className="text-lg">
+                  {language === "ar" 
+                    ? "جاري معالجة طلبك..." 
+                    : "Processing your request..."}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="mt-4 text-center text-sm">
             {language === "ar"
               ? "لديك حساب بالفعل؟"

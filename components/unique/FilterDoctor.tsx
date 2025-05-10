@@ -399,7 +399,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
           </div>
 
           {/* Hospital Filter Accordion */}
-          <div className="mt-4">
+         {/*} <div className="mt-4">
             <div
               className="flex justify-between items-center cursor-pointer"
               onClick={() => setIsHospitalOpen(!isHospitalOpen)}
@@ -435,7 +435,7 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       )}
     </div>
