@@ -157,7 +157,7 @@ const Appointment = () => {
         reviewsCount={doctor.reviewsCount || 0}
         price={doctor.price}
         // @ts-ignore
-        location={doctor.medical_organizations[0].city.name}
+        location={doctor.city}
         imageUrl={doctor.image}
         day={appointmentDay}
         time={appointmentTime}

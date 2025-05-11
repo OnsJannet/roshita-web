@@ -77,12 +77,21 @@ const Page = () => {
         setIsOTPModalOpen(true);
         console.log("Registration Response:", result);
       } else {
-        const errorMessage =
+        let errorMessage =
           result.message ||
           result.phone ||
           result.email ||
           result.first_name ||
           result.last_name;
+
+        // Add translation for "A user with that phone number already exists."
+        if (errorMessage === "A user with that phone number already exists.") {
+          errorMessage =
+            language === "ar"
+              ? "يوجد مستخدم بهذا الرقم بالفعل."
+              : "A user with that phone number already exists.";
+        }
+
         setError(errorMessage);
         console.log("Registration Error:", result);
       }

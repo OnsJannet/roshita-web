@@ -362,6 +362,7 @@ export default function Page() {
                       key={consultation.id}
                       requestNumber={consultation.id.toString()}
                       patientName={consultation.patient.full_name}
+                      //@ts-ignore
                       requestDate={consultation.create_date ? consultation.create_date : "-"} // Replace with actual date if available
                       speciality={consultation.specialty.name}
                       status={consultation.status}

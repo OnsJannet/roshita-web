@@ -44,7 +44,7 @@ const InputAdmin: React.FC<InputProps> = ({
     <div
       className={`flex ${
         language === "ar" ? "flex-row-reverse" : "flex-row"
-      } items-center w-full p-4 border border-gray-200 rounded-lg shadow-sm gap-1`}
+      } items-center w-full p-4 border border-gray-200 rounded-lg  gap-1`}
     >
       <div className="text-blue-500 mr-2">{icon}</div>
       <input

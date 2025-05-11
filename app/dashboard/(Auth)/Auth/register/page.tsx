@@ -492,19 +492,18 @@ const Page = () => {
                   </p>
                 </div>
                 {error && (
-  <div className="text-red-500 text-center">
-    {error.split('\n').map((line, index) => (
-      <span key={index}>
-        {line}
-        <br />
-      </span>
-    ))}
-  </div>
-)}
+                  <div className="text-red-500 text-center">
+                    <ul className="list-disc list-inside inline-block text-left">
+                      {error.split('\n').map((line, index) => (
+                        <li key={index}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   {/* Option 1 */}
                   <div
-                    className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
+                    className={`p-4 bg-white rounded-lg  text-center cursor-pointer ${
                       selected === "lab"
                         ? "border-2 border-blue-500"
                         : "border border-gray-200"
@@ -523,7 +522,7 @@ const Page = () => {
 
                   {/* Option 2 */}
                   <div
-                    className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
+                    className={`p-4 bg-white rounded-lg  text-center cursor-pointer ${
                       selected === "rays"
                         ? "border-2 border-blue-500"
                         : "border border-gray-200"
@@ -542,7 +541,7 @@ const Page = () => {
 
                   {/* Option 3 */}
                   <div
-                    className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
+                    className={`p-4 bg-white rounded-lg  text-center cursor-pointer ${
                       selected === "hospital"
                         ? "border-2 border-blue-500"
                         : "border border-gray-200"
@@ -561,7 +560,7 @@ const Page = () => {
 
                   {/* Option 4 */}
                   <div
-                    className={`p-4 bg-white rounded-lg shadow text-center cursor-pointer ${
+                    className={`p-4 bg-white rounded-lg  text-center cursor-pointer ${
                       selected === "doctors"
                         ? "border-2 border-blue-500"
                         : "border border-gray-200"

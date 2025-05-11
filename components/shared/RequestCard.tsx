@@ -56,6 +56,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
     }
   };
 
+  console.log("userType", userType)
+
   const content = {
     title: language === "ar" ? "تفاصيل الطلب" : "Request Details",
     requestNumberLabel: language === "ar" ? "رقم الطلب" : "Request Number",
@@ -113,12 +115,17 @@ const RequestCard: React.FC<RequestCardProps> = ({
         
         {/* Buttons section */}
         <div className={`flex gap-4 ${language === "ar" ? "flex-row justify-start order-first lg:order-none" : "flex-row-reverse justify-end"}`}>
-          <button
-            className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? (language === "ar" ? "إخفاء التفاصيل" : "Hide Details") : content.detailsButton}
-          </button>
+        <button
+  className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+  onClick={() => userType === "doctor" ? handleDetailsClick() : setIsExpanded(!isExpanded)}
+>
+  {userType === "doctor" 
+    ? (language === "ar" ? "عرض التفاصيل" : "View Details")
+    : isExpanded 
+      ? (language === "ar" ? "إخفاء التفاصيل" : "Hide Details") 
+      : content.detailsButton
+  }
+</button>
           
           {userType !== "hospital" && userType !== "doctor" && (
             <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded">
@@ -176,7 +183,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
       </div>
 
       {/* Expanded content - appears below everything */}
-      {isExpanded && (
+      {isExpanded && userType !== "doctor" && (
         <div className="w-full mt-4 bg-transparent rounded-lg p-4">
           <strong>{language === "ar" ? "وصف التشخيص" : "Diagnosis Description"}</strong>
           <p className="mt-2">{diagnosisDescription || (language === "ar" ? "لا يوجد وصف" : "No description provided")}</p>

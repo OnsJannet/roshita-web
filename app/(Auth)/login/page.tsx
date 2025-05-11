@@ -70,12 +70,16 @@ const Page = () => {
       // Determine the error message based on language
       const errorMessage =
         language === "en"
-          ? error.message === "Invalid phone number or password"
+          ? error.message === "Invalid phone number or password" || error.message === "wrong password"
             ? "Invalid phone number or password"
+            : error.message === "This phone number does not exist."
+            ? "This phone number does not exist."
             : error.message ||
               "An error occurred during login. Please check your credentials and try again."
-          : error.message === "Invalid phone number or password"
+          : error.message === "Invalid phone number or password" || error.message === "wrong password"
           ? "رقم الهاتف أو كلمة المرور غير صحيحة"
+          : error.message === "This phone number does not exist."
+          ? "رقم الهاتف غير موجود"
           : error.message ||
             "حدث خطأ أثناء تسجيل الدخول. يرجى التحقق من بيانات الاعتماد والمحاولة مرة أخرى.";
 

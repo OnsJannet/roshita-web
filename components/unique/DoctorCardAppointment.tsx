@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Banknote, Calendar, MapPin } from "lucide-react";
+import { Banknote, Calendar, Clock, MapPin, Stethoscope } from "lucide-react";
 import { AcceptAppointment } from "../shared/accpetAppoitment"; // Ensure the path is correct for this import
 import { paiement } from "@/constant";
 import { Checkbox } from "../ui/checkbox";
@@ -175,7 +175,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
   }, []);
 
   return (
-    <div className="shadow-lg py-10 mt-2 max-w-[1280px] rounded-2xl">
+    <div className=" border py-10 mt-2 max-w-[1280px] rounded-2xl">
       {step === 1 && (
         <>
           <h2 className="text-center font-semibold lg:text-4xl text-2xl">
@@ -183,9 +183,9 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
           </h2>
           {/* Right Section: Doctor Info */}
           <div
-            className={`flex flex-1 ${
+            className={`flex  flex-1 ${
               language === "en" ? "justify-end flex-row-reverse" : "justify-end"
-            } gap-4 lg:px-40 lg:py-10 p-4`}
+            } gap-8 lg:px-40 lg:py-10 p-4`}
           >
             {/* Doctor's Details */}
             <div
@@ -196,7 +196,18 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
               <h1 className="lg:text-2xl text-xl font-bold text-gray-800 mb-1">
                 {name}
               </h1>
-              <p className="text-sm text-gray-500 mb-2 text-end">{specialty}</p>
+              <div
+                className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 ${
+                  language === "en" ? "flex-row-reverse" : ""
+                }`}
+              >
+
+            <span>
+              {specialty} 
+            </span>
+
+                <Stethoscope className="text-roshitaDarkBlue" />
+              </div>
               <div
                 className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 ${
                   language === "en" ? "flex-row-reverse" : ""
@@ -222,21 +233,45 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                 <MapPin className="text-roshitaDarkBlue" />
               </div>
 
-              <h1
-                className={`lg:text-2xl text-xl font-bold text-gray-800 mb-1 mt-4 flex gap-2 items-center ${
+              <div
+  className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 ${
+    language === "en" ? "flex-row-reverse" : ""
+  }`}
+>
+
+
+
+              <div
+                className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 ${
                   language === "en" ? "flex-row-reverse" : ""
                 }`}
               >
-                {language === "en" ? "Day" : "اليوم"}{" "}
-                <Calendar className="text-roshitaDarkBlue w-6 h-6" />
-              </h1>
+                <p className="text-sm text-gray-500">
+                  {time}
+                </p>
+                <Clock className="text-roshitaDarkBlue" />
+              </div>
 
-              <p>
-                {time} {day}
-              </p>
+              <div
+                className={`flex items-center text-sm text-gray-600 mb-1 mt-2 gap-2 ${
+                  language === "en" ? "flex-row-reverse" : ""
+                }`}
+              >
+                <p className="text-sm text-gray-500">
+                  {day}
+                </p>
+                <Calendar className="text-roshitaDarkBlue" />
+              </div>
+
+              </div>
+
 
               <div>
-                <div className="flex items-center space-x-2 mt-4 mb-2">
+              <div
+  className={`flex items-center mt-4 mb-2 gap-2 ${
+    language === "ar" ? "flex-row-reverse" : ""
+  }`}
+>
                   <input
                     type="checkbox"
                     id="family"
@@ -248,9 +283,9 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                     htmlFor="full"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {language === "en"
-                      ? "Is this appointment for a family member?"
-                      : " هل هذا الموعد لأحد أفراد العائلة؟"}
+{language === "en"
+  ? "This appointment is for a family member"
+  : "هذا الموعد لأحد أفراد العائلة"}
                   </label>
                 </div>
               </div>
@@ -455,7 +490,7 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
             </div>
 
             {/* Doctor's Image */}
-            <div className="ml-4 h-[120px] w-[120px] rounded-full bg-roshitaBlue flex justify-center items-center overflow-hidden">
+            <div className="ml-4 h-[150px] w-[150px] rounded-md bg-roshitaBlue flex justify-center items-center overflow-hidden">
               <img
                 src={
                   imageUrl &&

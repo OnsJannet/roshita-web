@@ -696,7 +696,8 @@ export function DataTable({
             disabled={currentPage === 0}
             className={`pagination-btn ${currentPage === 0 ? "disabled" : ""}`}
           >
-            Previous
+                        {language === "ar" ? "السابق" : "Previous"}
+
           </Button>
 
           {/* Page Numbers */}

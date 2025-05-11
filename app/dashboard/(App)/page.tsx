@@ -79,13 +79,13 @@ export default function Page() {
             <AreaChartDash />
           </div>
           <div className="flex lg:flex-row flex-col justify-between gap-4 w-full min-h-[400px]">
-            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg shadow-sm p-4">
+            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg  p-2">
               <BarChartDash />
             </div>
-            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg shadow-sm p-4">
+            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg  p-2">
               <PieChartDash />
             </div>
-            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg shadow-sm p-4">
+            <div className="lg:w-1/3 w-full h-full bg-white rounded-lg  p-2">
               <AddDoctorCard />
             </div>
           </div>

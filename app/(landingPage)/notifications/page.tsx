@@ -4,6 +4,7 @@ import { Bell, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchProfileDetails } from "@/lib/api";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 type Language = "ar" | "en";
 
@@ -79,9 +80,10 @@ const Page = () => {
   const router = useRouter();
   const [language, setLanguage] = useState<Language>("ar");
   const [errorMessage, setErrorMessage] = useState("");
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  //const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  //const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>(""); 
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
       first_name: "",
@@ -96,6 +98,33 @@ const Page = () => {
     user_type: 0,
     address: "",
   });
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    }
+
+    const storedUserId = localStorage.getItem('userId');
+    console.log('Stored userId:', storedUserId);
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
+    setLoading(false);
+  }, []);
+
+  const {
+    notifications,
+    isConnected,
+    error,
+    removeNotification,
+    markAsRead,
+  } = useNotificationSocket({
+    userId,
+    userType: "patient",
+  });
+
+  console.log("notifications from not page", notifications);
 
   const determineNotificationType = useCallback((data: any): Notification['type'] => {
     if (data.consultation_request_id && data.status === 'Accepted') {
@@ -163,7 +192,7 @@ const Page = () => {
     }
   }, []);*/
 
-  const setupWebSocket = useCallback((patientId: string) => {
+  /*const setupWebSocket = useCallback((patientId: string) => {
     if (!patientId) return () => {};
   
     const MAX_RETRIES = 5;
@@ -186,8 +215,10 @@ const Page = () => {
         socket.onmessage = (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
-  
+        
             if (data.type === 'send_notification') {
+              console.log('Received notification:', data); // ✅ Log the notification payload
+        
               setNotifications(prev => {
                 const newNotification: Notification = {
                   id: Date.now(),
@@ -213,6 +244,7 @@ const Page = () => {
             console.error('Error processing WebSocket message:', error);
           }
         };
+        
   
         socket.onerror = (error) => {
           console.error('WebSocket error:', error);
@@ -249,7 +281,7 @@ const Page = () => {
         }
       });
     };
-  }, [determineNotificationType, getDefaultMessage]);
+  }, [determineNotificationType, getDefaultMessage]);*/
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -304,13 +336,13 @@ const Page = () => {
     loadProfileData();
   }, []);
 
-  useEffect(() => {
+  /*useEffect(() => {
     setLoading(false); // Set loading to false immediately since we're using WebSocket
     const patientId = localStorage.getItem("userId");
     if (patientId) {
       return setupWebSocket(patientId);
     }
-  }, [setupWebSocket]);
+  }, [setupWebSocket]);*/
 
   const filterAppointments = (
     appointments: any[],
@@ -336,14 +368,14 @@ const Page = () => {
   const handleConsultationsClick = () => router.push("/consultations");
   const handleError = (errorMessage: string) => setErrorMessage(errorMessage);
 
-  const markAsRead = (id: number) => {
+ /*const markAsRead = (id: number) => {
     setNotifications(prev => 
       prev.map(notif => 
         notif.id === id ? { ...notif, status: 'read' } : notif
       )
     );
     // Here you would also call your API to mark the notification as read
-  };
+  };*/
 
   if (loading) {
     return (
@@ -468,11 +500,21 @@ const Page = () => {
                             ? 'text-gray-900' 
                             : 'text-gray-600'
                         }`}>
-                          {notification.message}
+                          {notification.message === "Consultation request accepted!" 
+                            ? (notification.data?.status !== "Reviewed"
+                              ? language === "ar"
+                                ? "تم اختيار استشارتك من قبل مستشفى وتم إرسالها إلى طبيب للمراجعة"
+                                : "Your consultation got picked up by a hospital. It's sent to a doctor to review."
+                              : language === "ar"
+                                ? `تم قبول طلب الاستشارة! الدكتور ${notification.data?.doctor} من ${notification.data?.medical_organizations}`
+                                : `Consultation request accepted! Dr. ${notification.data?.doctor} from ${notification.data?.medical_organizations}`)
+                            : notification.message === "New suggestion created!" && notification.data?.organization
+                              ? language === "ar"
+                                ? `اقترح طبيبك طبيباً جديداً لك من ${notification.data.organization.name}`
+                                : `Your doctor suggested a new doctor for you from ${notification.data.organization.name}`
+                              : notification.message}
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {notification.created_at}
-                        </p>
+
                       </div>
                     </div>
                     {notification.data?.consultation_id && (

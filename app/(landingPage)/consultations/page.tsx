@@ -415,14 +415,14 @@ const Page = () => {
                     date={
                       consultation.consultation_response
                         ?.doctor_appointment_date?.scheduled_date ||
-                      "No date available"
+                      (language === "ar" ? "لا يوجد تاريخ متاح" : "No date available")
                     }
                     price={consultation.consultation_response?.estimated_cost}
                     consultationType="استشارة خاصة"
                     doctorMessage={
                       consultation.consultation_response
                         ?.diagnosis_description_response ||
-                      "No doctor message available"
+                      (language === "ar" ? "لا توجد رسالة من الطبيب" : "No doctor message available")
                     }
                     patientMessage={consultation.diagnosis_description_request}
                     language={language}

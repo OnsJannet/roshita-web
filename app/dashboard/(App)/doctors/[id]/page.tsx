@@ -893,8 +893,8 @@ export default function Page() {
                 }
                 location={
                   (language === "en"
-                    ? doctor?.staff.medical_organization[0]?.city.foreign_name
-                    : doctor?.staff.medical_organization[0]?.city?.name) ??
+                    ? doctor?.staff.city.foreign_name
+                    : doctor?.staff.city?.name) ??
                   (language === "ar" ? "غير محدد" : "Not specified")
                 }
                 phone={

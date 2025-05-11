@@ -147,7 +147,7 @@ const AddDoctorCard = () => {
       if (response.ok) {
         console.log(`Deleted doctor with ID: ${id}`);
         // Refresh the page or update the list to reflect the changes
-        //window.location.reload();
+        window.location.reload();
       } else {
         console.error("Failed to delete doctor");
       }
@@ -225,7 +225,7 @@ const AddDoctorCard = () => {
                   key={doctor.id}
                   className={`flex ${
                     language === "ar" ? "flex-row-reverse" : "flex-row"
-                  } items-center gap-4  mb-2`}
+                  } items-center gap-4  mb-2 w-full `}
                 >
                   <Avatar>
                     <AvatarImage

@@ -6,13 +6,28 @@ import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { Notification } from "@/types/notification";
+import { Bell } from "lucide-react";
 
 type Language = "ar" | "en";
 
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [loading, setLoading] = useState<boolean>(true);
-  const [doctorId, setDoctorId] = useState<string>(""); // This should be set from your auth context
+  const [userId, setUserId] = useState<string>(""); // Initialize as empty string
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    }
+
+    const storedUserId = localStorage.getItem('userId');
+    console.log('Stored userId:', storedUserId);
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
+    setLoading(false);
+  }, []);
 
   const {
     notifications,
@@ -21,137 +36,143 @@ export default function Page() {
     removeNotification,
     markAsRead,
   } = useNotificationSocket({
-    userId: doctorId,
+    userId,
     userType: "doctor",
   });
 
-  // Handle Accept Consultation
-  const handleAccept = async (id: number) => {
-    try {
-      const response = await fetch(
-        `https://test-roshita.net/api/doctor/consultations/${id}/accept`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  console.log("notifications from not page", notifications);
 
-      if (response.ok) {
-        removeNotification(id);
-      } else {
-        console.error("Failed to accept consultation");
-      }
-    } catch (error) {
-      console.error("Error accepting consultation:", error);
-    }
+  // Helper function to extract consultation ID from message
+  const extractConsultationId = (message: string): number | null => {
+    const match = message.match(/\(ID: (\d+)\)/);
+    return match ? parseInt(match[1], 10) : null;
   };
 
-  // Handle Deny Consultation
-  const handleDeny = async (id: number) => {
-    try {
-      const response = await fetch(
-        `https://test-roshita.net/api/doctor/consultations/${id}/deny`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        removeNotification(id);
-      } else {
-        console.error("Failed to deny consultation");
-      }
-    } catch (error) {
-      console.error("Error denying consultation:", error);
-    }
-  };
-
-  // Handle Mark as Read
-  const handleMarkAsRead = async (id: number) => {
-    try {
-      const response = await fetch(
-        `https://test-roshita.net/api/doctor/notifications/${id}/read`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        markAsRead(id);
-      } else {
-        console.error("Failed to mark notification as read");
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-    }
-  };
+  // Breadcrumb items
+  const items = [
+    { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
+    {
+      label: language === "ar" ? "الإشعارات" : "Notifications",
+      href: "/dashboard/notifications",
+    },
+  ];
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden">
-        <AppSidebar />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-          <div className="container mx-auto px-6 py-8">
-            <div className="mb-8">
-              <Breadcrumb
-                items={[
-                  {
-                    label: language === "ar" ? "لوحة التحكم" : "Dashboard",
-                    href: "/doctor-dashboard",
-                  },
-                  {
-                    label: language === "ar" ? "الإشعارات" : "Notifications",
-                    href: "/doctor-dashboard/notifications",
-                  },
-                ]}
-              />
-            </div>
+      <SidebarInset>
+        <header
+          className={`flex ${
+            language === "ar" ? "justify-end" : "justify-between"
+          } h-16 shrink-0 items-center border-b px-4 gap-2`}
+        >
+          <div
+            className={`flex ${
+              language === "ar" ? "flex-row" : "flex-row-reverse"
+            } gap-2 items-center`}
+          >
+            <Breadcrumb items={items} translate={(key) => key} />
+            <SidebarTrigger className="rotate-180" />
+          </div>
+        </header>
 
-            <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {language === "ar" ? "الإشعارات" : "Notifications"}
-              </h1>
-            </div>
-
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          <div className="p-8 space-y-8">
             {error && (
-              <div className="mb-4 rounded-md bg-red-50 p-4 text-red-700">
+              <div
+                className={`text-red-500 bg-red-100 p-4 rounded ${
+                  language === "ar" ? "text-end" : "text-start"
+                }`}
+              >
                 {error}
               </div>
             )}
+            <div
+              className={`flex flex-col border rounded-lg bg-white shadow-sm max-w-[1280px] mx-auto ${
+                language === "ar" ? "rtl" : "ltr"
+              }`}
+            >
 
-            <div className="space-y-4">
-              {notifications.length === 0 ? (
-                <div className="rounded-lg bg-white p-6 text-center shadow dark:bg-gray-800">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {language === "ar"
-                      ? "لا توجد إشعارات جديدة"
-                      : "No new notifications"}
-                  </p>
-                </div>
-              ) : (
-                notifications.map((notification) => (
-                  <NotificationCard
-                    key={notification.id}
-                    notification={notification}
-                    language={language}
-                    onAccept={handleAccept}
-                    onDeny={handleDeny}
-                    onMarkAsRead={handleMarkAsRead}
-                  />
-                ))
-              )}
+              <div className="space-y-4 p-4">
+                {/* WebSocket Connection Status */}
+
+
+                {notifications.length === 0 ? (
+                  <div className="rounded-lg bg-white p-6 text-center">
+                    <p className="text-gray-500">
+                      {language === "ar"
+                        ? "لا توجد إشعارات جديدة"
+                        : "No new notifications"}
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notification) => {
+                    const consultationId = extractConsultationId(notification.message);
+                    return (
+                      <div
+                        key={notification.id}
+                        className={`bg-white p-6 rounded-lg border-l-4 ${
+                          notification.status === 'unread' 
+                            ? 'border-roshitaDarkBlue' 
+                            : 'border-gray-200'
+                        }`}
+                        dir={language === "ar" ? "rtl" : "ltr"}
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`rounded-full p-2 ${
+                              notification.status === 'unread' 
+                                ? 'bg-roshitaDarkBlue/10' 
+                                : 'bg-gray-100'
+                            }`}>
+                              <Bell className={`h-5 w-5 ${
+                                notification.status === 'unread' 
+                                  ? 'text-roshitaDarkBlue' 
+                                  : 'text-gray-500'
+                              }`} />
+                            </div>
+                            <div>
+                              <h3 className={`font-semibold ${
+                                notification.status === 'unread' 
+                                  ? 'text-gray-900' 
+                                  : 'text-gray-600'
+                              }`}>
+                                {notification.message === "New consultation assigned to you!" && notification.data?.patient_name && notification.data?.medical_organization
+                                ? language === "ar"
+                                ? `تم تعيين استشارة جديدة لك من المريض ${notification.data.patient_name} في ${notification.data.medical_organization}`
+                                : `New consultation from patient ${notification.data.patient_name} has been assigned to you at ${notification.data.medical_organization}`
+                                : notification.message}
+                              </h3>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {new Date(notification.timestamp || Date.now()).toLocaleString(
+                                  language === 'ar' ? 'en-US' : 'en-US'
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          {/*{consultationId && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Navigate to consultation details
+                                // router.push(`/consultations/${consultationId}`);
+                              }}
+                              className="text-sm text-roshitaDarkBlue hover:text-roshitaDarkBlue/80 font-medium"
+                            >
+                              {language === "ar" ? "عرض التفاصيل" : "View Details"}
+                            </button>
+                          )}*/}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </SidebarInset>
+      <AppSidebar side="right" />
     </SidebarProvider>
   );
 }

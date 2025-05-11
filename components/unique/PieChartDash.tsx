@@ -173,7 +173,7 @@ export function PieChartDash() {
   return (
     <Card className="flex flex-col h-full pb-[32px]">
       <CardHeader className="pb-0 flex flex-col justify-start">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div className={`flex flex-col sm:flex-row justify-between items-center gap-2 ${language === "ar" ? "sm:flex-row-reverse" : ""}`}>
           <CardTitle className={`${language === "ar" ? "text-end" : ""} w-full`}>
             {language === "ar" ? translations.ar.title : translations.en.title}
           </CardTitle>

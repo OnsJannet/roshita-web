@@ -87,29 +87,15 @@ export default function Page() {
               </div>
             )}
             <div
-              className={`flex flex-col border rounded-lg bg-white shadow-sm max-w-[1280px] mx-auto ${
+              className={`flex flex-col border  rounded-lg bg-white  max-w-[1280px] mx-auto ${
                 language === "ar" ? "rtl" : "ltr"
               }`}
             >
-              <h2
-                className={`text-lg font-semibold text-gray-700 ${
-                  language === "ar" ? "text-end" : "text-start"
-                } border-b p-4`}
-              >
-                {language === "ar" ? "الإشعارات" : "Notifications"}
-              </h2>
 
-              <div className="space-y-4 p-4">
-                {/* WebSocket Connection Status */}
-                <div className={`text-sm ${isConnected ? 'text-green-500' : 'text-red-500'} mb-4`}>
-                  {isConnected ? 
-                    (language === "ar" ? "متصل" : "Connected") : 
-                    (language === "ar" ? "غير متصل" : "Disconnected")
-                  }
-                </div>
 
+              <div className="space-y-4 p-4 ">
                 {notifications.length === 0 ? (
-                  <div className="rounded-lg bg-white p-6 text-center">
+                  <div className="rounded-lg bg-white p-6 text-center ">
                     <p className="text-gray-500">
                       {language === "ar"
                         ? "لا توجد إشعارات جديدة"
@@ -122,7 +108,7 @@ export default function Page() {
                     return (
                       <div
                         key={notification.id}
-                        className={`bg-white p-6 rounded-lg border-l-4 ${
+                        className={`bg-white p-6 rounded-lg border-l-4  ${
                           notification.status === 'unread' 
                             ? 'border-roshitaDarkBlue' 
                             : 'border-gray-200'
@@ -149,11 +135,19 @@ export default function Page() {
                                   ? 'text-gray-900' 
                                   : 'text-gray-600'
                               }`}>
-                                {notification.message}
+                                {notification.message.includes("New Consultation Request (ID:")
+                                  ? language === "ar"
+                                    ? `تم استلام طلب استشارة جديد رقم ${extractConsultationId(notification.message)}`
+                                    : `A new consultation request #${extractConsultationId(notification.message)} has been received`
+                                  : notification.message === "A patient has selected your organization for treatment."
+                                    ? language === "ar"
+                                      ? `قام المريض ${notification.data?.patient || 'أنس جنات'} باختيار مؤسستكم للعلاج (${notification.data?.service_type || 'عملية'})`
+                                      : `Patient ${notification.data?.patient || 'أنس جنات'} has selected your organization for ${notification.data?.service_type || 'Operation'} treatment`
+                                    : notification.message}
                               </h3>
                               <p className="text-sm text-gray-500 mt-1">
                                 {new Date(notification.timestamp || Date.now()).toLocaleString(
-                                  language === 'ar' ? 'ar-LY' : 'en-US'
+                                  language === 'ar' ? 'en-Us' : 'en-US'
                                 )}
                               </p>
                             </div>

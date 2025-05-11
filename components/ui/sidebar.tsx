@@ -260,6 +260,15 @@ const dataDoctor: Data = {
       isActive: false,
       icon: "Folder" as IconNames,
     },
+
+    {
+      title: "الإشعارات",
+      foreginTitle: "Notifications",
+      url: "/doctor-dashboard/notifications",
+      items: [],
+      isActive: false,
+      icon: "Bell" as IconNames,
+    },
   ],
 };
 

@@ -60,6 +60,7 @@ const PasswordChange = () => {
     useState<boolean>(false);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ old_password?: string[]; new_password?: string[] }>({});
   const [language, setLanguage] = useState<Language>("ar");
 
   useEffect(() => {
@@ -109,11 +110,14 @@ const PasswordChange = () => {
       );
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.log("response", errorData);
+        setFieldErrors(errorData); // Store field errors for rendering
         const errorMessage = `${
           language === "ar"
             ? "خطأ في تغيير كلمة المرور"
             : "Error changing password"
-        }: ${response.statusText}`;
+        }:`;
         setError(errorMessage);
         throw new Error(errorMessage);
       }
@@ -128,7 +132,7 @@ const PasswordChange = () => {
       );
       window.location.reload();
     } catch (error) {
-      console.error("Error changing password:", error);
+      console.error("Error changing password", error);
     }
   };
 
@@ -245,6 +249,18 @@ const PasswordChange = () => {
             {error && (
               <MessageAlert type="error" language={language}>
                 {error}
+                {(fieldErrors.old_password || fieldErrors.new_password) && (
+                  <ul className="list-disc ps-6 mt-2 text-sm">
+                    {fieldErrors.old_password &&
+                      fieldErrors.old_password.map((err, idx) => (
+                        <li key={`old-${idx}`}>{err}</li>
+                      ))}
+                    {fieldErrors.new_password &&
+                      fieldErrors.new_password.map((err, idx) => (
+                        <li key={`new-${idx}`}>{err}</li>
+                      ))}
+                  </ul>
+                )}
               </MessageAlert>
             )}
             <div>

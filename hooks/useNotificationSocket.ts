@@ -23,7 +23,7 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let socket: WebSocket;
+    let sockets: WebSocket[] = [];
 
     if (!userId) {
       setError('User ID is required for WebSocket connection');
@@ -31,33 +31,47 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
     }
 
     let baseUrl = 'wss://test-roshita.net:8080/ws/notifications';
-    let endpoint = '';
+    let endpoints: string[] = [];
 
+    // Set up appropriate endpoints based on user type
     switch (userType) {
       case 'patient':
-        endpoint = `${baseUrl}/patient-doctor-suggest/${userId}/`;
+        // Patient receives notifications from multiple endpoints
+        endpoints = [
+          `${baseUrl}/patient-doctor-suggest/${userId}/`,
+          `${baseUrl}/doctor-consultation-response-accepted/${userId}/`,
+          `${baseUrl}/patient-doctor-response/${userId}/`
+        ];
         break;
       case 'doctor':
-        endpoint = `${baseUrl}/doctor-consultation-request-assigned/${userId}/`;
+        // Doctor receives notifications when assigned to consultations
+        endpoints = [
+          `${baseUrl}/doctor-consultation-request-assigned/${userId}/`
+        ];
         break;
       case 'hospital':
-        endpoint = `${baseUrl}/hospital-new-consultation/${userId}/`;
+        // Hospital receives notifications for new consultations and when selected by doctors
+        endpoints = [
+          `${baseUrl}/hospital-new-consultation/${userId}/`,
+          `${baseUrl}/hospital-selected-by-doctor/${userId}/`
+        ];
         break;
       default:
         setError('Invalid user type');
         return;
     }
 
-    const connectWebSocket = () => {
+    const connectWebSocket = (endpoint: string) => {
       try {
         console.log('Attempting to connect to WebSocket at:', endpoint);
         
-        socket = new WebSocket(endpoint);
+        const socket = new WebSocket(endpoint);
+        sockets.push(socket);
 
         socket.onopen = () => {
           setIsConnected(true);
           setError(null);
-          console.log('WebSocket connected successfully');
+          console.log('WebSocket connected successfully:', endpoint);
         };
 
         socket.onmessage = (event) => {
@@ -92,22 +106,31 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
         socket.onclose = (event) => {
           console.log('WebSocket closed:', event);
           setIsConnected(false);
-          setTimeout(connectWebSocket, 5000);
+          setTimeout(() => connectWebSocket(endpoint), 5000);
         };
+
+        return socket;
       } catch (err) {
         console.error('WebSocket connection failed:', err);
         setError('Failed to establish WebSocket connection');
         setIsConnected(false);
-        setTimeout(connectWebSocket, 5000);
+        setTimeout(() => connectWebSocket(endpoint), 5000);
+        return null;
       }
     };
 
-    connectWebSocket();
+    // Connect to all relevant endpoints
+    endpoints.forEach(endpoint => {
+      connectWebSocket(endpoint);
+    });
 
     return () => {
-      if (socket) {
-        socket.close();
-      }
+      // Clean up all socket connections
+      sockets.forEach(socket => {
+        if (socket) {
+          socket.close();
+        }
+      });
     };
   }, [userId, userType]);
 

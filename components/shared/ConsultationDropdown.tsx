@@ -164,6 +164,8 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
 
   const isArabic = language === "ar";
 
+  console.log("consultationStatus:", consultationStatus);
+
   return (
     <Card
       className={`border !shadow-none rounded-lg w-full ${
@@ -262,24 +264,30 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
               </span>{" "}
               {consultationType}
             </p>
+            {date && consultationStatus !== "Pending" && (
             <p className="text-sm">
               <span className="font-bold">
                 {isArabic ? " يوم الموعد:" : "Appointment Day:"}
               </span>{" "}
               {date}
             </p>
+            )}
+            {price && (
             <p className="text-sm">
               <span className="font-bold">
                 {isArabic ? " السعر:" : "Price:"}
               </span>{" "}
               {price}
             </p>
+            )}
+            {doctorMessage && consultationStatus !== "Pending" && (
             <p
               className="text-sm leading-relaxed mb-2"
               style={{ whiteSpace: "pre-line" }}
             >
               {doctorMessage}
             </p>
+            )}
             <hr className="my-4" />
             <p
               className="text-sm text-gray-600"

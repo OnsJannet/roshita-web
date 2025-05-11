@@ -62,7 +62,7 @@ const Page = () => {
   const [filterType, setFilterType] = useState<"previous" | "next">("next");
   const router = useRouter();
   const [language, setLanguage] = useState<Language>("ar");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,8 +103,25 @@ const Page = () => {
     const token = localStorage.getItem("access");
     const patient_id = localStorage.getItem("patientId") || "";
   
+    // Validation for required fields (except images)
+    const missingFields = [];
+    if (!selectedSpecialty) {
+      missingFields.push(language === "ar" ? "التخصص" : "specialty");
+    }
     if (responseMessage.trim() === "") {
-      setErrorMessage("Please enter a response message.");
+      missingFields.push(language === "ar" ? "رسالة الاستشارة" : "response message");
+    }
+  
+    if (missingFields.length > 0) {
+      if (missingFields.length === 2) {
+        setErrorMessage(language === "ar" 
+          ? "يرجى اختيار التخصص وإدخال رسالة الاستشارة." 
+          : "Please select a specialty and enter a response message.");
+      } else {
+        setErrorMessage(language === "ar" 
+          ? `يرجى إدخال ${missingFields[0]}.` 
+          : `Please enter ${missingFields[0]}.`);
+      }
       return;
     }
   
@@ -113,27 +130,26 @@ const Page = () => {
   
     try {
       const formData = new FormData();
-      formData.append("patient_id", patient_id); // Use the patient_id from localStorage or a default value
+      formData.append("patient_id", patient_id);
       formData.append("diagnosis_description_request", responseMessage);
-      formData.append("specialty_id", selectedSpecialty); // Use the selected specialty
+      formData.append("specialty_id", selectedSpecialty);
       formData.append("type", type);
   
       // Append X-Ray files with metadata
       uploadedXRaysFiles.forEach((file, index) => {
-        formData.append(`uploaded_files`, file); // Append the file
-        formData.append(`uploaded_files[${index}][content_file_type]`, "X-Ray"); // Append metadata
-        formData.append(`uploaded_files[${index}][description]`, "Lung X-ray Report"); // Append metadata
+        formData.append(`uploaded_files`, file);
+        formData.append(`uploaded_files[${index}][content_file_type]`, "X-Ray");
+        formData.append(`uploaded_files[${index}][description]`, "Lung X-ray Report");
       });
   
       // Append Medical Report files with metadata
       uploadedMedicalReportFiles.forEach((file, index) => {
-        const offsetIndex = uploadedXRaysFiles.length + index; // Adjust index for metadata
-        formData.append(`uploaded_files`, file); // Append the file
-        formData.append(`uploaded_files[${offsetIndex}][content_file_type]`, "Medical Report"); // Append metadata
-        formData.append(`uploaded_files[${offsetIndex}][description]`, "Blood test results"); // Append metadata
+        const offsetIndex = uploadedXRaysFiles.length + index;
+        formData.append(`uploaded_files`, file);
+        formData.append(`uploaded_files[${offsetIndex}][content_file_type]`, "Medical Report");
+        formData.append(`uploaded_files[${offsetIndex}][description]`, "Blood test results");
       });
   
-      // Log FormData entries for debugging
       //@ts-ignore
       for (let pair of formData.entries()) {
         console.log(pair[0] + ":", pair[1]);
@@ -151,21 +167,40 @@ const Page = () => {
         }
       );
   
+      const responseData = await response.json();
+  
       if (!response.ok) {
-        throw new Error("Failed to create consultation request.");
+        // Try to get error message from backend response
+        const backendError = responseData.detail || 
+                            responseData.message || 
+                            (language === "ar" 
+                              ? "حدث خطأ أثناء معالجة طلبك" 
+                              : "Something went wrong while processing your request");
+        
+        throw new Error(backendError);
       }
   
-      const data = await response.json();
-      console.log("Consultation request created:", data);
+      console.log("Consultation request created:", responseData);
   
       setResponses([...responses, responseMessage]);
       setResponseMessage("");
       setUploadedXRaysFiles([]);
       setUploadedMedicalReportFiles([]);
-      setStep(1); // Reset to the first step after successful submission
+      setStep(1);
+      
     } catch (error) {
       console.error("Error creating consultation request:", error);
-      setErrorMessage("Failed to create consultation request. Please try again.");
+      
+      let errorMessage = language === "ar" 
+        ? "فشل في إنشاء طلب الاستشارة. حاول مرة أخرى." 
+        : "Failed to create consultation request. Please try again.";
+      
+      if (error instanceof Error) {
+        // If we have a specific error message from the backend, use it
+        errorMessage = error.message;
+      }
+      
+      setErrorMessage(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -396,6 +431,16 @@ const Page = () => {
                 </div>
               ) : (
                 <div>
+
+{errorMessage && (
+            <div
+            className={`text-red-500 bg-red-100 p-4 rounded ${
+              language === "ar" ? "text-start" : "text-end"
+            }`}
+          >
+    {errorMessage}
+    </div>
+)}
                   {type === "without" ? (
                     <div
                       style={{ direction: language === "ar" ? "rtl" : "ltr" }}
@@ -434,8 +479,8 @@ const Page = () => {
                       </ul>
                       <p className="font-bold p-2 text-xl">
                         {language === "ar"
-                          ? "عبئ في خانة الاستشارات ماتريد ونزل ملفات الخاصة بك......"
-                          : "Fill in the consultation box what you want and upload your files....."}
+                          ? "عبئ في خانة الاستشارات ماتريد ونزل ملفات الخاصة بك."
+                          : "Fill in the consultation box what you want and upload your files."}
                       </p>
 
                       <div className="p-4">
@@ -499,9 +544,7 @@ const Page = () => {
                           </div>
                         </div>
 
-                        {errorMessage && (
-                          <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
-                        )}
+
                         <div className="flex justify-center w-full gap-2">
                           <button
                             onClick={handleSendResponse}
@@ -608,3 +651,4 @@ const Page = () => {
 };
 
 export default Page;
+
