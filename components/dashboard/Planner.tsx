@@ -1064,7 +1064,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
         <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectHospital}</label>
         <Select
-          onValueChange={(value) => setSelectedHospitalId(Number(value))}
+          onValueChange={(value) => setSelectedHospitalId(value ? Number(value) : 0)}
           dir={language === 'ar' ? 'rtl' : 'ltr'}
         >
           <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
@@ -1074,7 +1074,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             {/* Filter unique hospitals by ID */}
             {/*@ts-ignore*/}
             {[...new Map(hospitals.map(h => [h.id, h])).values()].map((hospital) => (
-              <SelectItem key={hospital.id} value={hospital.id.toString()}>
+              <SelectItem key={hospital.id} value={hospital.user_id?.toString() || hospital.id?.toString() }>
                 {hospital.name}
               </SelectItem>
             ))}
@@ -1092,7 +1092,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
               <SelectValue placeholder={t.selectDoctor} />
             </SelectTrigger>
             <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
-              {(hospitals.find(h => h.id === selectedHospitalId)?.doctors || []).map((doctor) => (
+              {(hospitals.find(h => h.user_id === selectedHospitalId)?.doctors || []).map((doctor) => (
                 <SelectItem key={doctor.id} value={doctor.id.toString()}>
                   {doctor.name}
                 </SelectItem>
