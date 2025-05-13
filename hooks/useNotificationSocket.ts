@@ -38,9 +38,9 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
       case 'patient':
         // Patient receives notifications from multiple endpoints
         endpoints = [
-          `${baseUrl}/patient-doctor-suggest/${userId}/`,
-          `${baseUrl}/doctor-consultation-response-accepted/${userId}/`,
-          `${baseUrl}/patient-doctor-response/${userId}/`
+          `${baseUrl}/patient-doctor-suggest/${userId}`,
+          `${baseUrl}/doctor-consultation-response-accepted/${userId}`,
+          `${baseUrl}/patient-doctor-response/${userId}`
         ];
         break;
       case 'doctor':
