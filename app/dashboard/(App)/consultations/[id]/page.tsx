@@ -406,7 +406,7 @@ export default function Page() {
                                 {language === "ar" ? "مأوى" : "Shelter"}
                               </SelectItem>
                               <SelectItem
-                                value="Shelter_Operation"
+                                value="Shelter Operation"
                                 className={
                                   language === "ar"
                                     ? "text-right flex-row-reverse"

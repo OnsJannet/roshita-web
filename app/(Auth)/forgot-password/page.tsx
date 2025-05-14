@@ -23,6 +23,8 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -84,7 +86,7 @@ const Page = () => {
     setError(null);
     try {
       const response = await fetch(
-        "https://test-roshita.net/api/account/password-recovery/reset/",
+        "https://test-roshita.net/api/account/reset-password/",
         {
           method: "POST",
           headers: {
@@ -93,7 +95,12 @@ const Page = () => {
             "X-CSRFToken":
               "rquDldN5xzfxmgsqkc9SyFHxXhrzOvrkLbz03SVR3D5Fj6F8nOdG3iSrUINQgzBg",
           },
-          body: JSON.stringify({ phone, otp }),
+          body: JSON.stringify({ 
+            phone, 
+            otp,
+            new_password: newPassword, // Add new password field
+            confirm_password: confirmPassword // Add confirm password field
+          }),
         }
       );
 
@@ -245,6 +252,22 @@ const Page = () => {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               className={language === "en" ? "text-left" : "text-right"}
+            />
+            <Input
+              id="newPassword"
+              type="password"
+              placeholder={language === "en" ? "New Password" : "كلمة المرور الجديدة"}
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder={language === "en" ? "Confirm Password" : "تأكيد كلمة المرور"}
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </div>
           <DialogFooter>

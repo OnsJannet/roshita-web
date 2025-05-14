@@ -362,27 +362,36 @@ export function ConsultationTransfer({
         <div className="mt-4 grid grid-cols-4 gap-4">
           {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
             Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
-              ([date, appointments]) => (
-                <div key={date} className="mb-4">
-                  <p className="font-semibold text-lg text-center">{date}</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {appointments.map((appointment, index) => (
-                      <button
-                        key={index}
-                        className={`p-2 rounded-lg text-sm text-center ${
-                          selectedAppointment?.id === appointment.id
-                            ? "bg-[#1588C8] text-white"
-                            : "bg-gray-200 hover:bg-gray-300"
-                        }`}
-                        onClick={() => handleAppointmentClick(appointment)}
-                      >
-                        {appointment.start_time} - {appointment.end_time}
-                      </button>
-                    ))}
+              ([date, appointments]) => {
+                // Filter to only show available appointments
+                const availableAppointments = appointments.filter(
+                  app => app.appointment_status === "available"
+                );
+                
+                if (availableAppointments.length === 0) return null;
+                
+                return (
+                  <div key={date} className="mb-4">
+                    <p className="font-semibold text-lg text-center">{date}</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableAppointments.map((appointment, index) => (
+                        <button
+                          key={index}
+                          className={`p-2 rounded-lg text-sm text-center ${
+                            selectedAppointment?.id === appointment.id
+                              ? "bg-[#1588C8] text-white"
+                              : "bg-gray-200 hover:bg-gray-300"
+                          }`}
+                          onClick={() => handleAppointmentClick(appointment)}
+                        >
+                          {appointment.start_time} - {appointment.end_time}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )
-            )
+                );
+              }
+            ).filter(Boolean) // Remove null entries for dates with no available appointments
           ) : (
             <p className="text-center col-span-4">
               {language === "ar" ? "لا توجد مواعيد" : "No appointments"}

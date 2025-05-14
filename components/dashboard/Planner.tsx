@@ -1092,6 +1092,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
               <SelectValue placeholder={t.selectDoctor} />
             </SelectTrigger>
             <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
+              {/*@ts-ignore*/}
               {(hospitals.find(h => h.user_id === selectedHospitalId)?.doctors || []).map((doctor) => (
                 <SelectItem key={doctor.id} value={doctor.id.toString()}>
                   {doctor.name}
@@ -1114,7 +1115,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
             <SelectItem value="Shelter">
               {language === "ar" ? "مأوى" : "Shelter"}
             </SelectItem>
-            <SelectItem value="Shelter_Operation">
+            <SelectItem value="Shelter Operation">
               {language === "ar" ? "عملية المأوى" : "Shelter Operation"}
             </SelectItem>
             <SelectItem value="Operation">

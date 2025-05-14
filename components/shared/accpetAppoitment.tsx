@@ -460,7 +460,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       </Dialog>
       {/* OTP Modal */}
       <Dialog open={confirmModal} onOpenChange={setConfirmModal}>
-        <DialogContent className="sm:max-w-[625px] h-full">
+        <DialogContent className="sm:max-w-[625px] h-[60%]">
           <DialogHeader>
             <DialogTitle className="text-center">
               {t.confirmBooking}
@@ -471,12 +471,15 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
           </DialogHeader>
           <div className="p-4">
             <div className="flex flex-col gap-4">
-              <Label htmlFor="otpCode">OTP Code</Label>
+              <Label htmlFor="otpCode" className={language === "ar" ? "text-right" : "text-left"}>
+                {language === "ar" ? "رمز التحقق" : "OTP Code"}
+              </Label>
               <Input
                 id="otpCode"
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value)}
-                placeholder="Enter OTP"
+                placeholder={language === "ar" ? "أدخل رمز التحقق" : "Enter OTP"}
+                dir={language === "ar" ? "rtl" : "ltr"}
               />
             </div>
           </div>

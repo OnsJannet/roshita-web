@@ -816,7 +816,7 @@ const PlannerDoctorAll = ({ language = "en" }: { language?: string }) => {
                   {language === "ar" ? "مأوى" : "Shelter"}{" "}
                   {/* Shelter option */}
                 </SelectItem>
-                <SelectItem value="Shelter_Operation">
+                <SelectItem value="Shelter Operation">
                   {language === "ar" ? "عملية مأوى" : "Shelter Operation"}{" "}
                   {/* Shelter Operation option */}
                 </SelectItem>
