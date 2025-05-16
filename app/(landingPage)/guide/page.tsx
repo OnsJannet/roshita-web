@@ -285,7 +285,8 @@ const Page = () => {
                   price={`${doctor.price} ${language === 'ar' ? 'د.ل' : 'DL'}`}
                   location={doctor.city}
                   hospital=""
-                  imageUrl={doctor.imageUrl}
+                  //@ts-ignore
+                  imageUrl={doctor.image}
                 />
               ))
             )}
