@@ -50,6 +50,9 @@ export function ConsultationTransfer({
   language,
   consultationID,
 }: ConsultationTransferProps) {
+  // Add error state
+  const [error, setError] = useState<string | null>(null);
+  
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -188,12 +191,13 @@ export function ConsultationTransfer({
 
   const handleAcceptAppointment = async () => {
     if (!selectedDoctor || !selectedAppointment) return;
+    setError(null); // Clear previous errors
 
     try {
       const accessToken = localStorage.getItem("access");
 
       if (!accessToken) {
-        console.error("Access token not found");
+        setError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
         return;
       }
 
@@ -214,16 +218,19 @@ export function ConsultationTransfer({
 
       const data = await response.json();
       if (!response.ok) {
-        console.error("Failed to accept appointment:", data.error);
-        alert("Failed to accept appointment. Please try again.");
+        setError(language === "ar" 
+          ? `فشل في قبول الموعد: ${data.detail || data.message || 'حدث خطأ'}`
+          : `Failed to accept appointment: ${data.detail || data.message || 'An error occurred'}`
+        );
         return;
       }
-
-      //window.location.reload()
       closeAppointmentsModal();
+      window.location.reload();
     } catch (error) {
-      console.error("Error accepting appointment:", error);
-      alert("An error occurred. Please try again.");
+      setError(language === "ar"
+        ? "حدث خطأ أثناء معالجة الطلب"
+        : "An error occurred while processing the request"
+      );
     }
   };
 
@@ -241,6 +248,28 @@ export function ConsultationTransfer({
               {content.title}
             </DialogTitle>
           </DialogHeader>
+
+          {/* Add error display */}
+          {error && (
+            <div className={`bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 ${
+              language === "ar" ? "text-end" : "text-start"
+            }`}>
+              <strong className="font-bold mr-2">
+                {language === "ar" ? "خطأ!" : "Error!"}
+              </strong>
+              <span className="block sm:inline">{error}</span>
+              <button 
+                className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                onClick={() => setError(null)}
+              >
+                <span className="sr-only">Close</span>
+                <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <title>Close</title>
+                  <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                </svg>
+              </button>
+            </div>
+          )}
 
           <div>
             <div className="text-center">
@@ -270,9 +299,16 @@ export function ConsultationTransfer({
                       <div className="p-1">
                         <Card
                           onClick={() => handleDoctorClick(doctor)}
-                          className="cursor-pointer"
+                          className="cursor-pointer relative"
                         >
                           <CardContent className="aspect-square items-center justify-center p-6">
+                            {error && doctor.id === selectedDoctor?.id && (
+                              <div className={`absolute top-0 left-0 right-0 bg-red-100 border-b border-red-400 text-red-700 px-3 py-2 text-sm ${
+                                language === "ar" ? "text-end" : "text-start"
+                              }`}>
+                                <span className="block">{error}</span>
+                              </div>
+                            )}
                             <div className="flex justify-center">
                               <img
                                 src={

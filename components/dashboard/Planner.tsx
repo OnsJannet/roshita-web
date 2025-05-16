@@ -106,6 +106,8 @@ const Planner = ({ language = "en" }: { language?: string }) => {
   const [note, setNote] = useState("");
   const [patientId, setPatientId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   
   const APPOINTMENTS_PER_PAGE = 5;
   const paginatedAppointments = appointments.slice(
@@ -150,10 +152,13 @@ const Planner = ({ language = "en" }: { language?: string }) => {
   useEffect(() => {
     const fetchAllAppointments = async () => {
       setIsLoading(true);
+      setShowLoading(true);
+      setApiError(null);
       try {
         const token = localStorage.getItem("access");
         if (!token) {
           console.error("No access token found in localStorage");
+          setApiError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "No access token found");
           setIsLoading(false);
           return;
         }
@@ -199,13 +204,15 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       } catch (error) {
         console.error("Error fetching appointments:", error);
         setError("Failed to fetch appointments");
+        setApiError(language === "ar" ? "فشل في جلب المواعيد" : "Failed to fetch appointments");
       } finally {
         setIsLoading(false);
+        setTimeout(() => setShowLoading(false), 300);
       }
     };
 
     fetchAllAppointments();
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     const fetchHospitals = async () => {
@@ -465,8 +472,10 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   const handleRemoveSlot = async (appointmentId: number) => {
     setIsProcessing(true);
+    setApiError(null);
     if (!appointmentId) {
       console.error("Appointment ID not found");
+      setApiError(language === "ar" ? "معرف الموعد غير موجود" : "Appointment ID not found");
       setIsProcessing(false);
       return;
     }
@@ -475,6 +484,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       const token = localStorage.getItem("access");
       if (!token) {
         console.error("Access token not found in localStorage");
+        setApiError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
         setIsProcessing(false);
         return;
       }
@@ -503,6 +513,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         setAppointments(prev => prev.filter(app => app.id !== appointmentId));
       } else {
         const errorData = await response.json();
+        setApiError(language === "ar" ? "فشل في حذف الموعد" : "Failed to delete appointment");
         await logAction(
           token,
           `https://test-roshita.net/api/appointment-reservations/${appointmentId}/`,
@@ -514,6 +525,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
+      setApiError(language === "ar" ? "فشل في حذف الموعد" : "Failed to delete appointment");
       const token = localStorage.getItem("access");
       if (token) {
         await logAction(
@@ -532,8 +544,10 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   const handleMarkNotAttend = async (appointmentId: number) => {
     setIsProcessing(true);
+    setApiError(null);
     if (!appointmentId) {
       console.error("Appointment ID not found");
+      setApiError(language === "ar" ? "معرف الموعد غير موجود" : "Appointment ID not found");
       setIsProcessing(false);
       return;
     }
@@ -542,6 +556,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       const token = localStorage.getItem("access");
       if (!token) {
         console.error("Access token not found in localStorage");
+        setApiError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
         setIsProcessing(false);
         return;
       }
@@ -580,6 +595,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         ));
       } else {
         const errorData = await response.json();
+        setApiError(language === "ar" ? "فشل في تحديد عدم الحضور" : "Failed to mark as not attended");
         await logAction(
           token,
           `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
@@ -591,6 +607,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       }
     } catch (error) {
       console.error("Error marking as not attended:", error);
+      setApiError(language === "ar" ? "فشل في تحديد عدم الحضور" : "Failed to mark as not attended");
       const token = localStorage.getItem("access");
       if (token) {
         await logAction(
@@ -609,6 +626,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   const handleEndSlot = async (appointmentId: number) => {
     setIsProcessing(true);
+    setApiError(null);
     const url =
       "https://test-roshita.net/api/complete-appointment-reservations/";
     const token = localStorage.getItem("access");
@@ -617,6 +635,13 @@ const Planner = ({ language = "en" }: { language?: string }) => {
     };
 
     try {
+      if (!token) {
+        console.error("Access token not found in localStorage");
+        setApiError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
+        setIsProcessing(false);
+        return;
+      }
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -630,6 +655,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
       });
 
       if (!response.ok) {
+        setApiError(language === "ar" ? "فشل في إنهاء الموعد" : "Failed to complete appointment");
         throw new Error(`Network response was not ok: ${response.statusText}`);
       }
 
@@ -653,6 +679,7 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         } : app
       ));
     } catch (error) {
+      setApiError(language === "ar" ? "فشل في إنهاء الموعد" : "Failed to complete appointment");
       if (token) {
         await logAction(
           token,
@@ -732,6 +759,30 @@ const Planner = ({ language = "en" }: { language?: string }) => {
 
   console.log("appointments", appointments);
 
+  if (showLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen w-full">
+        <LoadingDoctors />
+      </div>
+    );
+  }
+
+  {/*if (apiError) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <span className="block sm:inline"> {apiError}</span>
+        </div>
+        <Button 
+          onClick={() => window.location.reload()} 
+          className="mt-4"
+        >
+          {language === "ar" ? "إعادة المحاولة" : "Try Again"}
+        </Button>
+      </div>
+    );
+  }*/}
+
   return (
     <div className="p-4 border rounded-md shadow" dir={language === "ar" ? "rtl" : "ltr"}>
       {isLoading ? (
@@ -740,9 +791,22 @@ const Planner = ({ language = "en" }: { language?: string }) => {
         </div>
       ) : (
         <>
-          {error && (
-            <p className="text-red-500 text-center">{error}</p>
-          )}
+      {apiError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 gap-4" role="alert">
+        <strong className="font-bold mr-2">  </strong>
+        <span className="block sm:inline"> {apiError}</span>
+        <button 
+          className="absolute top-0 bottom-0 right-0 px-0 py-3"
+          onClick={() => setApiError(null)}
+        >
+          <span className="sr-only">Close</span>
+          <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <title>Close</title>
+            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+          </svg>
+        </button>
+      </div>
+      )}
           {followUpError && (
             <p className="text-red-500 text-center">{followUpError}</p>
           )}

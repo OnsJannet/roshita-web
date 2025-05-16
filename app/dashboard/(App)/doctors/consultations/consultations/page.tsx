@@ -64,6 +64,8 @@ export type Payment = {
 type Language = "ar" | "en";
 
 export default function Page() {
+  // Add error state
+  const [error, setError] = useState<string | null>(null);
   const [tableData, setTableData] = useState<Payment[]>([]); // Now using Payment[] type
   const [language, setLanguage] = useState<Language>("ar");
   const [lengthData, setLengthData] = useState(0);
@@ -199,16 +201,15 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch function
+  // Update the fetchData function to handle errors properly
   const fetchData = async () => {
+    setError(null); // Clear any previous errors
     try {
-      if (
-        typeof window !== "undefined" &&
-        typeof localStorage !== "undefined"
-      ) {
+      if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
         const accessToken = localStorage.getItem("access");
 
         if (!accessToken) {
-          throw new Error("Access token not found");
+          throw new Error(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
         }
 
         const response = await fetch(
@@ -221,7 +222,10 @@ export default function Page() {
           }
         );
 
-        if (!response.ok) throw new Error("Failed to fetch data");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || response.statusText);
+        }
 
         const result: APIResponse = await response.json();
 
@@ -240,6 +244,9 @@ export default function Page() {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      setError(language === "ar" 
+        ? `حدث خطأ: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
+        : `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -282,6 +289,37 @@ export default function Page() {
 
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="mx-auto w-full">
+            {/* Add error display */}
+            {error && (
+              <div 
+                className={`bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 ${
+                  language === "ar" ? "text-end" : "text-start"
+                }`} 
+                role="alert"
+              >
+                <strong className="font-bold mr-2">
+                  {language === "ar" ? "حدث خطأ!" : "Error Occurred!"}
+                </strong>
+                <span className="block sm:inline">
+                  {language === "ar" 
+                    ? "حدث خطأ في النظام: " 
+                    : "System Error: "
+                  }
+                  {error}
+                </span>
+                <button 
+                  className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                  onClick={() => setError(null)}
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <title>Close</title>
+                    <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+
             {loading ? (
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
             ) : (

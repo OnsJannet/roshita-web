@@ -134,15 +134,19 @@ export default function Page() {
 
   const validateForm = (): string[] => {
     const missingFields: string[] = [];
-    if (!formData.firstName) missingFields.push("الإسم");
-    if (!formData.lastName) missingFields.push("اللقب");
-    if (!formData.address) missingFields.push("مكان");
-    if (!formData.specialty) missingFields.push("التخصص");
-    if (!formData.fixedPrice) missingFields.push("سعر الحجز");
-    if (!formData.rating) missingFields.push("التقييم");
-    if (!formData.phoneNumber) missingFields.push("رقم التليفون");
-    if (!formData.payMethode) missingFields.push("طريقة الدفع");
-    if (!formData.email) missingFields.push("البريد الإلكتروني");
+    
+    // Check all required fields
+    if (!formData.firstName.trim()) missingFields.push(language === "ar" ? "الإسم" : "First Name");
+    if (!formData.lastName.trim()) missingFields.push(language === "ar" ? "اللقب" : "Last Name");
+    if (!formData.address.trim()) missingFields.push(language === "ar" ? "مكان" : "Address");
+    if (!formData.specialty) missingFields.push(language === "ar" ? "التخصص" : "Specialty");
+    if (!formData.city) missingFields.push(language === "ar" ? "المدينة" : "City");
+    if (!formData.fixedPrice.trim()) missingFields.push(language === "ar" ? "سعر الحجز" : "Booking Price");
+    if (!formData.rating) missingFields.push(language === "ar" ? "التقييم" : "Rating");
+    if (!formData.phoneNumber?.trim()) missingFields.push(language === "ar" ? "رقم التليفون" : "Phone Number");
+    if (!formData.payMethode?.trim()) missingFields.push(language === "ar" ? "طريقة الدفع" : "Payment Method");
+    if (!formData.email?.trim()) missingFields.push(language === "ar" ? "البريد الإلكتروني" : "Email");
+    
     return missingFields;
   };
 

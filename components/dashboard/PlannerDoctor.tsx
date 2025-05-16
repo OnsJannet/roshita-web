@@ -134,11 +134,10 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
   useEffect(() => {
     const fetchAllAppointments = async () => {
-      setIsLoading(true); // Set loading to true when fetching starts
+      setIsLoading(true);
       try {
         const token = localStorage.getItem("access");
         const id = localStorage.getItem("userId");
-        console.log("this is the id ", id)
         if (!token) {
           console.error("No access token found in localStorage");
           return;
@@ -162,7 +161,6 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
           if (!response.ok) throw new Error("Failed to fetch appointments");
 
           const data = await response.json();
-          console.log("data", data);
           allAppointments = [...allAppointments, ...data.results];
 
           if (data.next) {
@@ -177,31 +175,31 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
 
         const filteredAppointments = allAppointments
           .filter((appointment) => {
-            const appointmentDate = new Date(
-              appointment.reservation.reservation_date
-            );
-            const status = appointment.reservation.reservation_payment_status;
-
-            return (
-              status !== "Cancelled" &&
-              status !== "Completed"
-            );
+            const status = appointment.reservation.reservation_payment_status.toLowerCase();
+            const excludedStatuses = [
+              "cancelled by doctor",
+              "cancelled by patient", 
+              "cancelled",
+              "rejected",
+              "complete",
+              "completed",
+              "not attend"
+            ];
+            
+            return !excludedStatuses.includes(status);
           })
           .sort((a, b) => {
             const dateA = new Date(a.reservation.reservation_date);
             const dateB = new Date(b.reservation.reservation_date);
-            //@ts-ignore
-            return dateA - dateB;
+            return dateA.getTime() - dateB.getTime();
           });
 
         setAppointments(filteredAppointments);
-        setTotalPages(
-          Math.ceil(filteredAppointments.length / APPOINTMENTS_PER_PAGE)
-        );
+        setTotalPages(Math.ceil(filteredAppointments.length / APPOINTMENTS_PER_PAGE));
       } catch (error) {
         console.error("Error fetching appointments:", error);
       } finally {
-        setIsLoading(false); // Set loading to false when fetching is complete
+        setIsLoading(false);
       }
     };
 
@@ -402,6 +400,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       const data = await response.json();
       console.log("Doctor suggestion created successfully:", data);
       setIsSendToAnotherDoctorModalOpen(false);
+      window.location.reload()
     } catch (error) {
       console.error("Error:", error);
     }
@@ -519,6 +518,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
           "success",
           response.status
         );
+        window.location.reload();
       } else {
         console.error("Failed to delete appointment", response.statusText);
         const errorData = await response.json();
@@ -586,6 +586,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
           "success",
           response.status
         );
+        window.location.reload();
       } else {
         console.error("Failed to mark as not attended", response.statusText);
         const errorData = await response.json();
@@ -636,7 +637,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         },
         body: JSON.stringify(data),
       });
-
+      window.location.reload();
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.statusText}`);
       }
@@ -727,6 +728,8 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
           return "مؤكد";
         case "completed":
           return "مكتمل";
+        case "complete":
+          return "مكتمل";        
         case "paid":
           return "مدفوع";
         case "not attend":

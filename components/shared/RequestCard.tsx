@@ -49,6 +49,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
       if (!response.ok) {
         throw new Error('Failed to hide consultation');
       }
+
+      window.location.reload();
     } catch (error) {
       console.error('Error hiding consultation:', error);
     } finally {

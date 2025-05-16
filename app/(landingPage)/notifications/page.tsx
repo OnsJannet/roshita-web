@@ -82,6 +82,7 @@ const Page = () => {
   const [errorMessage, setErrorMessage] = useState("");
   //const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showLoading, setShowLoading] = useState<boolean>(true);
   //const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>(""); 
   const [profileData, setProfileData] = useState<EditProfileData>({
@@ -110,7 +111,7 @@ const Page = () => {
     if (storedUserId) {
       setUserId(storedUserId);
     }
-    setLoading(false);
+    // Don't set loading to false here
   }, []);
 
   const {
@@ -123,6 +124,20 @@ const Page = () => {
     userId,
     userType: "patient",
   });
+
+  // Add a new useEffect to handle loading state based on notifications
+  useEffect(() => {
+    // Check if notifications have been loaded
+    if (notifications !== undefined) {
+      // Add a small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        setLoading(false);
+        setShowLoading(false);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [notifications]);
 
   console.log("notifications from not page", notifications);
 
@@ -377,7 +392,8 @@ const Page = () => {
     // Here you would also call your API to mark the notification as read
   };*/
 
-  if (loading) {
+  // Use showLoading instead of loading for the conditional render
+  if (showLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen mx-auto">
         <LoadingDoctors />

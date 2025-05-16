@@ -242,17 +242,20 @@ const InformationCard: React.FC<InformationCardProps> = ({
                     </div>
                   </td>
                   <td className="py-3 px-2 text-gray-700 p-4 flex justify-end">
-                    {index === 0 || index === 3 ? ( // Check if index is 0 (phone) or 3 (booking price)
+                    {index === 0 || index === 3 ? (
                       // Editable input for phone number (index 0) or booking price (index 3)
-                      <input
-                        type="text"
-                        value={field.value}
-                        onChange={(event) => handleFieldChange(index, event)}
-                        className={`${
-                          language === "ar" ? "text-end p-2" : "text-start"
-                        } ${getBorderClass()} rounded`}
-                      />
-                    ) : field.isDropdown ? ( // Check if the field is a dropdown
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={field.value}
+                          onChange={(event) => handleFieldChange(index, event)}
+                          className={`${
+                            language === "ar" ? "text-end p-2" : "text-start"
+                          } ${getBorderClass()} rounded`}
+                        />
+                        {index === 3 && <span>{language === "ar" ? "د.ل" : "DL"}</span>}
+                      </div>
+                    ) : field.isDropdown ? (
                       // Dropdown for city or specialty
                       <select
                         value={field.value}
@@ -275,7 +278,12 @@ const InformationCard: React.FC<InformationCardProps> = ({
                       </select>
                     ) : (
                       // Display the field value if it's not editable or a dropdown
-                      field.value
+                      <div className="flex items-center gap-1">
+                        {field.value}
+                        {field.label.toLowerCase().includes("price") && (
+                          <span>{language === "ar" ? "د.ل" : "DL"}</span>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td
