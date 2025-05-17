@@ -115,8 +115,8 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
     } else if (daysDifference <= 2) {
       setModalMessage(
         language === "ar"
-          ? "إذا قمت بالإلغاء بعد 48 ساعة، ستحصل على 50٪ فقط من المبلغ المسترد."
-          : "If you cancel after 48 hours, you will only get a 50% refund."
+          ? "إذا قمت بالإلغاء خلال 48 ساعة، ستحصل على 50٪ فقط من المبلغ المسترد."
+          : "If you cancel within 48 hours, you will only get a 50% refund."
       );
     } else {
       setModalMessage(
