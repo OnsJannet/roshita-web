@@ -103,7 +103,7 @@ const Page = () => {
     const token = localStorage.getItem("access");
     const patient_id = localStorage.getItem("patientId") || "";
   
-    // Validation for required fields (except images)
+    // Validation for required fields (medical reports are now required)
     const missingFields = [];
     if (!selectedSpecialty) {
       missingFields.push(language === "ar" ? "التخصص" : "specialty");
@@ -111,17 +111,22 @@ const Page = () => {
     if (responseMessage.trim() === "") {
       missingFields.push(language === "ar" ? "رسالة الاستشارة" : "response message");
     }
+    if (uploadedMedicalReportFiles.length === 0) {
+      missingFields.push(language === "ar" ? "التقارير الطبية" : "medical reports");
+    }
   
     if (missingFields.length > 0) {
-      if (missingFields.length === 2) {
-        setErrorMessage(language === "ar" 
-          ? "يرجى اختيار التخصص وإدخال رسالة الاستشارة." 
-          : "Please select a specialty and enter a response message.");
+      let errorMsg = "";
+      if (language === "ar") {
+        errorMsg = missingFields.length === 1 
+          ? `يرجى إدخال ${missingFields[0]}.`
+          : `يرجى إدخال ${missingFields.join(" و ")}.`;
       } else {
-        setErrorMessage(language === "ar" 
-          ? `يرجى إدخال ${missingFields[0]}.` 
-          : `Please enter ${missingFields[0]}.`);
+        errorMsg = missingFields.length === 1
+          ? `Please enter ${missingFields[0]}.`
+          : `Please enter ${missingFields.join(" and ")}.`;
       }
+      setErrorMessage(errorMsg);
       return;
     }
   
@@ -156,7 +161,8 @@ const Page = () => {
       }
   
       const response = await fetch(
-        "http://www.test-roshita.net/api/user-consultation-requests/",
+        //"http://www.test-roshita.net/api/user-consultation-requests/",
+        "http://www.test-roshita.net/api/user-second-opinion-requests/",
         {
           method: "POST",
           headers: {
@@ -351,7 +357,7 @@ const Page = () => {
             >
               {step === 1 ? (
                 <div className="flex gap-4 flex-col">
-                  <div
+                  {/*<div
                     className="bg-gray-50 w-full p-4 rounded-md flex h-20 items-center justify-between cursor-pointer"
                     onClick={() => {
                       setType("with");
@@ -388,7 +394,7 @@ const Page = () => {
                         } h-2 w-2`}
                       ></div>
                     </div>
-                  </div>
+                  </div>*/}
                   <div
                     className="bg-gray-50 w-full p-4 rounded-md flex h-20 items-center justify-between cursor-pointer"
                     onClick={() => {

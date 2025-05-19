@@ -252,26 +252,42 @@ const Page = () => {
     }
     
     if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
-      console.log('Selected Hospitals:', selectedHospitals);
-      console.log('Doctor Medical Organizations:', doctor.medical_organizations);
       const hospitalMatch = doctor.medical_organizations.some(org => {
-        console.log('Checking hospital:', org.name, org.foreign_name);
-        console.log('Match with selected:', selectedHospitals.includes(org.name), selectedHospitals.includes(org.foreign_name));
-        return selectedHospitals.includes(org.name) || selectedHospitals.includes(org.foreign_name);
+        // تحسين المقارنة لتكون غير حساسة لحالة الأحرف
+        const orgName = org.name.toLowerCase();
+        const orgForeignName = org.foreign_name ? org.foreign_name.toLowerCase() : '';
+        
+        return selectedHospitals.some(hospital => {
+          const selectedHospitalName = hospital.toLowerCase();
+          return orgName.includes(selectedHospitalName) || 
+                 orgForeignName.includes(selectedHospitalName) ||
+                 selectedHospitalName.includes(orgName) ||
+                 selectedHospitalName.includes(orgForeignName);
+        });
       });
+      
       if (!hospitalMatch) return false;
     }
     
     if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
-      const countryMatch = doctor.medical_organizations.some(org => 
-        selectedCountry.includes(org.city.country.name) || 
-        selectedCountry.includes(org.city.country.foreign_name)
-      );
+      // التحقق من وجود بيانات البلد قبل المقارنة
+      const countryMatch = doctor.medical_organizations.some(org => {
+        if (!org.city || !org.city.country) return false;
+        
+        const countryName = org.city.country.name ? org.city.country.name.toLowerCase() : '';
+        const countryForeignName = org.city.country.foreign_name ? org.city.country.foreign_name.toLowerCase() : '';
+        
+        return selectedCountry.some(country => {
+          const selectedCountryName = country.toLowerCase();
+          return countryName.includes(selectedCountryName) || countryForeignName.includes(selectedCountryName);
+        });
+      });
+      
       if (!countryMatch) return false;
     }
     
     if (selectedState.length > 0 && selectedState[0] !== "all" && 
-        !selectedState.includes(doctor.city)) {
+        !selectedState.some(state => doctor.city && doctor.city.toLowerCase().includes(state.toLowerCase()))) {
       return false;
     }
     

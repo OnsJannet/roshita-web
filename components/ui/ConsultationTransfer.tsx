@@ -59,6 +59,7 @@ export function ConsultationTransfer({
   const [hasMore, setHasMore] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  // We'll keep this state but won't use it for the API request
   const [selectedAppointment, setSelectedAppointment] = useState<Doctor["appointments"][0] | null>(null);
 
   const limit = 5;
@@ -176,7 +177,11 @@ export function ConsultationTransfer({
   const handleDoctorClick = (doctor: Doctor) => {
     console.log("doctor", doctor)
     setSelectedDoctor(doctor);
-    setSelectedAppointment(null);
+    // We're not setting selectedAppointment anymore since we're skipping that step
+    // setSelectedAppointment(null);
+    
+    // Instead, directly handle the transfer
+    handleTransferConsultation(doctor);
   };
 
   const closeAppointmentsModal = () => {
@@ -184,11 +189,65 @@ export function ConsultationTransfer({
     setSelectedAppointment(null);
   };
 
+  // This function is still here but commented out as we're not using the appointment selection step
+  /*
   const handleAppointmentClick = (appointment: Doctor["appointments"][0]) => {
     console.log("apointmenet picked", appointment)
     setSelectedAppointment(appointment);
   };
+  */
 
+  // New function to handle the transfer directly after doctor selection
+  const handleTransferConsultation = async (doctor: Doctor) => {
+    if (!doctor) return;
+    setError(null); // Clear previous errors
+
+    try {
+      const accessToken = localStorage.getItem("access");
+
+      if (!accessToken) {
+        setError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
+        return;
+      }
+
+      const response = await fetch(
+        `https://test-roshita.net/api/accept-second-opinion/${consultationID}/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            doctor_id: doctor.id,
+            // We're no longer sending the appointment ID
+            // doctor_appointment_date_id: selectedAppointment.id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(language === "ar" 
+          ? `فشل في تحويل الاستشارة: ${data.detail || data.message || 'حدث خطأ'}`
+          : `Failed to transfer consultation: ${data.detail || data.message || 'An error occurred'}`
+        );
+        return;
+      }
+      
+      // Close the dialog and reload the page on success
+      onClose();
+      window.location.reload();
+    } catch (error) {
+      setError(language === "ar"
+        ? "حدث خطأ أثناء معالجة الطلب"
+        : "An error occurred while processing the request"
+      );
+    }
+  };
+
+  // We'll keep this function but it's now commented out as we're not using it
+  /*
   const handleAcceptAppointment = async () => {
     if (!selectedDoctor || !selectedAppointment) return;
     setError(null); // Clear previous errors
@@ -202,7 +261,7 @@ export function ConsultationTransfer({
       }
 
       const response = await fetch(
-        `http://test-roshita.net/api/accept-consultations/${consultationID}/`,
+        `https://test-roshita.net/api/accept-consultations/${consultationID}/`,
         {
           method: "POST",
           headers: {
@@ -211,7 +270,7 @@ export function ConsultationTransfer({
           },
           body: JSON.stringify({
             doctor_id: selectedDoctor.id,
-            doctor_appointment_date_id: selectedAppointment.id,
+            //doctor_appointment_date_id: selectedAppointment.id,
           }),
         }
       );
@@ -233,6 +292,7 @@ export function ConsultationTransfer({
       );
     }
   };
+  */
 
   return (
     <>
@@ -353,101 +413,106 @@ export function ConsultationTransfer({
               </Carousel>
             </div>
 
+            {/* We're removing the submit button since we're handling the transfer directly when a doctor is clicked */}
+            {/*
             <div className="flex justify-center items-center mt-6">
               <Button type="submit" className="bg-[#1588C8] text-white w-1/2 h-10">
                 {content.submitButton}
               </Button>
             </div>
+            */}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Modal for displaying appointments */}
+      {/* We're commenting out the second modal for displaying appointments since we're skipping that step */}
+      {/*
       <Dialog open={!!selectedDoctor} onOpenChange={closeAppointmentsModal}>
-  <DialogContent
-    dir={direction}
-    className={`max-w-[1200px] ${
-      language === "ar" ? "text-right h-[80vh]" : "text-left h-[80vh]"
-    } py-4 overflow-y-auto`} // Added overflow-y-auto here
-  >
-    <DialogHeader>
-      <DialogTitle className="text-center text-2xl">
-        {language === "ar" ? "مواعيد الطبيب" : "Doctor Appointments"}
-      </DialogTitle>
-    </DialogHeader>
-    {selectedDoctor && (
-      <div>
-        <div className="text-center">
-          <img
-            src={
-              selectedDoctor.staff.staff_avatar ||
-              "/Images/default-doctor.jpeg"
-            }
-            alt={`${selectedDoctor.staff.first_name} ${selectedDoctor.staff.last_name}`}
-            className="w-20 h-20 rounded-full object-cover mx-auto"
-          />
-          <p className="font-semibold mt-2">
-            {selectedDoctor.staff.first_name} {selectedDoctor.staff.last_name}
-          </p>
-          <p className="text-sm text-gray-600">
-            {language === "ar"
-              ? selectedDoctor.specialty.name
-              : selectedDoctor.specialty.foreign_name}
-          </p>
-        </div>
-        <div className="mt-4 grid grid-cols-4 gap-4">
-          {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
-            Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
-              ([date, appointments]) => {
-                // Filter to only show available appointments
-                const availableAppointments = appointments.filter(
-                  app => app.appointment_status === "available"
-                );
-                
-                if (availableAppointments.length === 0) return null;
-                
-                return (
-                  <div key={date} className="mb-4">
-                    <p className="font-semibold text-lg text-center">{date}</p>
-                    <div className="grid grid-cols-1 gap-2">
-                      {availableAppointments.map((appointment, index) => (
-                        <button
-                          key={index}
-                          className={`p-2 rounded-lg text-sm text-center ${
-                            selectedAppointment?.id === appointment.id
-                              ? "bg-[#1588C8] text-white"
-                              : "bg-gray-200 hover:bg-gray-300"
-                          }`}
-                          onClick={() => handleAppointmentClick(appointment)}
-                        >
-                          {appointment.start_time} - {appointment.end_time}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
-            ).filter(Boolean) // Remove null entries for dates with no available appointments
-          ) : (
-            <p className="text-center col-span-4">
-              {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
-            </p>
+        <DialogContent
+          dir={direction}
+          className={`max-w-[1200px] ${
+            language === "ar" ? "text-right h-[80vh]" : "text-left h-[80vh]"
+          } py-4 overflow-y-auto`} // Added overflow-y-auto here
+        >
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              {language === "ar" ? "مواعيد الطبيب" : "Doctor Appointments"}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedDoctor && (
+            <div>
+              <div className="text-center">
+                <img
+                  src={
+                    selectedDoctor.staff.staff_avatar ||
+                    "/Images/default-doctor.jpeg"
+                  }
+                  alt={`${selectedDoctor.staff.first_name} ${selectedDoctor.staff.last_name}`}
+                  className="w-20 h-20 rounded-full object-cover mx-auto"
+                />
+                <p className="font-semibold mt-2">
+                  {selectedDoctor.staff.first_name} {selectedDoctor.staff.last_name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {language === "ar"
+                    ? selectedDoctor.specialty.name
+                    : selectedDoctor.specialty.foreign_name}
+                </p>
+              </div>
+              <div className="mt-4 grid grid-cols-4 gap-4">
+                {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
+                  Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
+                    ([date, appointments]) => {
+                      // Filter to only show available appointments
+                      const availableAppointments = appointments.filter(
+                        app => app.appointment_status === "available"
+                      );
+                      
+                      if (availableAppointments.length === 0) return null;
+                      
+                      return (
+                        <div key={date} className="mb-4">
+                          <p className="font-semibold text-lg text-center">{date}</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {availableAppointments.map((appointment, index) => (
+                              <button
+                                key={index}
+                                className={`p-2 rounded-lg text-sm text-center ${
+                                  selectedAppointment?.id === appointment.id
+                                    ? "bg-[#1588C8] text-white"
+                                    : "bg-gray-200 hover:bg-gray-300"
+                                }`}
+                                onClick={() => handleAppointmentClick(appointment)}
+                              >
+                                {appointment.start_time} - {appointment.end_time}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                  ).filter(Boolean) // Remove null entries for dates with no available appointments
+                ) : (
+                  <p className="text-center col-span-4">
+                    {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
+                  </p>
+                )}
+              </div>
+              {selectedAppointment && (
+                <div className="flex justify-center mt-6">
+                  <Button
+                    onClick={() => handleAcceptAppointment()}
+                    className="bg-[#1588C8] text-white"
+                  >
+                    {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
-        </div>
-        {selectedAppointment && (
-          <div className="flex justify-center mt-6">
-            <Button
-              onClick={() => handleAcceptAppointment()}
-              className="bg-[#1588C8] text-white"
-            >
-              {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
-            </Button>
-          </div>
-        )}
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
+        </DialogContent>
+      </Dialog>
+      */}
     </>
   );
 }
