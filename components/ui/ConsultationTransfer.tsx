@@ -67,6 +67,7 @@ export function ConsultationTransfer({
   const content = {
     title: language === "ar" ? "تحويل الاستشارة" : "Transfer Consultation",
     submitButton: language === "ar" ? "إرسال" : "Submit",
+    selectButton: language === "ar" ? "اختيار" : "Select", // Added for the new button
   };
 
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -175,13 +176,13 @@ export function ConsultationTransfer({
   };
 
   const handleDoctorClick = (doctor: Doctor) => {
-    console.log("doctor", doctor)
+    console.log("doctor selected", doctor);
     setSelectedDoctor(doctor);
     // We're not setting selectedAppointment anymore since we're skipping that step
     // setSelectedAppointment(null);
     
-    // Instead, directly handle the transfer
-    handleTransferConsultation(doctor);
+    // We will NOT directly handle the transfer here anymore.
+    // handleTransferConsultation(doctor); 
   };
 
   const closeAppointmentsModal = () => {
@@ -198,8 +199,12 @@ export function ConsultationTransfer({
   */
 
   // New function to handle the transfer directly after doctor selection
-  const handleTransferConsultation = async (doctor: Doctor) => {
-    if (!doctor) return;
+  const handleTransferConsultation = async (doctorToTransfer?: Doctor | null) => {
+    const doctor = doctorToTransfer || selectedDoctor; // Use passed doctor or selectedDoctor from state
+    if (!doctor) {
+        setError(language === "ar" ? "يرجى اختيار طبيب أولاً" : "Please select a doctor first");
+        return;
+    }
     setError(null); // Clear previous errors
 
     try {
@@ -340,8 +345,8 @@ export function ConsultationTransfer({
                 } py-4`}
               >
                 {language === "ar"
-                  ? "تحويل الاستشارة يتيح لك إحالة المريض إلى أخصائي أو طبيب آخر. يضمن ذلك حصول المريض على الرعاية الأنسب بناءً على حالته. اختر الطبيب المطلوب من القائمة أدناه وقم بإرسال طلبك."
-                  : "Transferring a consultation allows you to redirect a patient to another specialist or doctor. This ensures that the patient receives the most suitable care based on their condition. Select the desired doctor from the list below and submit your request."}
+                  ? "تحويل الاستشارة يتيح لك إحالة المريض إلى أخصائي أو طبيب آخر. يضمن ذلك حصول المريض على الرعاية الأنسب بناءً على حالته. اختر الطبيب المطلوب من القائمة أدناه ثم اضغط على زر الاختيار."
+                  : "Transferring a consultation allows you to redirect a patient to another specialist or doctor. This ensures that the patient receives the most suitable care based on their condition. Select the desired doctor from the list below and then click the select button."}
               </p>
             </div>
 
@@ -359,16 +364,12 @@ export function ConsultationTransfer({
                       <div className="p-1">
                         <Card
                           onClick={() => handleDoctorClick(doctor)}
-                          className="cursor-pointer relative"
+                          className={`cursor-pointer relative ${
+                            selectedDoctor?.id === doctor.id ? "border-2 border-[#1588C8]" : "border"
+                          }`} // Highlight selected doctor
                         >
                           <CardContent className="aspect-square items-center justify-center p-6">
-                            {error && doctor.id === selectedDoctor?.id && (
-                              <div className={`absolute top-0 left-0 right-0 bg-red-100 border-b border-red-400 text-red-700 px-3 py-2 text-sm ${
-                                language === "ar" ? "text-end" : "text-start"
-                              }`}>
-                                <span className="block">{error}</span>
-                              </div>
-                            )}
+                            {/* Removed error display from here as it's now global */}
                             <div className="flex justify-center">
                               <img
                                 src={
@@ -413,14 +414,17 @@ export function ConsultationTransfer({
               </Carousel>
             </div>
 
-            {/* We're removing the submit button since we're handling the transfer directly when a doctor is clicked */}
-            {/*
+            {/* Add the new Select button here */}
             <div className="flex justify-center items-center mt-6">
-              <Button type="submit" className="bg-[#1588C8] text-white w-1/2 h-10">
-                {content.submitButton}
+              <Button 
+                onClick={() => handleTransferConsultation()} 
+                className="bg-[#1588C8] text-white w-1/2 h-10"
+                disabled={!selectedDoctor || loading} // Disable if no doctor is selected or if loading
+              >
+                {content.selectButton}
               </Button>
             </div>
-            */}
+            
           </div>
         </DialogContent>
       </Dialog>

@@ -37,6 +37,7 @@ interface Consultation {
     name: string;
   };
   patient_files: any[];
+  consultation_response: any[];
   status: string;
   requestDate?: string; // Add this field if available in the API response
 }
@@ -78,7 +79,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `https://test-roshita.net/api/consultation-requests/unreviewing_consultation/?page=${currentPage}&page_size=${itemsPerPage}`,
+        `https://test-roshita.net/api/second-opinion-requests/unreviewing_second_opinion/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -123,7 +124,7 @@ export default function Page() {
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/consultation-requests/by_hospital/${hospitalId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+        `https://test-roshita.net/api/second-opinion-requests/by_hospital/${hospitalId}/?page=${currentPage}&page_size=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -368,6 +369,10 @@ export default function Page() {
                       status={consultation.status}
                       language={language}
                       diagnosisDescription={consultation.diagnosis_description_request}
+                                            //@ts-ignore
+                      doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
+                                            //@ts-ignore
+                      typeOfService={consultation.consultation_response.type_of_service || ""}
                       userType="hospital"
                     />
                   ))

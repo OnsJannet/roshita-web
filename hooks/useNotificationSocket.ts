@@ -47,8 +47,8 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
       case 'doctor':
         // Doctor receives notifications when assigned to consultations
         endpoints = [
-          `${baseUrl}/doctor-consultation-request-assigned/${userId}/`,
-          `${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`
+          `${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`,          
+          //`${baseUrl}/doctor-consultation-request-assigned/${userId}/`,
         ];
         break;
       case 'hospital':
@@ -57,7 +57,7 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
           `${baseUrl}/hospital-new-consultation/${userId}/`,
           `${baseUrl}/hospital-selected-by-doctor/${userId}/`,
           `${baseUrl}/hospital-new-second_opinions/${userId}/`,
-          `${baseUrl}/hodoctor-response-second-opinion-request-hospital-staff/${userId}/`,
+          `${baseUrl}/hospital-response-second-opinion-request-hospital-staff/${userId}/`,
           `${baseUrl}/user-accept-second-opinion-request-hospital/${userId}/`,
         ];
         break;

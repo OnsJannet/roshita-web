@@ -104,7 +104,8 @@ export default function Page() {
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/consultation-requests/${id}/`,
+        //`https://test-roshita.net/api/consultation-requests/${id}/`,
+        `https://test-roshita.net/api/second-opinion-requests/${id}/`,
         {
           method: "GET",
           headers: {
@@ -174,7 +175,8 @@ export default function Page() {
       if (!token) throw new Error("Access token not found");
 
       const response = await fetch(
-        `https://test-roshita.net/api/doctor-response-consultation/${responseData?.id}/`,
+        //`https://test-roshita.net/api/doctor-response-consultation/${responseData?.id}/`,
+        `https://test-roshita.net/api/doctor-response-second-opinion/${responseData?.id}/`,
         {
           method: "POST",
           headers: {
@@ -183,7 +185,7 @@ export default function Page() {
           },
           body: JSON.stringify({
             diagnosis_description_response: responseMessage,
-            estimated_cost: estimatedPrice,
+            //estimated_cost: estimatedPrice,
             service_type: serviceType,
           }),
         }
@@ -362,7 +364,7 @@ export default function Page() {
                     </Select>
                   </div>
 
-                  <div className="p-4">
+                  {/*<div className="p-4">
                     <label
                       className={`block text-sm font-medium mb-2 ${
                         language === "ar" ? "text-right" : "text-left"
@@ -381,7 +383,7 @@ export default function Page() {
                         language === "ar" ? "text-right" : "text-left"
                       }`}
                     />
-                  </div>
+                  </div>*/}
 
                   <div className="p-4">
                     <label

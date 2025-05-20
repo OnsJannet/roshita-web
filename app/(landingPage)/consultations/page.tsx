@@ -202,7 +202,7 @@ const Page = () => {
         const token = localStorage.getItem("access");
         const patientId = localStorage.getItem("patientId");
         const response = await fetch(
-          `https://test-roshita.net/api/user-consultation-requests/by_patient/${patientId}/?page=${currentPage}&page_size=${itemsPerPage}`,
+          `https://test-roshita.net/api/user-second-opinion-requests/by_patient/${patientId}/`,
           {
             method: "GET",
             headers: {
@@ -301,7 +301,14 @@ const Page = () => {
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center p-8 bg-red-100 border border-red-400 text-red-700 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-4">Error</h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
   }
 
   return loading ? (
