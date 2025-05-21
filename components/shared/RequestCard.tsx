@@ -12,6 +12,7 @@ interface RequestCardProps {
   typeOfService: string;
   language: "ar" | "en";
   diagnosisDescription?: string;
+  consultationResponseId: string;
   consultationResponse?: {
     id?: string | number;
     diagnosis_description_response?: string;
@@ -30,7 +31,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
   diagnosisDescription,
   consultationResponse,
   doctorMsg,
-  typeOfService
+  typeOfService,
+  consultationResponseId
 }) => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -182,7 +184,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/hospital-response-second-opinion/${requestNumber}/`,
+        `https://test-roshita.net/api/hospital-response-second-opinion/${consultationResponseId}/`,
         {
           method: 'POST',
           headers: {
@@ -200,7 +202,6 @@ const RequestCard: React.FC<RequestCardProps> = ({
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to send hospital response');
       }
-      alert(language === "ar" ? "تم إرسال رد المستشفى بنجاح." : "Hospital response sent successfully.");
       window.location.reload(); 
     } catch (error) {
       console.error('Error sending hospital response:', error);

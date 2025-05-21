@@ -21,7 +21,7 @@ export default function Page() {
       setLanguage(storedLanguage as Language);
     }
 
-    const storedUserId = localStorage.getItem('userId');
+    const storedUserId = localStorage.getItem('medicalOrganizationId');
     console.log('Stored userId:', storedUserId);
     if (storedUserId) {
       setUserId(storedUserId);
@@ -103,11 +103,10 @@ export default function Page() {
                     </p>
                   </div>
                 ) : (
-                  notifications.map((notification) => {
-                    const consultationId = extractConsultationId(notification.message);
+                  notifications.map((notification, index) => {
                     return (
                       <div
-                        key={notification.id}
+                        key={index} // Modified key to ensure uniqueness
                         className={`bg-white p-6 rounded-lg border-l-4  ${
                           notification.status === 'unread' 
                             ? 'border-roshitaDarkBlue' 

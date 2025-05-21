@@ -373,6 +373,8 @@ export default function Page() {
                       doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
                                             //@ts-ignore
                       typeOfService={consultation.consultation_response.type_of_service || ""}
+                      //@ts-ignore
+                      consultationResponseId={consultation.consultation_response.id || ""}
                       userType="hospital"
                     />
                   ))

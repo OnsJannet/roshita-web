@@ -4,6 +4,10 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import FileComponent from "./FileComponent";
 import { paiement } from "@/constant";
 import { MessageAlert } from "./MessageAlert";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface File {
   description: string;
@@ -48,6 +52,8 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
   >(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [currentStep, setCurrentStep] = useState(1); // 1 for calendar, 2 for payment
 
   const handlePaymentMethodClick = (id: number) => {
     const selectedMethod = paiement.find((option) => option.id === id);
@@ -67,10 +73,21 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
       return;
     }
 
+    if (!selectedDate) {
+      setError(
+        language === "ar"
+          ? "الرجاء اختيار تاريخ الموعد"
+          : "Please select an appointment date"
+      );
+      return;
+    }
+
+    const formattedDateTime = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss");
+
     const token = localStorage.getItem("access");
     try {
       const response = await fetch(
-        `https://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
+        `https://test-roshita.net/api/accept-hospital-second-opinion-offer/${consultationId}/`,
         {
           method: "POST",
           headers: {
@@ -85,6 +102,7 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
             birth_year: 1990,
             payment_method: selectedPaymentMethod,
             pay_full_amount: true,
+            reservation_date_time: formattedDateTime
           }),
         }
       );
@@ -114,11 +132,19 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
     }
   };
 
+
+  const handlePreviousStep = () => {
+    setError(""); // Clear previous errors
+    setCurrentStep(1);
+  };
+
+
+
   const denyRequest = async () => {
     const token = localStorage.getItem("access");
     try {
       const response = await fetch(
-        `https://test-roshita.net/api/accept-doctor-consultation-offer/${consultationId}/`,
+        `https://test-roshita.net/api/accept-hospital-second-opinion-offer/${consultationId}/`,
         {
           method: "POST",
           headers: {
@@ -160,11 +186,42 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
     setIsOpen(!isOpen);
     setError(""); // Clear errors when toggling
     setSuccessMessage(""); // Clear success messages when toggling
+    setCurrentStep(1); // Reset to step 1 when dropdown is toggled or modal is re-opened
   };
+
+  const openModal = () => {
+    setCurrentStep(1); // Reset to step 1 every time modal is opened
+    setError("");
+    setSuccessMessage("");
+    setIsModalOpen(true);
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCurrentStep(1); // Reset step when closing modal
+    setError("");
+    setSuccessMessage("");
+  }
 
   const isArabic = language === "ar";
 
   console.log("consultationStatus:", consultationStatus);
+
+  const handleNextStep = () => {
+    if (!selectedDate) {
+      setError(
+        language === "ar"
+          ? "الرجاء اختيار تاريخ الموعد"
+          : "Please select an appointment date"
+      );
+      return;
+    }
+  
+
+  
+    setError(""); // Clear any previous errors
+    setCurrentStep(2); // Move to payment step
+  };
 
   return (
     <Card
@@ -324,7 +381,7 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
             {isArabic ? "رفض الطلب" : "Deny request"}
           </button>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModal} // Changed to openModal
             className="border bg-[#d2e288] border-[#d2e288] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2"
           >
             {isArabic ? "قبول الطلب" : "Accept request"}
@@ -333,71 +390,150 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-[80%] h-[80%] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-[80%] max-w-2xl h-auto max-h-[90vh] flex flex-col">
             <div
-              className="overflow-y-auto flex-1 px-4"
-              style={{ maxHeight: "calc(100% - 20px)" }}
+              className="overflow-y-auto flex-1 px-2 sm:px-4"
             >
-              <p className="text-gray-600 mb-2 pb-2 text-center">
-                {language === "en"
-                  ? "Select the payment method available to you"
-                  : "أختار الطريقــة المعاملة التي موجودة لديــــــك"}
-              </p>
+              {/* Step 1: Calendar and Time Selection */}
+              {currentStep === 1 && (
+                <div className="mb-6">
+                  <p className="text-gray-700 mb-4 pb-2 text-center font-semibold text-lg">
+                    {language === "en"
+                      ? "Step 1: Select Appointment Date and Time"
+                      : "الخطوة ١: اختر تاريخ ووقت الموعد"}
+                  </p>
+                  
+                  <div className="flex flex-col md:flex-row gap-6 justify-center items-start md:items-center">
+                    <div className="bg-white p-2 sm:p-4 rounded-lg shadow-sm border w-full md:w-auto flex justify-center">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border"
+                        disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))} // Allow today
+                      />
+                    </div>
+                    
+                    <div className="flex flex-col gap-4 w-full md:w-auto md:min-w-[200px]">
 
-              <p className="text-black mb-2 pb-2 text-center">
-                {language === "en"
-                  ? "Your payment for Roshita will be processed using the selected method. Please note that payments for the doctor must be made in cash directly at the doctor's cabinet."
-                  : "سيتم معالجة دفعتك لروشيتا باستخدام الطريقة المحددة. يرجى ملاحظة أن الدفع للطبيب يجب أن يتم نقدًا مباشرة في عيادة الطبيب."}
-              </p>
-
-              <p
-                className={`text-gray-600 mb-2 pb-2 text-2xl font-semibold ${
-                  language === "en" ? "text-start" : "text-end"
-                }`}
-              >
-                {language === "en" ? "Choose your card" : "أختـــار البطــاقة"}
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                {paiement.map((option) => (
-                  <div
-                    key={option.id}
-                    className={`flex ${
-                      language === "en" ? "flex-row" : "flex-row-reverse"
-                    } justify-start gap-2 items-center p-4 rounded-lg cursor-pointer transition-colors w-full ${
-                      selectedPaymentMethod === option.name_en.toLowerCase()
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200"
-                    }`}
-                    onClick={() => handlePaymentMethodClick(option.id)}
-                  >
-                    <img
-                      src={option.image}
-                      alt={language === "en" ? option.name_en : option.name}
-                      className="w-16 h-16 mb-2 object-contain"
-                    />
-                    <span className="text-lg font-semibold">
-                      {language === "en" ? option.name_en : option.name}
-                    </span>
+                      {selectedDate && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded-md text-sm">
+                          <p className={language === "ar" ? "text-right" : "text-left"}>
+                            {language === "ar" ? "التاريخ المحدد:" : "Selected date:"}
+                            <span className="font-semibold"> {format(selectedDate, "PPP")}</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+              
+              {/* Step 2: Payment Method Selection */}
+              {currentStep === 2 && (
+                <div>
+                  <p className="text-gray-700 mb-4 pb-2 text-center font-semibold text-lg">
+                    {language === "en"
+                      ? "Step 2: Select Payment Method"
+                      : "الخطوة ٢: أختار طريقة الدفع"}
+                  </p>
+
+                  <p className="text-gray-600 mb-2 pb-2 text-center text-sm">
+                    {language === "en"
+                      ? "Select the payment method available to you."
+                      : "أختار الطريقــة المعاملة التي موجودة لديـــــــك."}
+                  </p>
+
+                  <p className="text-black mb-4 pb-2 text-center text-xs sm:text-sm">
+                    {language === "en"
+                      ? "Your payment for Roshita will be processed using the selected method. Please note that payments for the doctor must be made in cash directly at the doctor's cabinet."
+                      : "سيتم معالجة دفعتك لروشيتا باستخدام الطريقة المحددة. يرجى ملاحظة أن الدفع للطبيب يجب أن يتم نقدًا مباشرة في عيادة الطبيب."}
+                  </p>
+
+                  <p
+                    className={`text-gray-700 mb-2 pb-2 text-xl font-semibold ${
+                      language === "en" ? "text-start" : "text-end"
+                    }`}
+                  >
+                    {language === "en" ? "Choose your card" : "أختـــار البطــاقة"}
+                  </p>
+
+                  <div className="flex flex-col gap-3">
+                    {paiement.map((option) => (
+                      <div
+                        key={option.id}
+                        className={`flex ${
+                          language === "en" ? "flex-row" : "flex-row-reverse"
+                        } justify-start gap-4 items-center p-3 rounded-lg cursor-pointer transition-colors w-full border ${
+                          selectedPaymentMethod === option.name_en.toLowerCase()
+                            ? "bg-blue-500 text-white border-blue-600"
+                            : "bg-gray-100 hover:bg-gray-200 border-gray-300"
+                        }`}
+                        onClick={() => handlePaymentMethodClick(option.id)}
+                      >
+                        <img
+                          src={option.image}
+                          alt={language === "en" ? option.name_en : option.name}
+                          className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
+                        />
+                        <span className="text-md sm:text-lg font-semibold">
+                          {language === "en" ? option.name_en : option.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Error display within modal content area */}
+              {error && currentStep === 1 && (
+                //@ts-ignore
+                <MessageAlert type="error" language={language} className="mt-4">
+                  {error}
+                </MessageAlert>
+              )}
+               {error && currentStep === 2 && (
+                //@ts-ignore
+                <MessageAlert type="error" language={language} className="mt-4">
+                  {error}
+                </MessageAlert>
+              )}
             </div>
 
-            <div className="flex justify-end gap-4 mt-4">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded"
-              >
-                {language === "en" ? "Cancel" : "إلغاء"}
-              </button>
-              <button
-                onClick={acceptRequest}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-              >
-                {language === "en" ? "Confirm" : "تأكيد"}
-              </button>
+            {/* Modal Footer with Navigation Buttons */}
+            <div className="flex justify-between items-center gap-4 mt-6 pt-4 border-t">
+              {currentStep === 1 && (
+                <>
+                  <button
+                    onClick={closeModal}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm sm:text-base"
+                  >
+                    {language === "en" ? "Cancel" : "إلغاء"}
+                  </button>
+                  <button
+                    onClick={handleNextStep}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm sm:text-base"
+                  >
+                    {language === "en" ? "Next" : "التالي"}
+                  </button>
+                </>
+              )}
+              {currentStep === 2 && (
+                <>
+                  <button
+                    onClick={handlePreviousStep}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm sm:text-base"
+                  >
+                    {language === "en" ? "Back" : "رجوع"}
+                  </button>
+                  <button
+                    onClick={acceptRequest}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm sm:text-base"
+                  >
+                    {language === "en" ? "Confirm Payment" : "تأكيد الدفع"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -306,6 +306,13 @@ export default function Page() {
                       status={consultation.status}
                       requestDate={"2025-10-01"} // Replace with actual date if available
                       speciality={consultation.specialty.name}
+                                            //@ts-ignore
+                                            doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
+                                            //@ts-ignore
+                      typeOfService={consultation.consultation_response.type_of_service || ""}
+                      //@ts-ignore
+                      consultationResponseId={consultation.consultation_response.id || ""}
+
                       language={language}
                       userType="doctor"
                     />

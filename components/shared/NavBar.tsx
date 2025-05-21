@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { AlignLeft, UserRound } from "lucide-react";
+import { AlignLeft, UserRound, X } from "lucide-react"; // Added X icon
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -49,16 +49,67 @@ const NavBar = () => {
   const [language, setLanguage] = useState<Language>("ar");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true); // Add loading state
+  const [loading, setLoading] = useState<boolean>(true);
   const [showLoginDropdown, setShowLoginDropdown] = useState(false);
   const [showRegisterDropdown, setShowRegisterDropdown] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false); // Mobile menu state
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const router = useRouter();
 
   const toggleLoginDropdown = () => setShowLoginDropdown((prev) => !prev);
   const toggleRegisterDropdown = () => setShowRegisterDropdown((prev) => !prev);
 
-  const toggleMobileMenu = () => setShowMobileMenu((prev) => !prev); // Toggle mobile menu
+  const toggleMobileMenu = () => setShowMobileMenu((prev) => !prev);
+  const closeMobileMenu = () => setShowMobileMenu(false); // Function to close mobile menu
+
+  // Modified click handlers to close mobile menu
+  const handleClickLogin = () => {
+    closeMobileMenu();
+    window.location.href = "/login";
+  };
+
+  const handleClickRegister = () => {
+    closeMobileMenu();
+    window.location.href = "/register";
+  };
+
+  const handleClickRegisterProfessionally = () => {
+    closeMobileMenu();
+    window.location.href = "/dashboard/Auth/register";
+  };
+
+  const handleClickLoginProfessionally = () => {
+    closeMobileMenu();
+    window.location.href = "/dashboard/Auth/login";
+  };
+
+  const handleClickHome = () => {
+    closeMobileMenu();
+    window.location.href = "/";
+  };
+
+  const handleClickSettings = () => {
+    closeMobileMenu();
+    router.push("/profile");
+  };
+
+  const handleClickAppointments = () => {
+    closeMobileMenu();
+    router.push("/appointments");
+  };
+
+  const handleClickConsultations = () => {
+    closeMobileMenu();
+    router.push("/consultations");
+  };
+
+  const handleLogout = () => {
+    closeMobileMenu();
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+    window.location.href = "/login";
+  };
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -94,43 +145,11 @@ const NavBar = () => {
         }
       }
 
-      setLoading(false); // Once loading is complete, set loading to false
+      setLoading(false);
     };
 
     checkLoginStatus();
   }, []);
-
-  const handleClickLogin = () => {
-    window.location.href = "/login";
-  };
-
-  const handleClickRegister = () => {
-    window.location.href = "/register";
-  };
-
-  const handleClickRegisterProfessionally = () => {
-    window.location.href = "/dashboard/Auth/register";
-  };
-
-  const handleClickLoginProfessionally = () => {
-    window.location.href = "/dashboard/Auth/login";
-  };
-
-  const handleClickHome = () => {
-    window.location.href = "/";
-  };
-
-  const handleClickSettings = () => {
-    router.push("/profile");
-  };
-
-  const handleClickAppointments = () => {
-    router.push("/appointments");
-  };
-
-  const handleClickConsultations = () => {
-    router.push("/consultations");
-  };
 
   return (
     <header
@@ -152,7 +171,7 @@ const NavBar = () => {
           ) : (
             <div>
               <h2
-                onClick={() => (window.location.href = "/")}
+                onClick={handleClickHome}
                 className={`${
                   language === "ar" ? "text-right" : "text-left"
                 } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
@@ -177,7 +196,7 @@ const NavBar = () => {
             src="/logos/ShortLogo.png"
             alt="roshita logo"
             className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
-            onClick={() => (window.location.href = "/")}
+            onClick={handleClickHome}
           />
         </div>
 
@@ -299,15 +318,7 @@ const NavBar = () => {
                   {language === "ar" ? "استشارتي" : "My consultation"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    localStorage.removeItem("access");
-                    localStorage.removeItem("refresh");
-                    localStorage.removeItem("isLoggedIn");
-                    setIsLoggedIn(false);
-                    window.location.href = "/login";
-                  }}
-                >
+                <DropdownMenuItem onClick={handleLogout}>
                   {language === "ar" ? "تسجيل الخروج" : "Logout"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -318,15 +329,21 @@ const NavBar = () => {
         {/* Mobile Menu */}
         <AlignLeft
           className="lg:hidden flex items-center my-auto text-black h-8 w-auto cursor-pointer"
-          onClick={toggleMobileMenu} // Toggle mobile menu visibility
+          onClick={toggleMobileMenu}
         />
 
         {/* Mobile Menu Content */}
         {showMobileMenu && (
           <div className="lg:hidden fixed inset-0 bg-gray-800 bg-opacity-50 z-[99999]">
-            <div className="flex flex-col items-center justify-start bg-white h-full pt-4">
-              {" "}
-              {/* Add pt-4 to give space at the top */}
+            <div className={`flex flex-col items-center justify-start bg-white h-full pt-4 ${language === "ar" ? "text-right" : "text-left"}`}>
+              {/* Close Button (X) */}
+              <div className={`w-full flex ${language === "ar" ? "justify-start pl-4" : "justify-end pr-4"}`}>
+                <X 
+                  className="h-8 w-8 text-gray-700 cursor-pointer"
+                  onClick={closeMobileMenu}
+                />
+              </div>
+              
               <img
                 src="/logos/ShortLogo.png"
                 alt="roshita logo"
@@ -392,13 +409,14 @@ const NavBar = () => {
                     {language === "ar" ? "مواعيدي" : "My Appointments"}
                   </Button>
                   <Button
-                    onClick={() => {
-                      localStorage.removeItem("access");
-                      localStorage.removeItem("refresh");
-                      localStorage.removeItem("isLoggedIn");
-                      setIsLoggedIn(false);
-                      window.location.href = "/login";
-                    }}
+                    onClick={handleClickConsultations}
+                    variant="link"
+                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
+                  >
+                    {language === "ar" ? "استشارتي" : "My consultation"}
+                  </Button>
+                  <Button
+                    onClick={handleLogout}
                     variant="link"
                     className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
                   >

@@ -39,9 +39,10 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
         // Patient receives notifications from multiple endpoints
         endpoints = [
           `${baseUrl}/patient-doctor-suggest/${userId}`,
-          `${baseUrl}/doctor-consultation-response-accepted/${userId}`,
           `${baseUrl}/patient-doctor-response/${userId}`,   
-          `${baseUrl}/hospital-response-second-opinion-request-user/${userId}`,      
+          `${baseUrl}/hospital-response-second-opinion-request-user/${userId}`, 
+          //`${baseUrl}/hospital-new-second-opinion/${userId}/`  
+          //`${baseUrl}/doctor-consultation-response-accepted/${userId}`,   
         ];
         break;
       case 'doctor':
@@ -54,11 +55,12 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
       case 'hospital':
         // Hospital receives notifications for new consultations and when selected by doctors
         endpoints = [
-          `${baseUrl}/hospital-new-consultation/${userId}/`,
+          //`${baseUrl}/hospital-new-consultation/${userId}/`,
           `${baseUrl}/hospital-selected-by-doctor/${userId}/`,
-          `${baseUrl}/hospital-new-second_opinions/${userId}/`,
+          `${baseUrl}/hospital-new-second_opinion/${userId}/`,
           `${baseUrl}/hospital-response-second-opinion-request-hospital-staff/${userId}/`,
           `${baseUrl}/user-accept-second-opinion-request-hospital/${userId}/`,
+
         ];
         break;
       default:

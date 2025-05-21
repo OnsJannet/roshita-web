@@ -20,12 +20,32 @@ export default function Page() {
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
     }
-
-    const storedUserId = localStorage.getItem('userId');
-    console.log('Stored userId:', storedUserId);
-    if (storedUserId) {
-      setUserId(storedUserId);
+  
+    // Get the full user data from localStorage
+    const userDataString = localStorage.getItem('user');
+    
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString);
+        console.log('User data:', userData);
+        
+        // Store the user ID
+        if (userData.user_id) {
+          setUserId(userData.user_id.toString());
+        }
+        
+        // Store the medical organization ID if it exists
+        if (userData.medical_organization?.id) {
+          const medOrgId = userData.medical_organization.id;
+          console.log('Medical Organization ID:', medOrgId);
+          // You can store it in state or localStorage if needed
+          localStorage.setItem('medicalOrganizationId', medOrgId.toString());
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
     }
+    
     setLoading(false);
   }, []);
 
