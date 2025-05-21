@@ -308,11 +308,11 @@ export default function Page() {
                       requestDate={consultation.create_date ? consultation.create_date : "-"}// Replace with actual date if available
                       speciality={consultation.specialty.name}
                       //@ts-ignore
-                      doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
+                      doctorMsg={consultation?.consultation_response?.diagnosis_description_response || ""}
                       //@ts-ignore
-                      typeOfService={consultation.consultation_response.type_of_service || ""}
+                      typeOfService={consultation?.consultation_response?.type_of_service || ""}
                       //@ts-ignore
-                      consultationResponseId={consultation.consultation_response.id || ""}
+                      consultationResponseId={consultation?.consultation_response?.id || ""}
                       language={language}
                       userType="doctor"
                     />

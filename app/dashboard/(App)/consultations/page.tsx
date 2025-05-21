@@ -368,13 +368,13 @@ export default function Page() {
                       speciality={consultation.specialty.name}
                       status={consultation.status}
                       language={language}
-                      diagnosisDescription={consultation.diagnosis_description_request}
+                      diagnosisDescription={consultation?.diagnosis_description_request}
                                             //@ts-ignore
-                      doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
+                      doctorMsg={consultation?.consultation_response?.diagnosis_description_response || ""}
                                             //@ts-ignore
-                      typeOfService={consultation.consultation_response.type_of_service || ""}
+                      typeOfService={consultation?.consultation_response?.type_of_service || ""}
                       //@ts-ignore
-                      consultationResponseId={consultation.consultation_response.id || ""}
+                      consultationResponseId={consultation?.consultation_response?.id || ""}
                       userType="hospital"
                     />
                   ))
