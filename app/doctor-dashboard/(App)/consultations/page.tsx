@@ -304,15 +304,15 @@ export default function Page() {
                       requestNumber={consultation.id.toString()}
                       patientName={consultation.patient.full_name}
                       status={consultation.status}
-                      requestDate={"2025-10-01"} // Replace with actual date if available
+                                            //@ts-ignore
+                      requestDate={consultation.create_date ? consultation.create_date : "-"}// Replace with actual date if available
                       speciality={consultation.specialty.name}
-                                            //@ts-ignore
-                                            doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
-                                            //@ts-ignore
+                      //@ts-ignore
+                      doctorMsg={consultation.consultation_response.diagnosis_description_response || ""}
+                      //@ts-ignore
                       typeOfService={consultation.consultation_response.type_of_service || ""}
                       //@ts-ignore
                       consultationResponseId={consultation.consultation_response.id || ""}
-
                       language={language}
                       userType="doctor"
                     />
