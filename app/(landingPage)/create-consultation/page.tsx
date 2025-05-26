@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Bell, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
+import { Bell, CircleCheck, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
 import AppointementsCard from "@/components/unique/AppointementsCard"; // Adjust the import path as needed
 import { useRouter } from "next/navigation";
 import { fetchProfileDetails } from "@/lib/api";
@@ -72,6 +72,7 @@ const Page = () => {
   const [responses, setResponses] = useState<string[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
       first_name: "",
@@ -193,6 +194,7 @@ const Page = () => {
       setUploadedXRaysFiles([]);
       setUploadedMedicalReportFiles([]);
       setStep(1);
+      setShowSuccessModal(true);
       
     } catch (error) {
       console.error("Error creating consultation request:", error);
@@ -261,6 +263,36 @@ const Page = () => {
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <div className="text-center">
+            <CircleCheck className="h-12 w-12 text-green-500" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">
+                {language === "ar"
+                  ? "تم الإرسـال بنجاح"
+                  : "Successfully Sent"}
+              </h3>
+              <div className="mt-2 text-sm text-gray-500">
+                {language === "ar"
+                  ? "تم الإرسـال طلبك سيتم الرد طلبك خلال 72 ساعة"
+                  : "Your request has been sent. Your request will be responded to within 72 hours."}
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  {language === "ar" ? "حسنا" : "OK"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <div
           className={`flex ${
@@ -357,44 +389,6 @@ const Page = () => {
             >
               {step === 1 ? (
                 <div className="flex gap-4 flex-col">
-                  {/*<div
-                    className="bg-gray-50 w-full p-4 rounded-md flex h-20 items-center justify-between cursor-pointer"
-                    onClick={() => {
-                      setType("with");
-                      setStep(2);
-                    }}
-                  >
-                    <div className="flex gap-4">
-                      <img
-                        src="/Images/consultation-2.png"
-                        className="w-10 h-10"
-                      />
-                      <div>
-                        {language === "en" ? (
-                          <>
-                            <p>Medical Consultation</p>
-                            <p className="text-gray-500">
-                              Free consultation without any conditions
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p>إستشارة طبية</p>
-                            <p className="text-gray-500">
-                              استشارة مجانية لاتتطلب شروط{" "}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <div
-                        className={`rounded-full ${
-                          type === "with" ? "bg-[#1a8cca]" : "bg-white"
-                        } h-2 w-2`}
-                      ></div>
-                    </div>
-                  </div>*/}
                   <div
                     className="bg-gray-50 w-full p-4 rounded-md flex h-20 items-center justify-between cursor-pointer"
                     onClick={() => {
@@ -657,4 +651,3 @@ const Page = () => {
 };
 
 export default Page;
-

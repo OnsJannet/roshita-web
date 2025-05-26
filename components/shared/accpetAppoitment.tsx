@@ -55,6 +55,9 @@ const translations = {
     date: "التاريخ",
     time: "الساعة",
     myAppointments: "مواعيــــدي",
+    paymentSuccess: "تم الدفع بنجاح",
+    reservationCreated: "تم إنشاء الحجز بنجاح",
+    ok: "حسنا",
   },
   en: {
     confirmBooking: "Confirm Booking",
@@ -66,6 +69,9 @@ const translations = {
     date: "Date",
     time: "Time",
     myAppointments: "My Appointments",
+    paymentSuccess: "Payment Successful",
+    reservationCreated: "Reservation created successfully",
+    ok: "OK",
   },
 };
 
@@ -116,6 +122,8 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   const [otpCode, setOtpCode] = useState("");
   const [payementID, setPayementId] = useState("");
   const [url, setUrl] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [reservationId, setReservationId] = useState("");
 
   console.log("this is the payment method", payement);
 
@@ -186,8 +194,6 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
           return;
         }
 
-
-    
         const [dayPart, monthPart, yearPart] = day.split("/");
         const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
         const formattedStartTime = `${time}:00`;
@@ -244,6 +250,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     
           const responseData = await response.json();
           console.log("Reservation successful:", responseData);
+          setReservationId(responseData.id || "N/A");
     
           if (
             paymentMethod?.word?.toLowerCase() === "sadad" ||
@@ -260,14 +267,13 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
             window.location.href =
               responseData.payment_confirmation.result.redirect_url;
           } else {
-            window.location.href = "/appointments";
+            setShowSuccessModal(true);
           }
         } catch (error) {
           console.error("Error booking the appointment:", error);
           alert("An error occurred while booking the appointment.");
         }
       };
-    
 
   const handleOtpSubmit = async () => {
     const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`;
@@ -299,11 +305,17 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
 
       const responseData = await response.json();
       console.log("Payment confirmation successful:", responseData);
-      window.location.href = "/appointments";
+      setShowSuccessModal(true);
+      setConfirmModal(false);
     } catch (error) {
       console.error("Error confirming payment:", error);
       alert("An error occurred while confirming the payment.");
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    window.location.href = "/appointments";
   };
 
   return (
@@ -458,6 +470,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
       {/* OTP Modal */}
       <Dialog open={confirmModal} onOpenChange={setConfirmModal}>
         <DialogContent className="sm:max-w-[625px] h-[60%]">
@@ -490,6 +503,35 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
               className="p-4 bg-roshitaBlue rounded text-white font-bold"
             >
               {t.confirmBooking}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex justify-center">
+              <CircleCheck className="h-12 w-12 text-green-500" />
+            </DialogTitle>
+            <DialogDescription className="text-center text-lg font-semibold">
+              {t.paymentSuccess}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-gray-600">
+              {language === "ar"
+                ? `تم قبول الدفع وتم إنشاء حجز برقم ${reservationId}`
+                : `Payment accepted and reservation #${reservationId} was created`}
+            </p>
+          </div>
+          <DialogFooter className="flex justify-center">
+            <Button
+              onClick={handleSuccessModalClose}
+              className="bg-roshitaBlue text-white"
+            >
+              {t.ok}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -266,7 +266,7 @@ const Page = () => {
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
+         {/*} <div className="mt-4 text-center text-sm">
   {language === "ar" ? (
     <>
       لا تمتلك حسابًا؟{" "}
@@ -282,7 +282,7 @@ const Page = () => {
       </Link>
     </>
   )}
-</div>
+</div>  */}
 
         </div>
       </div>

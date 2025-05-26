@@ -20,6 +20,7 @@ const Page = () => {
   const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("LBY"); // Default to Libya
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -54,6 +55,7 @@ const Page = () => {
       last_name: lastName,
       email,
       password,
+      country_code: selectedCountry, // Add country code to the request
     };
 
     try {
@@ -113,7 +115,7 @@ const Page = () => {
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken":
-              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE",
+              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE", // Consider managing CSRF token more dynamically
           },
           body: JSON.stringify({ otp, phone }),
         }
@@ -121,17 +123,45 @@ const Page = () => {
 
       const result = await response.json();
 
-      if (response.ok) {
-        alert("OTP verification successful");
+      if (response.ok && result.access) {
         console.log("OTP Verification Response:", result);
-        // Redirect to login or other actions after successful verification
-        window.location.href = "/login";
+
+        // Save the tokens and user info if OTP verification is successful
+        localStorage.setItem("refresh", result.refresh);
+        localStorage.setItem("access", result.access);
+        localStorage.setItem("userId", String(result.user.id));
+        localStorage.setItem("patientId", String(result.user.patient_id));
+        localStorage.setItem("isLoggedIn", "true");
+
+        // Optionally, fetch user profile details here if needed, similar to mobile app
+        // For now, directly redirecting to the main page after successful OTP verification
+        alert("OTP verification successful. Redirecting...");
+        window.location.href = "/"; // Redirect to the main page or dashboard
       } else {
         console.log("OTP Verification Error:", result);
+        const errorMessage =
+          result.detail || (language === "ar" ? "فشل التحقق من OTP. حاول مرة أخرى." : "OTP verification failed. Please try again.");
+        setError(errorMessage); // Display error in the UI
+        alert(errorMessage);
       }
     } catch (error) {
       console.error("Error during OTP verification:", error);
-      alert("An error occurred during OTP verification.");
+      const generalErrorMessage = language === "ar" ? "حدث خطأ أثناء التحقق من OTP." : "An error occurred during OTP verification.";
+      setError(generalErrorMessage);
+      alert(generalErrorMessage);
+    }
+  };
+
+  // Get phone hint based on selected country
+  const getPhoneHint = () => {
+    if (language === "ar") {
+      return selectedCountry === "LBY"
+        ? "يرجى إدخال رقم الهاتف بدون رمز الدولة، مثال: 09xxxxxxxx"
+        : "يرجى إدخال رقم الهاتف بدون رمز الدولة، مثال: 20xxxxxx";
+    } else {
+      return selectedCountry === "LBY"
+        ? "Please enter the phone number without the country code, e.g., 09xxxxxxxx"
+        : "Please enter the phone number without the country code, e.g., 20xxxxxx";
     }
   };
 
@@ -256,6 +286,33 @@ const Page = () => {
               />
             </div>
 
+            {/* Country Selection */}
+            <div className="grid gap-2">
+              <Label
+                className={language === "ar" ? "text-end" : "text-start"}
+              >
+                {language === "ar" ? "اختر البلد" : "Select Country"}
+              </Label>
+              <div className="flex gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCountry("LBY")}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-md border ${selectedCountry === "LBY" ? "border-roshitaBlue bg-blue-50" : "border-gray-200"}`}
+                >
+                  <span>{language === "ar" ? "ليبيا" : "Libya"}</span>
+                  <Image src="/Images/lb-flag.png" alt="Libya Flag" width={24} height={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCountry("TU")}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-md border ${selectedCountry === "TU" ? "border-roshitaBlue bg-blue-50" : "border-gray-200"}`}
+                >
+                  <span>{language === "ar" ? "تونس" : "Tunisia"}</span>
+                  <Image src="/Images/tn-flag.webp" alt="Tunisia Flag" width={24} height={16} />
+                </button>
+              </div>
+            </div>
+
             <div className="grid gap-2">
               <Label
                 htmlFor="phone"
@@ -263,10 +320,14 @@ const Page = () => {
               >
                 {language === "ar" ? "رقم الهاتف" : "Phone Number"}
               </Label>
+              {/* Phone Number Hint */}
+              <p className={`text-xs text-gray-500 ${language === "ar" ? "text-right" : "text-left"} mb-1`}>
+                {getPhoneHint()}
+              </p>
               <Input
                 id="phone"
                 type="text"
-                placeholder={language === "ar" ? "05xxxxxxxx" : "05xxxxxxxx"}
+                placeholder={selectedCountry === "LBY" ? "09xxxxxxxx" : "20xxxxxx"}
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}

@@ -51,12 +51,12 @@ const NavBar = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showLoginDropdown, setShowLoginDropdown] = useState(false);
-  const [showRegisterDropdown, setShowRegisterDropdown] = useState(false);
+  // const [showRegisterDropdown, setShowRegisterDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const router = useRouter();
 
   const toggleLoginDropdown = () => setShowLoginDropdown((prev) => !prev);
-  const toggleRegisterDropdown = () => setShowRegisterDropdown((prev) => !prev);
+  // const toggleRegisterDropdown = () => setShowRegisterDropdown((prev) => !prev);
 
   const toggleMobileMenu = () => setShowMobileMenu((prev) => !prev);
   const closeMobileMenu = () => setShowMobileMenu(false); // Function to close mobile menu
@@ -255,13 +255,14 @@ const NavBar = () => {
                   </div>
                   <div className="relative">
                     <Button
-                      onClick={toggleRegisterDropdown}
+                      // onClick={toggleRegisterDropdown}
+                      onClick={handleClickRegister} // Changed to directly call handleClickRegister
                       variant="register"
                       className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
                     >
                       {language === "ar" ? "تسجيل" : "Register"}
                     </Button>
-                    {showRegisterDropdown && (
+                    {/* {showRegisterDropdown && (
                       <div className="absolute right-0 mt-2 w-[200px] bg-white shadow-lg rounded-md border border-gray-200 z-[9999]">
                         <Button
                           onClick={handleClickRegister}
@@ -284,7 +285,7 @@ const NavBar = () => {
                             : "Register as professional"}
                         </Button>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </>
               )}
@@ -382,7 +383,7 @@ const NavBar = () => {
                   >
                     {language === "ar" ? "تسجيل" : "Register"}
                   </Button>
-                  <Button
+                  {/* <Button
                     onClick={handleClickRegisterProfessionally}
                     variant="link"
                     className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
@@ -390,7 +391,7 @@ const NavBar = () => {
                     {language === "ar"
                       ? "تسجيل كمهني"
                       : "Register as professional"}
-                  </Button>
+                  </Button> */}
                 </>
               ) : (
                 <>

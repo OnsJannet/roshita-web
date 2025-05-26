@@ -1,7 +1,7 @@
 "use client";
 import withAuth from "@/hoc/withAuth";
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { doctors } from "@/constant";
 import DoctorCardAppointment from "@/components/unique/DoctorCardAppointment";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
@@ -39,6 +39,7 @@ type Language = "ar" | "en";
 
 const Appointment = () => {
   const params = useParams();
+  const router = useRouter();
   const [appointmentDay, setAppointmentDay] = useState<string>("");
   const [appointmentTime, setAppointmentTime] = useState<string>("");
   const [doctor, setDoctor] = useState<Doctor | null>(null);
@@ -46,6 +47,8 @@ const Appointment = () => {
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>("ar");
   const [appointmentEndTime, setAppointmentEndTime] = useState<string>("");
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [appointmentId, setAppointmentId] = useState<string>("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -75,6 +78,17 @@ const Appointment = () => {
   );
 
   useEffect(() => {
+    // Check if we're coming from a payment success
+    const paymentSuccess = localStorage.getItem("paymentSuccess");
+    const storedAppointmentId = localStorage.getItem("appointmentId");
+
+    if (paymentSuccess === "true" && storedAppointmentId) {
+      setShowPaymentSuccess(true);
+      setAppointmentId(storedAppointmentId);
+      // Clear the payment success flag
+      localStorage.removeItem("paymentSuccess");
+    }
+
     // Fetch doctors data from the API using the correct endpoint
     const fetchDoctor = async () => {
       try {
@@ -120,6 +134,11 @@ const Appointment = () => {
     setAppointmentEndTime(endTime);
   }, [id]); // Re-run the effect whenever `id` changes
 
+  const handleCloseModal = () => {
+    setShowPaymentSuccess(false);
+    router.push("/appointments");
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-lg font-semibold">
@@ -144,9 +163,49 @@ const Appointment = () => {
     );
   }
 
-  console.log("doctor info", doctor)
   return (
     <div className="container mx-auto p-4 max-w-[1280px]">
+      {/* Payment Success Modal */}
+      {showPaymentSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <div className="text-center">
+              <svg
+                className="mx-auto h-12 w-12 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <h3 className="mt-2 text-lg font-medium text-gray-900">
+                {language === "ar" ? "تم الدفع بنجاح" : "Payment Successful"}
+              </h3>
+              <div className="mt-2 text-sm text-gray-500">
+                {language === "ar"
+                  ? `تم قبول الدفع وتم إنشاء حجز برقم ${appointmentId}`
+                  : `Payment accepted and reservation #${appointmentId} was created`}
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  onClick={handleCloseModal}
+                >
+                  {language === "ar" ? "حسنا" : "OK"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Doctor Details */}
       <DoctorCardAppointment
         key={doctor.doctor_id}

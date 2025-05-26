@@ -19,6 +19,10 @@ const FileListConsultation = ({ files, language }) => {
   /* @ts-ignore */
   const langTexts = texts[language] || texts.en;
 
+  const getFileExtension = (fileName: string) => {
+    return fileName.split('.').pop()?.toUpperCase() || '';
+  };
+
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <h3
@@ -40,12 +44,12 @@ const FileListConsultation = ({ files, language }) => {
             >
               <span className="text-gray-600 font-medium flex items-center">
                 <span className="bg-gray-50 text-sm px-2 py-[1px] rounded mr-2">
-                  pdf
+                  {getFileExtension(file.file)}
                 </span>
-                {file.name}
+                {file.description}
               </span>
               <button
-                onClick={() => handleDownload(file.url, file.name)}
+                onClick={() => handleDownload(file.file, file.description)}
                 className="text-blue-500 hover:text-blue-700 flex items-center"
               >
                 <Download className="h-4 w-4" />
