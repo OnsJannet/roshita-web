@@ -268,7 +268,9 @@ const Page = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full">
             <div className="text-center">
+            <div className="flex justify-center">
             <CircleCheck className="h-12 w-12 text-green-500" />
+            </div>
               <h3 className="mt-2 text-lg font-medium text-gray-900">
                 {language === "ar"
                   ? "تم الإرسـال بنجاح"
