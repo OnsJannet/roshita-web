@@ -163,7 +163,7 @@ const Page = () => {
   
       const response = await fetch(
         //"http://www.test-roshita.net/api/user-consultation-requests/",
-        "http://www.test-roshita.net/api/user-second-opinion-requests/",
+        "https://www.test-roshita.net/api/user-second-opinion-requests/",
         {
           method: "POST",
           headers: {
