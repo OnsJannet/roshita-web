@@ -241,7 +241,7 @@ export default function Page() {
   
       if (response.ok) {
         console.log("✅ Doctor registered:", data);
-        //window.location.href = "/dashboard/doctors";
+        window.location.href = "/dashboard/doctors";
       } else {
         console.error("❌ Registration failed:", data);
         setErrorMessage(
