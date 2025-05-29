@@ -15,8 +15,6 @@ const getLanguage = () => {
   return (!lang || lang.trim() === "") ? "ar" : lang;
 };
 
-
-
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
     role="navigation"

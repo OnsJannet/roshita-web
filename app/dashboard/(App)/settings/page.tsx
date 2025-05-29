@@ -369,7 +369,9 @@ export default function Page() {
                   ).toString(),
                 },
                 {
-                  label: language === "ar" ? "عيد ميلاد" : "Birthday",
+                  label: language === "ar"
+                  ? " YYYY-MM-DD تاريخ الميلاد"
+                  : "Date of Birth YYYY-MM-DD",
                   value:
                     doctor?.birthday ??
                     (language === "ar" ? "غير محدد" : "Not specified"),

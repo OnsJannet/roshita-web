@@ -42,11 +42,8 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
+    if (storedLanguage) setLanguage(storedLanguage as Language);
+    else setLanguage("ar");
 
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "language") {
@@ -55,38 +52,37 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
     };
 
     window.addEventListener("storage", handleStorageChange);
-
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   useEffect(() => {
-    if (!isEditingName) {
-      setEditableName(name);
-    }
+    if (!isEditingName) setEditableName(name);
   }, [name, isEditingName]);
 
   useEffect(() => {
-    if (!isEditingLastName) {
-      setEditableLastName(lastName);
-    }
-  }, [name, isEditingLastName]);
+    if (!isEditingLastName) setEditableLastName(lastName);
+  }, [lastName, isEditingLastName]);
 
   useEffect(() => {
-    setEditableFields(fields);
+    const formatted = fields.map((field) => ({
+      ...field,
+      value: formatDateIfNeeded(field.value),
+    }));
+    setEditableFields(formatted);
   }, [fields]);
 
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = event.target.value;
-    setEditableName(newName);
-    onNameChange?.(newName);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEditableName(val);
+    onNameChange?.(val);
   };
 
-  const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = event.target.value;
-    setEditableLastName(newName);
-    onLastNameChange?.(newName);
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEditableLastName(val);
+    onLastNameChange?.(val);
   };
 
   const handleFieldChange = (
@@ -94,57 +90,56 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const newFields = [...editableFields];
-    newFields[index].value = event.target.value;
+    const newValue = formatDateIfNeeded(event.target.value);
+    newFields[index].value = newValue;
     setEditableFields(newFields);
-    onFieldChange?.(index, event.target.value);
+    onFieldChange?.(index, newValue);
   };
 
-  const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCityId = event.target.value;
-    if (onCityChange) {
-      onCityChange(newCityId);
-    }
-    handleFieldChange(1, {
-      target: { value: newCityId },
-    } as React.ChangeEvent<HTMLInputElement>);
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    onCityChange?.(cityId);
+    handleFieldChange(1, { target: { value: cityId } } as any);
   };
 
   const getBorderClass = () => (type === "add" ? "border" : "border-0");
 
   const translate = (key: string) => {
-    const translations: Record<
-      "الإســــــم" | "اختر مدينة" | "مكان",
-      { ar: string; en: string }
-    > = {
+    const translations: Record<string, { ar: string; en: string }> = {
       الإســــــم: { ar: "الإســــــم", en: "Name" },
-      "اختر مدينة": { ar: "اختر اللغة", en: "Choose a language" },
+      "اختر مدينة": { ar: "اختر المدينة", en: "Choose city" },
       مكان: { ar: "مكان", en: "Place" },
+      اللقب: { ar: "اللقب", en: "Last Name" },
     };
-    return (
-      (translations as Record<string, { ar: string; en: string }>)?.[key]?.[
-        language
-      ] || key
-    );
+    return translations[key]?.[language] || key;
   };
 
-  const Userlanguage = [
-    {
-      id: 0,
-      language: "Arabic",
-      language_foreign: "العربية",
-    },
-    {
-      id: 1,
-      language: "English",
-      language_foreign: "الانجليزية",
-    },
-  ];
+  const formatDateIfNeeded = (value: string) => {
+    const parts = value.split(/[\/\-\.]/);
+    let date: Date | null = null;
+
+    if (parts.length === 3) {
+      const [a, b, c] = parts;
+      // Try DD/MM/YYYY
+      if (+a <= 31 && +b <= 12 && +c.length === 4)
+        date = new Date(`${c}-${b}-${a}`);
+      // Try MM/DD/YYYY
+      else if (+a <= 12 && +b <= 31 && +c.length === 4)
+        date = new Date(`${c}-${a}-${b}`);
+      // Try YYYY-MM-DD (already correct)
+      else if (+a.length === 4) return value;
+    }
+
+    return date instanceof Date && !isNaN(date.getTime())
+      ? date.toISOString().slice(0, 10)
+      : value;
+  };
 
   return (
     <div
       className={`flex flex-col ${getBorderClass()} rounded-lg bg-white shadow-sm max-w-[1280px] mx-auto ${
         language === "ar" ? "rtl" : "ltr"
-      } `}
+      }`}
     >
       <h2
         className={`text-lg font-semibold text-gray-700 ${
@@ -160,9 +155,7 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
       >
         <UploadButton
           onUpload={(file) => {
-            console.log("Uploaded image path:", file); // Log the file path received from UploadButton
-
-            // Call the photoUploadHandler from props
+            console.log("Uploaded image path:", file);
             photoUploadHandler?.(file);
           }}
           picture={picture}
@@ -179,7 +172,7 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
             onBlur={() => setIsEditingName(false)}
             className={`${
               language === "ar" ? "text-end p-2" : "text-start"
-            } ${getBorderClass()}  rounded`}
+            } ${getBorderClass()} rounded`}
           />
         </div>
         <div className="flex flex-col">
@@ -194,7 +187,7 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
             onBlur={() => setIsEditingLastName(false)}
             className={`${
               language === "ar" ? "text-end p-2" : "text-start"
-            } ${getBorderClass()}  rounded`}
+            } ${getBorderClass()} rounded`}
           />
         </div>
       </div>
@@ -204,12 +197,10 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
             <tr key={index} className="border-t p-4">
               {language === "ar" ? (
                 <>
-                  <td className="py-3 px-2 text-gray-500 p-4 text-center">
-                    <div className="flex justify-center items-center ">
-                      <MoveRight className="h-4 w-4" />
-                    </div>
+                  <td className="py-3 px-2 text-gray-500 text-center">
+                    <MoveRight className="h-4 w-4" />
                   </td>
-                  <td className="py-3 px-2 text-gray-700 p-4">
+                  <td className="py-3 px-2 text-gray-700">
                     {index === 1 && cities ? (
                       <select
                         value={field.value}
@@ -234,23 +225,21 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
                       />
                     )}
                   </td>
-                  <td className="py-3 px-2 text-gray-500 p-4">
+                  <td className="py-3 px-2 text-gray-500">
                     {translate(field.label)}
                   </td>
                 </>
               ) : (
                 <>
-                  <td className="py-3 px-2 text-gray-500 p-4 text-center">
-                    <td className="py-3 px-2 text-gray-500 p-4">
-                      {translate(field.label)}
-                    </td>
+                  <td className="py-3 px-2 text-gray-500">
+                    {translate(field.label)}
                   </td>
-                  <td className="py-3 px-2 text-gray-700 p-4  text-left">
+                  <td className="py-3 px-2 text-gray-700 text-left">
                     {index === 1 && cities ? (
                       <select
                         value={field.value}
                         onChange={handleCityChange}
-                        className={`text-left ${getBorderClass()} p-2 rounded `}
+                        className={`text-left ${getBorderClass()} p-2 rounded`}
                       >
                         <option value="" disabled>
                           {translate("اختر مدينة")}
@@ -270,9 +259,9 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
                       />
                     )}
                   </td>
-                  <div className="py-3 px-2 text-gray-500 p-4 items-center ">
-                    <MoveRight className="h-4 w-4 items-center " />
-                  </div>
+                  <td className="py-3 px-2 text-gray-500 text-center">
+                    <MoveRight className="h-4 w-4" />
+                  </td>
                 </>
               )}
             </tr>

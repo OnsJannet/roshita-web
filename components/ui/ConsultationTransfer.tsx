@@ -14,6 +14,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { CircleCheck } from "lucide-react";
 
 interface ConsultationTransferProps {
   isOpen: boolean;
@@ -50,24 +51,29 @@ export function ConsultationTransfer({
   language,
   consultationID,
 }: ConsultationTransferProps) {
-  // Add error state
   const [error, setError] = useState<string | null>(null);
-  
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  // We'll keep this state but won't use it for the API request
   const [selectedAppointment, setSelectedAppointment] = useState<Doctor["appointments"][0] | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [transferredDoctorName, setTransferredDoctorName] = useState("");
 
   const limit = 5;
 
   const content = {
     title: language === "ar" ? "تحويل الاستشارة" : "Transfer Consultation",
     submitButton: language === "ar" ? "إرسال" : "Submit",
-    selectButton: language === "ar" ? "اختيار" : "Select", // Added for the new button
+    selectButton: language === "ar" ? "اختيار" : "Select",
+    successTitle: language === "ar" ? "تم التحويل بنجاح" : "Transfer Successful",
+    successMessage: (doctorName: string) => 
+      language === "ar" 
+        ? `تم تحويل الاستشارة بنجاح إلى الدكتور ${doctorName}`
+        : `Consultation successfully transferred to Dr. ${doctorName}`,
+    closeButton: language === "ar" ? "إغلاق" : "Close"
   };
 
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -78,14 +84,12 @@ export function ConsultationTransfer({
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    today.setHours(0, 0, 0, 0);
 
-    // First, group appointments by date
     const grouped = appointments.reduce((acc, appointment) => {
       const appointmentDate = new Date(appointment.scheduled_date);
-      appointmentDate.setHours(0, 0, 0, 0); // Reset time to start of day
+      appointmentDate.setHours(0, 0, 0, 0);
 
-      // Only include appointments from today onwards
       if (appointmentDate >= today) {
         const date = appointment.scheduled_date;
         if (!acc[date]) {
@@ -96,12 +100,10 @@ export function ConsultationTransfer({
       return acc;
     }, {} as Record<string, Doctor["appointments"]>);
 
-    // Sort dates chronologically
     const sortedDates = Object.keys(grouped).sort((a, b) => 
       new Date(a).getTime() - new Date(b).getTime()
     );
 
-    // For each date, sort appointments by time
     const sortedGrouped = sortedDates.reduce((acc, date) => {
       acc[date] = grouped[date].sort((a, b) => 
         a.start_time.localeCompare(b.start_time)
@@ -178,11 +180,6 @@ export function ConsultationTransfer({
   const handleDoctorClick = (doctor: Doctor) => {
     console.log("doctor selected", doctor);
     setSelectedDoctor(doctor);
-    // We're not setting selectedAppointment anymore since we're skipping that step
-    // setSelectedAppointment(null);
-    
-    // We will NOT directly handle the transfer here anymore.
-    // handleTransferConsultation(doctor); 
   };
 
   const closeAppointmentsModal = () => {
@@ -190,22 +187,13 @@ export function ConsultationTransfer({
     setSelectedAppointment(null);
   };
 
-  // This function is still here but commented out as we're not using the appointment selection step
-  /*
-  const handleAppointmentClick = (appointment: Doctor["appointments"][0]) => {
-    console.log("apointmenet picked", appointment)
-    setSelectedAppointment(appointment);
-  };
-  */
-
-  // New function to handle the transfer directly after doctor selection
   const handleTransferConsultation = async (doctorToTransfer?: Doctor | null) => {
-    const doctor = doctorToTransfer || selectedDoctor; // Use passed doctor or selectedDoctor from state
+    const doctor = doctorToTransfer || selectedDoctor;
     if (!doctor) {
         setError(language === "ar" ? "يرجى اختيار طبيب أولاً" : "Please select a doctor first");
         return;
     }
-    setError(null); // Clear previous errors
+    setError(null);
 
     try {
       const accessToken = localStorage.getItem("access");
@@ -225,8 +213,6 @@ export function ConsultationTransfer({
           },
           body: JSON.stringify({
             doctor_id: doctor.id,
-            // We're no longer sending the appointment ID
-            // doctor_appointment_date_id: selectedAppointment.id,
           }),
         }
       );
@@ -240,9 +226,16 @@ export function ConsultationTransfer({
         return;
       }
       
-      // Close the dialog and reload the page on success
+      // Set the doctor name for the success modal
+      const doctorName = language === "ar" 
+        ? `${doctor.staff.first_name} ${doctor.staff.last_name}`
+        : `${doctor.staff.first_name} ${doctor.staff.last_name}`;
+      
+      setTransferredDoctorName(doctorName);
+      setShowSuccessModal(true);
+      
+      // Close the transfer dialog
       onClose();
-      window.location.reload();
     } catch (error) {
       setError(language === "ar"
         ? "حدث خطأ أثناء معالجة الطلب"
@@ -250,54 +243,6 @@ export function ConsultationTransfer({
       );
     }
   };
-
-  // We'll keep this function but it's now commented out as we're not using it
-  /*
-  const handleAcceptAppointment = async () => {
-    if (!selectedDoctor || !selectedAppointment) return;
-    setError(null); // Clear previous errors
-
-    try {
-      const accessToken = localStorage.getItem("access");
-
-      if (!accessToken) {
-        setError(language === "ar" ? "لم يتم العثور على رمز الوصول" : "Access token not found");
-        return;
-      }
-
-      const response = await fetch(
-        `https://test-roshita.net/api/accept-consultations/${consultationID}/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            doctor_id: selectedDoctor.id,
-            //doctor_appointment_date_id: selectedAppointment.id,
-          }),
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        setError(language === "ar" 
-          ? `فشل في قبول الموعد: ${data.detail || data.message || 'حدث خطأ'}`
-          : `Failed to accept appointment: ${data.detail || data.message || 'An error occurred'}`
-        );
-        return;
-      }
-      closeAppointmentsModal();
-      window.location.reload();
-    } catch (error) {
-      setError(language === "ar"
-        ? "حدث خطأ أثناء معالجة الطلب"
-        : "An error occurred while processing the request"
-      );
-    }
-  };
-  */
 
   return (
     <>
@@ -314,7 +259,6 @@ export function ConsultationTransfer({
             </DialogTitle>
           </DialogHeader>
 
-          {/* Add error display */}
           {error && (
             <div className={`bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 ${
               language === "ar" ? "text-end" : "text-start"
@@ -366,10 +310,9 @@ export function ConsultationTransfer({
                           onClick={() => handleDoctorClick(doctor)}
                           className={`cursor-pointer relative ${
                             selectedDoctor?.id === doctor.id ? "border-2 border-[#1588C8]" : "border"
-                          }`} // Highlight selected doctor
+                          }`}
                         >
                           <CardContent className="aspect-square items-center justify-center p-6">
-                            {/* Removed error display from here as it's now global */}
                             <div className="flex justify-center">
                               <img
                                 src={
@@ -402,121 +345,62 @@ export function ConsultationTransfer({
                 <div className="absolute top-1/2 left-2 transform -translate-y-1/2 z-10">
                   <CarouselPrevious
                     onClick={handlePrevious}
-                    disabled={page === 1} // Disable Previous button on the first page
+                    disabled={page === 1}
                   />
                 </div>
                 <div className="absolute top-1/2 right-2 transform -translate-y-1/2 z-10">
                   <CarouselNext
                     onClick={handleNext}
-                    disabled={page >= totalPages} // Disable Next button on the last page
+                    disabled={page >= totalPages}
                   />
                 </div>
               </Carousel>
             </div>
 
-            {/* Add the new Select button here */}
             <div className="flex justify-center items-center mt-6">
               <Button 
                 onClick={() => handleTransferConsultation()} 
                 className="bg-[#1588C8] text-white w-1/2 h-10"
-                disabled={!selectedDoctor || loading} // Disable if no doctor is selected or if loading
+                disabled={!selectedDoctor || loading}
               >
                 {content.selectButton}
               </Button>
             </div>
-            
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* We're commenting out the second modal for displaying appointments since we're skipping that step */}
-      {/*
-      <Dialog open={!!selectedDoctor} onOpenChange={closeAppointmentsModal}>
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent
           dir={direction}
-          className={`max-w-[1200px] ${
-            language === "ar" ? "text-right h-[80vh]" : "text-left h-[80vh]"
-          } py-4 overflow-y-auto`} // Added overflow-y-auto here
+          className="max-w-[500px] text-center"
         >
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl">
-              {language === "ar" ? "مواعيد الطبيب" : "Doctor Appointments"}
+            <DialogTitle className="text-2xl text-green-600 text-center">
+            <div className="flex justify-center">
+            <CircleCheck className="h-12 w-12 text-green-500" />
+            </div>
             </DialogTitle>
           </DialogHeader>
-          {selectedDoctor && (
-            <div>
-              <div className="text-center">
-                <img
-                  src={
-                    selectedDoctor.staff.staff_avatar ||
-                    "/Images/default-doctor.jpeg"
-                  }
-                  alt={`${selectedDoctor.staff.first_name} ${selectedDoctor.staff.last_name}`}
-                  className="w-20 h-20 rounded-full object-cover mx-auto"
-                />
-                <p className="font-semibold mt-2">
-                  {selectedDoctor.staff.first_name} {selectedDoctor.staff.last_name}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {language === "ar"
-                    ? selectedDoctor.specialty.name
-                    : selectedDoctor.specialty.foreign_name}
-                </p>
-              </div>
-              <div className="mt-4 grid grid-cols-4 gap-4">
-                {selectedDoctor.appointments && selectedDoctor.appointments.length > 0 ? (
-                  Object.entries(groupAppointmentsByDate(selectedDoctor.appointments)).map(
-                    ([date, appointments]) => {
-                      // Filter to only show available appointments
-                      const availableAppointments = appointments.filter(
-                        app => app.appointment_status === "available"
-                      );
-                      
-                      if (availableAppointments.length === 0) return null;
-                      
-                      return (
-                        <div key={date} className="mb-4">
-                          <p className="font-semibold text-lg text-center">{date}</p>
-                          <div className="grid grid-cols-1 gap-2">
-                            {availableAppointments.map((appointment, index) => (
-                              <button
-                                key={index}
-                                className={`p-2 rounded-lg text-sm text-center ${
-                                  selectedAppointment?.id === appointment.id
-                                    ? "bg-[#1588C8] text-white"
-                                    : "bg-gray-200 hover:bg-gray-300"
-                                }`}
-                                onClick={() => handleAppointmentClick(appointment)}
-                              >
-                                {appointment.start_time} - {appointment.end_time}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                  ).filter(Boolean) // Remove null entries for dates with no available appointments
-                ) : (
-                  <p className="text-center col-span-4">
-                    {language === "ar" ? "لا توجد مواعيد" : "No appointments"}
-                  </p>
-                )}
-              </div>
-              {selectedAppointment && (
-                <div className="flex justify-center mt-6">
-                  <Button
-                    onClick={() => handleAcceptAppointment()}
-                    className="bg-[#1588C8] text-white"
-                  >
-                    {language === "ar" ? "قبول الموعد" : "Accept Appointment"}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="py-4">
+            <p className="text-lg">
+              {content.successMessage(transferredDoctorName)}
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => {
+                setShowSuccessModal(false);
+                window.location.reload();
+              }}
+              className="bg-[#1588C8] text-white"
+            >
+              {content.closeButton}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
-      */}
     </>
   );
 }

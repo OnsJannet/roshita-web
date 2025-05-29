@@ -19,6 +19,7 @@ import { logAction } from "@/lib/logger";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -601,7 +602,7 @@ export default function Page() {
   
       if (response.ok) {
         console.log('Doctor updated successfully:', result);
-        window.location.reload();
+        //window.location.reload();
       } else {
         console.error('Error updating doctor:', result);
         setError(result.message || 'Error updating doctor information');
@@ -1041,42 +1042,92 @@ export default function Page() {
 
 
 {/* Pagination controls */}
+{/* Pagination controls */}
 <Pagination className="mt-4">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    //@ts-ignore
-                    disabled={currentPage === 1}
-                  />
-                </PaginationItem>
+  <PaginationContent>
+    <PaginationItem>
+      <PaginationPrevious
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                //@ts-ignore
+        disabled={currentPage === 1}
+      />
+    </PaginationItem>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (number) => (
-                    <PaginationItem key={number}>
-                      <PaginationLink
-                        onClick={() => paginate(number)}
-                        isActive={currentPage === number}
-                      >
-                        {number}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
+    {/* Always show first page */}
+    <PaginationItem>
+      <PaginationLink
+        onClick={() => paginate(1)}
+        isActive={currentPage === 1}
+      >
+        1
+      </PaginationLink>
+    </PaginationItem>
 
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    //@ts-ignore
-                    disabled={currentPage === totalPages}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+    {/* Show ellipsis if current page is far from start */}
+    {currentPage > 3 && (
+      <PaginationItem>
+        <PaginationEllipsis />
+      </PaginationItem>
+    )}
+
+    {/* Show current page and neighbors */}
+    {currentPage > 2 && currentPage !== totalPages && (
+      <PaginationItem>
+        <PaginationLink
+          onClick={() => paginate(currentPage - 1)}
+        >
+          {currentPage - 1}
+        </PaginationLink>
+      </PaginationItem>
+    )}
+    {currentPage !== 1 && currentPage !== totalPages && (
+      <PaginationItem>
+        <PaginationLink
+          isActive
+          onClick={() => paginate(currentPage)}
+        >
+          {currentPage}
+        </PaginationLink>
+      </PaginationItem>
+    )}
+    {currentPage < totalPages - 1 && (
+      <PaginationItem>
+        <PaginationLink
+          onClick={() => paginate(currentPage + 1)}
+        >
+          {currentPage + 1}
+        </PaginationLink>
+      </PaginationItem>
+    )}
+
+    {/* Show ellipsis if current page is far from end */}
+    {currentPage < totalPages - 2 && (
+      <PaginationItem>
+        <PaginationEllipsis />
+      </PaginationItem>
+    )}
+
+    {/* Always show last page if there's more than one page */}
+    {totalPages > 1 && (
+      <PaginationItem>
+        <PaginationLink
+          onClick={() => paginate(totalPages)}
+          isActive={currentPage === totalPages}
+        >
+          {totalPages}
+        </PaginationLink>
+      </PaginationItem>
+    )}
+
+    <PaginationItem>
+      <PaginationNext
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        //@ts-ignore
+        disabled={currentPage === totalPages}
+      />
+    </PaginationItem>
+  </PaginationContent>
+</Pagination>
 
             <DoctorSlots onSlotsChange={handleSlotsChange} />
 

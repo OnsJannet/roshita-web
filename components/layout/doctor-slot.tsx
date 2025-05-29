@@ -90,24 +90,32 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
     if (dateRange?.from && dateRange?.to && startTime && endTime) {
       const slotsToAdd: Slot[] = [];
       const currentDate = new Date(dateRange.from);
-
-      while (currentDate <= dateRange.to) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+  
+      // Reset time part to avoid timezone issues
+      currentDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(dateRange.to);
+      endDate.setHours(0, 0, 0, 0);
+  
+      while (currentDate <= endDate) {
+        // Use local date formatting
+        const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+        
         const start = new Date(`${dateStr}T${startTime}`);
         const end = new Date(`${dateStr}T${endTime}`);
         const totalDuration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-
+  
         if (totalDuration < duration) {
           alert(t.durationError);
           return;
         }
-
+  
         for (let i = 0; i < Math.floor(totalDuration / duration); i++) {
           const slotStartTime = new Date(start.getTime() + i * duration * 60 * 60 * 1000);
           const slotEndTime = new Date(slotStartTime.getTime() + duration * 60 * 60 * 1000);
-
-          const backendFormat = slotStartTime.toISOString().replace('.000Z', ':00Z');
-
+  
+          // Format backend string in local time
+          const backendFormat = `${dateStr} ${slotStartTime.getHours().toString().padStart(2, '0')}:${slotStartTime.getMinutes().toString().padStart(2, '0')}:00`;
+  
           slotsToAdd.push({
             date: dateStr,
             startTime: slotStartTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
@@ -116,10 +124,10 @@ const DoctorSlots: React.FC<DoctorSlotsProps> = ({ onSlotsChange }) => {
             appointment_status: 'pending',
           });
         }
-
+  
         currentDate.setDate(currentDate.getDate() + 1);
       }
-
+  
       const updatedSlots = [...slots, ...slotsToAdd];
       setSlots(updatedSlots);
       onSlotsChange(updatedSlots);
