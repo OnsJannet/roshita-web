@@ -14,7 +14,7 @@ export default async function handler(
 
     // Forward the request to your external API with the token from frontend
     const response = await fetch(
-      `http://www.test-roshita.net/api/appointment-reservations/search/?page=${page}`,
+      `https://www.test-roshita.net/api/appointment-reservations/search/?page=${page}`,
       {
         headers: {
           Authorization: authHeader,

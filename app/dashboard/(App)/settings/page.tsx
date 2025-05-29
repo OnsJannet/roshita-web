@@ -176,7 +176,7 @@ export default function Page() {
 
           // Set the avatar image if it exists, otherwise use the default image
           if (doctorData.data.avatar) {
-            setImage(`http://www.test-roshita.net/${doctorData.data.avatar}`); // Set the avatar URL from the API
+            setImage(`https://www.test-roshita.net/${doctorData.data.avatar}`); // Set the avatar URL from the API
           } else {
             setImage("/Images/default-doctor.jpeg"); // Use the default image
           }
@@ -268,7 +268,7 @@ export default function Page() {
 
       // Send the request directly to the external API
       const response = await fetch(
-        "http://www.test-roshita.net/api/account/profile/edit/",
+        "https://www.test-roshita.net/api/account/profile/edit/",
         {
           method: "POST",
           headers: {

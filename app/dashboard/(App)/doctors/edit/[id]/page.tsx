@@ -1040,42 +1040,11 @@ export default function Page() {
             </Table>
 
             {/* Pagination controls */}
-            <Pagination className="mt-4">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    //@ts-ignore
-                    disabled={currentPage === 1}
-                  />
-                </PaginationItem>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (number) => (
-                    <PaginationItem key={number}>
-                      <PaginationLink
-                        onClick={() => paginate(number)}
-                        isActive={currentPage === number}
-                      >
-                        {number}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    //@ts-ignore
-                    disabled={currentPage === totalPages}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      onPageChange={(page) => setCurrentPage(page)}
+    />
 
             <DoctorSlots onSlotsChange={handleSlotsChange} />
 

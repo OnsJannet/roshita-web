@@ -331,43 +331,51 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
 
               {/* Second Modal: Existing Family Member Selection */}
               {isSelectionModalOpen && (
-                <Dialog
-                  open={isSelectionModalOpen}
-                  onOpenChange={setIsSelectionModalOpen}
-                >
-                  <DialogContent className="h-[90%] flex flex-col">
-                    <DialogHeader>
-                      <DialogTitle className="text-center">
-                        {language === "en"
-                          ? "Select a Family Member"
-                          : "اختر فرد العائلة"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 overflow-y-auto max-h-[80vh] p-2">
-                      {patients.map((patient) => (
-                        <div
-                          /*@ts-ignore*/
-                          key={patient.id}
-                          className="p-2 border rounded cursor-pointer hover:bg-gray-100"
-                          onClick={() => {
-                            console.log("Selected Patient:", patient);
-                            //@ts-ignore
-                            setFamilyPatientId(patient.id);
-                            setIsSelectionModalOpen(false);
-                          }}
-                        >
-                          <p>
-                            {/*@ts-ignore*/}
-                            {patient.first_name} {patient.last_name} -{" "}
-                            {/*@ts-ignore*/}
-                            {patient.relative}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+  <Dialog
+    open={isSelectionModalOpen}
+    onOpenChange={setIsSelectionModalOpen}
+  >
+    <DialogContent className="h-[90%] flex flex-col">
+      <DialogHeader>
+        <DialogTitle className="text-center">
+          {language === "en"
+            ? "Select a Family Member"
+            : "اختر فرد العائلة"}
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4 overflow-y-auto max-h-[80vh] p-2">
+        {patients.length > 0 ? (
+          patients.map((patient) => (
+            <div
+              /*@ts-ignore*/
+              key={patient.id}
+              className="p-2 border rounded cursor-pointer hover:bg-gray-100"
+              onClick={() => {
+                console.log("Selected Patient:", patient);
+                //@ts-ignore
+                setFamilyPatientId(patient.id);
+                setIsSelectionModalOpen(false);
+              }}
+            >
+              <p>
+                {/*@ts-ignore*/
+                patient.first_name} {patient.last_name} -{" "}
+                {/*@ts-ignore*/
+                patient.relative}
+              </p>
+            </div>
+          ))
+        ) : (
+          <div className="text-center p-4 text-gray-500">
+            {language === "en" 
+              ? "No family members found. Please create one." 
+              : "لا يوجد أفراد عائلة. الرجاء إنشاء واحد."}
+          </div>
+        )}
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
 
               {/* Third Modal: New Family Member Form */}
               {isNewFamilyMemberModalOpen && (
@@ -495,12 +503,12 @@ const DoctorCardAppointment: React.FC<DoctorCardAppointmentProps> = ({
                 src={
                   imageUrl &&
                   imageUrl !== null &&
-                  !imageUrl.startsWith("http://www.test-roshita.net/media/media/") &&
+                  !imageUrl.startsWith("https://www.test-roshita.net/media/media/") &&
                   /*!imageUrl.startsWith("/media/media/") &&*/
                   !imageUrl.startsWith("/avatar/")
                     ? imageUrl.startsWith("http")
                       ? imageUrl
-                      : `http://www.test-roshita.net/${imageUrl}`
+                      : `https://www.test-roshita.net/${imageUrl}`
                     : "/Images/default-doctor.jpeg"
                 }
                 alt={name}

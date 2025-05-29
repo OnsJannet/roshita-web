@@ -105,7 +105,7 @@ export function BarChartDash() {
         }
 
         const response = await fetch(
-          `http://www.test-roshita.net/api/kpis/transactions/summary?view=${view}&lang=${language}`,
+          `https://www.test-roshita.net/api/kpis/transactions/summary?view=${view}&lang=${language}`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`

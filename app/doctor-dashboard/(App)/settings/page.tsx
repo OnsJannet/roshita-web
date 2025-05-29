@@ -224,7 +224,7 @@ export default function Page() {
 
       // Send the request directly to the external API
       const response = await fetch(
-        "http://www.test-roshita.net/api/account/profile/edit/",
+        "https://www.test-roshita.net/api/account/profile/edit/",
         {
           method: "POST",
           headers: {

@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import LoadingDoctors from "../layout/LoadingDoctors";
 
-const API_URL = "http://www.test-roshita.net/api/appointment-reservations/";
+const API_URL = "https://www.test-roshita.net/api/appointment-reservations/";
 
 interface Appointment {
   id: number;
@@ -241,7 +241,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `http://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
+        `https://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
         {
           method: "GET",
           headers: {
@@ -331,7 +331,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
         {
           method: "POST",
           headers: {
@@ -384,7 +384,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/doctor-suggestions/",
+        "https://www.test-roshita.net/api/doctor-suggestions/",
         {
           method: "POST",
           headers: {
@@ -563,7 +563,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       }
 
       const response = await fetch(
-        `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+        `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
         {
           method: "POST",
           headers: {
@@ -581,7 +581,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         console.log("Marked as not attended successfully");
         await logAction(
           token,
-          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "success",
           response.status
@@ -592,7 +592,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
         const errorData = await response.json();
         await logAction(
           token,
-          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           response.status,
@@ -605,7 +605,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       if (token) {
         await logAction(
           token,
-          `http://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
+          `https://www.test-roshita.net/api/mark-not-attend/${appointmentId}/`,
           { appointmentId },
           "error",
           //@ts-ignore

@@ -78,7 +78,7 @@ export function AreaChartDash() {
         }
 
         const response = await fetch(
-          `http://www.test-roshita.net/api/kpis/analytics/doctors-and-reservation?timeRange=${timeRange}&language=${language}`,
+          `https://www.test-roshita.net/api/kpis/analytics/doctors-and-reservation?timeRange=${timeRange}&language=${language}`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`

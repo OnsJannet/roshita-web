@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const API_URL = "http://www.test-roshita.net/api/appointment-reservations/";
+const API_URL = "https://www.test-roshita.net/api/appointment-reservations/";
 
 interface Appointment {
   id: number;
@@ -216,7 +216,7 @@ const PlannerDoctorAll = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        `http://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
+        `https://www.test-roshita.net/api/doctors/${doctorId}/slots/`,
         {
           method: "GET",
           headers: {
@@ -296,7 +296,7 @@ const PlannerDoctorAll = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
         {
           method: "POST",
           headers: {
@@ -349,7 +349,7 @@ const PlannerDoctorAll = ({ language = "en" }: { language?: string }) => {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/doctor-suggestions/",
+        "https://www.test-roshita.net/api/doctor-suggestions/",
         {
           method: "POST",
           headers: {

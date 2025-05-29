@@ -112,7 +112,7 @@ export function PieChartDash() {
         }
 
         const response = await fetch(
-          `http://www.test-roshita.net/api/kpis/hospital/consultation-and-appointment-reservation?lang=${language}&period=${period}`,
+          `https://www.test-roshita.net/api/kpis/hospital/consultation-and-appointment-reservation?lang=${language}&period=${period}`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`

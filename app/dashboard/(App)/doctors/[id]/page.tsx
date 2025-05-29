@@ -344,7 +344,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
+        "https://www.test-roshita.net/api/appointment-reservations/followup-appointment/",
         {
           method: "POST",
           headers: {
@@ -386,7 +386,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem("access");
       const response = await fetch(
-        "http://www.test-roshita.net/api/api/select-organization",
+        "https://www.test-roshita.net/api/api/select-organization",
         {
           method: "POST",
           headers: {
@@ -793,7 +793,7 @@ export default function Page() {
       }
 
       const response = await fetch(
-        `http://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${id}&page=${page}`,
+        `https://www.test-roshita.net/api/appointment-reservations/search/?doctor_id=${id}&page=${page}`,
         {
           method: "GET",
           headers: {
