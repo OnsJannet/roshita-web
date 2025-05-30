@@ -108,6 +108,12 @@ const translations = {
     status: "Status",
     previous: "Previous",
     next: "Next",
+    changePassword: "Change Password",
+    oldPassword: "Old Password",
+    newPassword: "New Password",
+    submit: "Submit",
+    passwordChanged: "Password changed successfully",
+    passwordError: "Error changing password"
   },
   ar: {
     title: "مواعيد توفر الطبيب",
@@ -126,6 +132,12 @@ const translations = {
     status: "الحالة",
     previous: "السابق",
     next: "التالي",
+    changePassword: "تغيير كلمة المرور",
+    oldPassword: "كلمة المرور القديمة",
+    newPassword: "كلمة المرور الجديدة",
+    submit: "تأكيد",
+    passwordChanged: "تم تغيير كلمة المرور بنجاح",
+    passwordError: "خطأ في تغيير كلمة المرور"
   },
 };
 
@@ -160,6 +172,12 @@ export default function Page() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [passwordData, setPasswordData] = useState({
+    old_password: "",
+    new_password: ""
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
   const appointmentsPerPage = 5;
 
   const handleSlotsChange = (slots: Slot[]) => {
@@ -459,30 +477,20 @@ export default function Page() {
 
     const cityId = matchingCity.id;
     setSelectedCityId(cityId);
+    
     //@ts-ignore
     setDoctor((prev) => {
-      if (!prev || !prev.staff?.medical_organization) {
-        console.log("Doctor state or medical organization not defined.");
-        return prev;
-      }
+      if (!prev) return prev;
 
       const updatedDoctor = {
         ...prev,
         staff: {
           ...prev.staff,
-          medical_organization: prev.staff.medical_organization.map(
-            (org, index) =>
-              index === 0
-                ? {
-                    ...org,
-                    city: {
-                      ...org.city,
-                      id: cityId,
-                    },
-                  }
-                : org
-          ),
-        },
+          city: {
+            ...prev.staff.city,
+            id: cityId
+          }
+        }
       };
 
       return updatedDoctor;
@@ -528,35 +536,72 @@ export default function Page() {
 
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(false);
+
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        setPasswordError("Not authenticated");
+        return;
+      }
+
+      const response = await fetch("https://test-roshita.net/api/account/change-password/", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "X-CSRFToken": "lMS62bmnKdLW0duxsaqH2O3HFrWSgQnOHbVxc6nV7QwY5ZqdgyFCxuxRkX2wHq42"
+        },
+        body: JSON.stringify(passwordData)
+      });
+
+      if (response.ok) {
+        setPasswordSuccess(true);
+        setPasswordData({ old_password: "", new_password: "" });
+      } else {
+        const error = await response.json();
+        setPasswordError(error.message || "Failed to change password");
+      }
+    } catch (error) {
+      setPasswordError("An error occurred while changing password");
+      console.error("Password change error:", error);
+    }
+  };
+
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
     
     setIsUpdating(true);
+
+    console.log("inside selectedCityId", selectedCityId)
   
     // Prepare the complete data object in the desired structure
     const requestData = {
-      fixed_price: parseFloat(doctor.fixed_price) || 0, // Convert to float
+      fixed_price: parseFloat(doctor.fixed_price) || 0,
       //@ts-ignore
-      rating: parseFloat(doctor.rating) || 0.0, // Convert to float
+      rating: parseFloat(doctor.rating) || 0.0,
       //@ts-ignore
-      is_consultant: doctor.is_consultant || false, // Boolean
+      is_consultant: doctor.is_consultant || false,
       //@ts-ignore
-      specialty: doctor.specialty.id, // Specialty ID as integer
+      specialty: doctor.specialty.id,
       staff: {
-        first_name: doctor.staff.first_name,
         last_name: doctor.staff.last_name,
         //@ts-ignore
         email: doctor.staff.email || 'doctor@example.com',
-        city: doctor.staff.city.id // City ID as integer
+        city: selectedCityId || doctor.staff.city.id
       },
       data: {
         appointment_dates: backendSlots.map(slot => ({
-          scheduled_date: slot.date, // Should be in YYYY-MM-DD format
-          start_time: slot.startTime, // Should be in HH:MM format
-          end_time: slot.endTime, // Should be in HH:MM format
-          price: parseFloat(doctor?.fixed_price) || 150.0, // Convert to float
+          scheduled_date: slot.date,
+          start_time: slot.startTime,
+          end_time: slot.endTime,
+          price: parseFloat(doctor?.fixed_price) || 150.0,
           //@ts-ignore
-          notes: slot.notes || '' // Optional notes
+          notes: slot.notes || ''
         }))
       }
     };
@@ -569,10 +614,9 @@ export default function Page() {
     formData.append('rating', requestData.rating.toString());
     formData.append('is_consultant', requestData.is_consultant.toString());
     formData.append('specialty', requestData.specialty.toString());
-    
     // Append staff data as JSON string
     formData.append('staff', JSON.stringify(requestData.staff));
-    
+    formData.append('city', requestData.staff.city.toString());
     // Append appointment data as JSON string
     formData.append('data', JSON.stringify(requestData.data));
     
@@ -602,7 +646,7 @@ export default function Page() {
   
       if (response.ok) {
         console.log('Doctor updated successfully:', result);
-        //window.location.reload();
+        window.location.reload();
       } else {
         console.error('Error updating doctor:', result);
         setError(result.message || 'Error updating doctor information');
@@ -703,6 +747,7 @@ export default function Page() {
                     />
                     <input
                       type="text"
+                      disabled
                       placeholder={language === "ar" ? "رقم الهاتف" : "Phone"}
                       value={patientDetails.phone}
                       onChange={(e) =>
@@ -710,6 +755,7 @@ export default function Page() {
                           ...patientDetails,
                           phone: e.target.value,
                         })
+
                       }
                       className={`w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         language === "ar" ? "text-right" : "text-left"
@@ -717,6 +763,7 @@ export default function Page() {
                     />
                     <input
                       type="email"
+                      
                       placeholder={
                         language === "ar" ? "البريد الإلكتروني" : "Email"
                       }
@@ -1040,94 +1087,92 @@ export default function Page() {
               </tbody>
             </Table>
 
+          {/* Pagination controls */}
+          <Pagination className="mt-4">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          //@ts-ignore
+                  disabled={currentPage === 1}
+                />
+              </PaginationItem>
 
-{/* Pagination controls */}
-{/* Pagination controls */}
-<Pagination className="mt-4">
-  <PaginationContent>
-    <PaginationItem>
-      <PaginationPrevious
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                //@ts-ignore
-        disabled={currentPage === 1}
-      />
-    </PaginationItem>
+              {/* Always show first page */}
+              <PaginationItem>
+                <PaginationLink
+                  onClick={() => paginate(1)}
+                  isActive={currentPage === 1}
+                >
+                  1
+                </PaginationLink>
+              </PaginationItem>
 
-    {/* Always show first page */}
-    <PaginationItem>
-      <PaginationLink
-        onClick={() => paginate(1)}
-        isActive={currentPage === 1}
-      >
-        1
-      </PaginationLink>
-    </PaginationItem>
+              {/* Show ellipsis if current page is far from start */}
+              {currentPage > 3 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
 
-    {/* Show ellipsis if current page is far from start */}
-    {currentPage > 3 && (
-      <PaginationItem>
-        <PaginationEllipsis />
-      </PaginationItem>
-    )}
+              {/* Show current page and neighbors */}
+              {currentPage > 2 && currentPage !== totalPages && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => paginate(currentPage - 1)}
+                  >
+                    {currentPage - 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+              {currentPage !== 1 && currentPage !== totalPages && (
+                <PaginationItem>
+                  <PaginationLink
+                    isActive
+                    onClick={() => paginate(currentPage)}
+                  >
+                    {currentPage}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+              {currentPage < totalPages - 1 && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => paginate(currentPage + 1)}
+                  >
+                    {currentPage + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
 
-    {/* Show current page and neighbors */}
-    {currentPage > 2 && currentPage !== totalPages && (
-      <PaginationItem>
-        <PaginationLink
-          onClick={() => paginate(currentPage - 1)}
-        >
-          {currentPage - 1}
-        </PaginationLink>
-      </PaginationItem>
-    )}
-    {currentPage !== 1 && currentPage !== totalPages && (
-      <PaginationItem>
-        <PaginationLink
-          isActive
-          onClick={() => paginate(currentPage)}
-        >
-          {currentPage}
-        </PaginationLink>
-      </PaginationItem>
-    )}
-    {currentPage < totalPages - 1 && (
-      <PaginationItem>
-        <PaginationLink
-          onClick={() => paginate(currentPage + 1)}
-        >
-          {currentPage + 1}
-        </PaginationLink>
-      </PaginationItem>
-    )}
+              {/* Show ellipsis if current page is far from end */}
+              {currentPage < totalPages - 2 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
 
-    {/* Show ellipsis if current page is far from end */}
-    {currentPage < totalPages - 2 && (
-      <PaginationItem>
-        <PaginationEllipsis />
-      </PaginationItem>
-    )}
+              {/* Always show last page if there's more than one page */}
+              {totalPages > 1 && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => paginate(totalPages)}
+                    isActive={currentPage === totalPages}
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
 
-    {/* Always show last page if there's more than one page */}
-    {totalPages > 1 && (
-      <PaginationItem>
-        <PaginationLink
-          onClick={() => paginate(totalPages)}
-          isActive={currentPage === totalPages}
-        >
-          {totalPages}
-        </PaginationLink>
-      </PaginationItem>
-    )}
-
-    <PaginationItem>
-      <PaginationNext
-        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        //@ts-ignore
-        disabled={currentPage === totalPages}
-      />
-    </PaginationItem>
-  </PaginationContent>
-</Pagination>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  //@ts-ignore
+                  disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
 
             <DoctorSlots onSlotsChange={handleSlotsChange} />
 
@@ -1146,6 +1191,52 @@ export default function Page() {
                 language === "ar" ? "حفظ" : "Save"
               )}
             </Button>
+            {typeof window !== "undefined" && localStorage.getItem("userRole") === "Doctor" && (
+              <div className="p-4 md:p-0 space-y-6 md:space-y-8" dir={language === "ar" ? "rtl" : "ltr"}>
+                <div className="bg-white rounded-lg p-4 md:p-2">
+                  <h2 className={`text-lg font-semibold text-gray-700 border-b p-4`}>
+                    {t.changePassword}
+                  </h2>
+                  <form onSubmit={handlePasswordChange} className="space-y-4 mt-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-4">{t.oldPassword}</label>
+                      <input
+                        type="password"
+                        value={passwordData.old_password}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, old_password: e.target.value }))}
+                        className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-4">{t.newPassword}</label>
+                      <input
+                        type="password"
+                        value={passwordData.new_password}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                        className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    {passwordError && (
+                      <div className="text-red-500 text-sm">{passwordError}</div>
+                    )}
+                    {passwordSuccess && (
+                      <div className="text-green-500 text-sm">{t.passwordChanged}</div>
+                    )}
+                    <div className="flex justify-start rtl:justify-end">
+                      <Button
+                        type="submit"
+                        variant="register"
+                        className="rounded-2xl h-[52px] w-[140px]"
+                      >
+                        {t.submit}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </SidebarInset>

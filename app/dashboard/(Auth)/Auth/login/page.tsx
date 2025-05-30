@@ -100,6 +100,7 @@ const Page = () => {
         localStorage.setItem("userRole", data.user.user_type);
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("type", JSON.stringify(data.user.medical_organization_type));
+        localStorage.setItem("medicalOrganizationId", data.user.medical_organization.id.toString());
   
         // Log the successful login attempt
         await logAction(

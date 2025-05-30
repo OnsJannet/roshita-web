@@ -1,11 +1,9 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
-import NotificationCard from "@/components/shared/NotificationCard";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
-import { Notification } from "@/types/notification";
 import { Bell } from "lucide-react";
 
 type Language = "ar" | "en";
@@ -13,39 +11,28 @@ type Language = "ar" | "en";
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [loading, setLoading] = useState<boolean>(true);
-  const [userId, setUserId] = useState<string>(""); // Initialize as empty string
+  const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language');
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
     }
-  
-    // Get the full user data from localStorage
+
     const userDataString = localStorage.getItem('user');
-    
     if (userDataString) {
       try {
         const userData = JSON.parse(userDataString);
-        console.log('User data:', userData);
-        
-        // Store the user ID
-        if (userData.user_id) {
-          setUserId(userData.user_id.toString());
+        if (userData.doctor_id) {
+          setUserId(userData.doctor_id.toString());
         }
-        
-        // Store the medical organization ID if it exists
         if (userData.medical_organization?.id) {
-          const medOrgId = userData.medical_organization.id;
-          console.log('Medical Organization ID:', medOrgId);
-          // You can store it in state or localStorage if needed
-          localStorage.setItem('medicalOrganizationId', medOrgId.toString());
+          localStorage.setItem('medicalOrganizationId', userData.medical_organization.id.toString());
         }
       } catch (error) {
         console.error('Error parsing user data:', error);
       }
     }
-    
     setLoading(false);
   }, []);
 
@@ -55,22 +42,15 @@ export default function Page() {
     error,
     removeNotification,
     markAsRead,
+    newNotificationCount,
   } = useNotificationSocket({
     userId,
     userType: "doctor",
   });
 
-  console.log("notifications from not page", notifications);
-
-  // Helper function to extract consultation ID from message
-  const extractConsultationId = (message: string): number | null => {
-    const match = message.match(/\(ID: (\d+)\)/);
-    return match ? parseInt(match[1], 10) : null;
-  };
-
   // Breadcrumb items
   const items = [
-    { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
+    { label: language === "ar" ? "الرئيسية" : "Dashboard", href: "#" },
     {
       label: language === "ar" ? "الإشعارات" : "Notifications",
       href: "/dashboard/notifications",
@@ -111,11 +91,7 @@ export default function Page() {
                 language === "ar" ? "rtl" : "ltr"
               }`}
             >
-
               <div className="space-y-4 p-4">
-                {/* WebSocket Connection Status */}
-
-
                 {notifications.length === 0 ? (
                   <div className="rounded-lg bg-white p-6 text-center">
                     <p className="text-gray-500">
@@ -126,7 +102,10 @@ export default function Page() {
                   </div>
                 ) : (
                   notifications.map((notification) => {
-                    const consultationId = extractConsultationId(notification.message);
+                    // Get the translated message based on current language
+                    const translatedMessage = notification.translations?.[language]?.message || notification.message;
+                    const translatedData = notification.translations?.[language] || notification.data;
+                    
                     return (
                       <div
                         key={notification.id}
@@ -157,11 +136,12 @@ export default function Page() {
                                   ? 'text-gray-900' 
                                   : 'text-gray-600'
                               }`}>
-                                {notification.message === "New consultation assigned to you!" && notification.data?.patient_name && notification.data?.medical_organization
-                                ? language === "ar"
-                                ? `تم تعيين استشارة جديدة لك من المريض ${notification.data.patient_name} في ${notification.data.medical_organization}`
-                                : `New consultation from patient ${notification.data.patient_name} has been assigned to you at ${notification.data.medical_organization}`
-                                : notification.message}
+                                {translatedMessage}
+                                {translatedData?.patient_name && translatedData?.medical_organization && (
+                                  <span>
+                                    {` (${translatedData.patient_name} - ${translatedData.medical_organization})`}
+                                  </span>
+                                )}
                               </h3>
                               <p className="text-sm text-gray-500 mt-1">
                                 {new Date(notification.timestamp || Date.now()).toLocaleString(
@@ -170,18 +150,6 @@ export default function Page() {
                               </p>
                             </div>
                           </div>
-                          {/*{consultationId && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Navigate to consultation details
-                                // router.push(`/consultations/${consultationId}`);
-                              }}
-                              className="text-sm text-roshitaDarkBlue hover:text-roshitaDarkBlue/80 font-medium"
-                            >
-                              {language === "ar" ? "عرض التفاصيل" : "View Details"}
-                            </button>
-                          )}*/}
                         </div>
                       </div>
                     );

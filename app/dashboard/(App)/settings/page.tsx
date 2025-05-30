@@ -49,34 +49,24 @@ interface City {
 
 type Language = "ar" | "en";
 
-/**
- * Settings Page Component
- *
- * This page allows the user to view and update their profile settings, such as personal information
- * (name, email, phone, address), city, birthday, and avatar. The doctor profile is fetched from
- * an API, and the user can upload a new avatar, update fields like name, phone, email, and birthday,
- * and change the city. The settings are persisted through API calls and localStorage.
- * The page also supports switching between Arabic ("ar") and English ("en") for localization.
- *
- * Key features:
- * - Fetches doctor data (name, email, phone, etc.) from an API using a provided access token.
- * - Allows updating doctor profile information (phone number, city, birthday, email, address).
- * - Supports uploading a new avatar image, with image preview and file handling.
- * - Displays a breadcrumb navigation based on the selected language.
- * - Handles city selection with dynamic population of available cities.
- * - The page layout and UI elements are adapted for both Arabic and English languages.
- * - Updates to the profile are sent to the server using a POST request to update the profile.
- * - Error handling is implemented to show relevant error messages if the data fetch or update fails.
- *
- * Components used:
- * - `AppSidebar`: Sidebar component for navigation.
- * - `Breadcrumb`: A breadcrumb navigation component that dynamically displays the page path.
- * - `InformationUserCard`: Displays and allows modification of personal information fields.
- * - `Button`: A UI button to save the updated profile.
- * - `SidebarInset`, `SidebarTrigger`, `SidebarProvider`: UI components for handling sidebar behavior.
- *
- * @component
- */
+const translations = {
+  en: {
+    changePassword: "Change Password",
+    oldPassword: "Old Password",
+    newPassword: "New Password",
+    submit: "Submit",
+    passwordChanged: "Password changed successfully",
+    passwordError: "Error changing password"
+  },
+  ar: {
+    changePassword: "تغيير كلمة المرور",
+    oldPassword: "كلمة المرور القديمة",
+    newPassword: "كلمة المرور الجديدة",
+    submit: "تأكيد",
+    passwordChanged: "تم تغيير كلمة المرور بنجاح",
+    passwordError: "خطأ في تغيير كلمة المرور"
+  }
+};
 
 export default function Page() {
   const params = useParams();
@@ -86,24 +76,25 @@ export default function Page() {
   const [specialtyName, setSpecialtyName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [cities, setCities] = useState<City[]>([]); // State for cities
+  const [cities, setCities] = useState<City[]>([]);
   const [language, setLanguage] = useState<Language>("ar");
   const [formData, setFormData] = useState<{ Image?: File }>({});
   const [image, setImage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
-
-  /*const handleFileUpload = (file: File) => {
-    setFormData((prev) => ({ ...prev, Image: file }));
-    console.log("Uploaded file received in parent:", file);
-  };*/
+  const [passwordData, setPasswordData] = useState({
+    old_password: "",
+    new_password: ""
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const handleFileUpload = (file: File | null) => {
     if (file) {
-      setImageFile(file); // Store the File object
-      setImage(URL.createObjectURL(file)); // Set the image preview URL
+      setImageFile(file);
+      setImage(URL.createObjectURL(file));
     } else {
-      setImageFile(null); // Clear the File object
-      setImage("/Images/default-doctor.jpeg"); // Reset to the default image
+      setImageFile(null);
+      setImage("/Images/default-doctor.jpeg");
     }
   };
 
@@ -139,17 +130,52 @@ export default function Page() {
     { label: language === "ar" ? "تعديل" : "Edit", href: "#" },
   ];
 
-  // Handle city change here
   const handleCityChange = (newCityId: string) => {
     setDoctor((prev) => {
       if (prev) {
         return {
           ...prev,
-          city: newCityId, // Only update the city
+          city: newCityId,
         };
       }
       return prev;
     });
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(false);
+
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        setPasswordError("Not authenticated");
+        return;
+      }
+
+      const response = await fetch("https://test-roshita.net/api/account/change-password/", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "X-CSRFToken": "lMS62bmnKdLW0duxsaqH2O3HFrWSgQnOHbVxc6nV7QwY5ZqdgyFCxuxRkX2wHq42"
+        },
+        body: JSON.stringify(passwordData)
+      });
+
+      if (response.ok) {
+        setPasswordSuccess(true);
+        setPasswordData({ old_password: "", new_password: "" });
+      } else {
+        const error = await response.json();
+        setPasswordError(error.message || "Failed to change password");
+      }
+    } catch (error) {
+      setPasswordError("An error occurred while changing password");
+      console.error("Password change error:", error);
+    }
   };
 
   useEffect(() => {
@@ -174,11 +200,10 @@ export default function Page() {
         if (doctorData.success) {
           setDoctor(doctorData.data);
 
-          // Set the avatar image if it exists, otherwise use the default image
           if (doctorData.data.avatar) {
-            setImage(`https://www.test-roshita.net/${doctorData.data.avatar}`); // Set the avatar URL from the API
+            setImage(`https://www.test-roshita.net/${doctorData.data.avatar}`);
           } else {
-            setImage("/Images/default-doctor.jpeg"); // Use the default image
+            setImage("/Images/default-doctor.jpeg");
           }
 
           const specialtiesResponse = await fetch(
@@ -228,10 +253,8 @@ export default function Page() {
   const handleUpdateDoctor = async () => {
     if (!doctor) return;
 
-    // Create a FormData object
     const formData = new FormData();
 
-    // Append user details
     formData.append("user[first_name]", doctor.user.first_name);
     formData.append("user[last_name]", doctor.user.last_name);
     formData.append("user[email]", doctor.user.email);
@@ -239,7 +262,6 @@ export default function Page() {
       formData.append("user[phone]", doctor.user.phone);
     }
 
-    // Append other fields
     if (doctor.gender) {
       formData.append("gender", doctor.gender);
     }
@@ -254,9 +276,8 @@ export default function Page() {
       formData.append("address", doctor.address);
     }
 
-    // Append the avatar file if it exists
     if (imageFile) {
-      formData.append("avatar", imageFile); // Append the File object
+      formData.append("avatar", imageFile);
     }
 
     try {
@@ -266,7 +287,6 @@ export default function Page() {
         return;
       }
 
-      // Send the request directly to the external API
       const response = await fetch(
         "https://www.test-roshita.net/api/account/profile/edit/",
         {
@@ -282,9 +302,9 @@ export default function Page() {
       if (response.ok) {
         setDoctor({
           ...doctor,
-          avatar: image || "/Images/default-doctor.jpeg", // Update the avatar in the state
+          avatar: image || "/Images/default-doctor.jpeg",
         });
-        window.location.reload(); // Refresh the page after successful update
+        window.location.reload();
       } else {
         setError(result.message || "Error updating doctor information");
       }
@@ -294,7 +314,6 @@ export default function Page() {
     }
   };
 
-  // Handle field changes for other fields like email, phone, etc.
   const handleFieldChange = (index: number, value: string) => {
     setDoctor((prev) => {
       if (!prev) return prev;
@@ -302,16 +321,16 @@ export default function Page() {
       const updatedDoctor = { ...prev };
       switch (index) {
         case 0:
-          updatedDoctor.user.phone = value; // Update phone
+          updatedDoctor.user.phone = value;
           break;
         case 1:
           updatedDoctor.city = value;
           break;
         case 2:
-          updatedDoctor.birthday = value; // Update birthday
+          updatedDoctor.birthday = value;
           break;
         case 3:
-          updatedDoctor.user.email = value; // Update email
+          updatedDoctor.user.email = value;
           break;
         case 4:
           updatedDoctor.address = value;
@@ -322,6 +341,8 @@ export default function Page() {
       return updatedDoctor;
     });
   };
+
+  const t = translations[language];
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -389,9 +410,9 @@ export default function Page() {
                     (language === "ar" ? "غير محدد" : "Not specified"),
                 },
               ]}
-              picture={image} // Use the `image` state
+              picture={image}
               //@ts-ignore
-              photoUploadHandler={handleFileUpload} // Pass the File object
+              photoUploadHandler={handleFileUpload}
               onNameChange={(name) =>
                 setDoctor((prev) =>
                   prev
@@ -411,6 +432,7 @@ export default function Page() {
               onCityChange={handleCityChange}
             />
 
+
             <Button
               variant="register"
               className="rounded-2xl h-[52px] w-[140px]"
@@ -418,6 +440,54 @@ export default function Page() {
             >
               {language === "ar" ? "حفظ" : "Save"}
             </Button>
+
+                        <div className="p-4 md:p-0 space-y-6 md:space-y-8" dir={language === "ar" ? "rtl" : "ltr"}>
+                          <div className="bg-white rounded-lg p-4 md:p-2 ">
+                          <h2
+        className={`text-lg font-semibold text-gray-700  border-b p-4`}
+      >
+        {t.changePassword}
+      </h2>
+
+                            <form onSubmit={handlePasswordChange} className="space-y-4 mt-6">
+                              <div>
+                                <label className="block text-sm font-medium mb-4">{t.oldPassword}</label>
+                                <input
+                                  type="password"
+                                  value={passwordData.old_password}
+                                  onChange={(e) => setPasswordData(prev => ({ ...prev, old_password: e.target.value }))}
+                                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  required
+                                />
+                              </div>
+                              <div className="mb-4">
+                                <label className="block text-sm font-medium mb-4">{t.newPassword}</label>
+                                <input
+                                  type="password"
+                                  value={passwordData.new_password}
+                                  onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  required
+                                />
+                              </div>
+                              {passwordError && (
+                                <div className="text-red-500 text-sm">{passwordError}</div>
+                              )}
+                              {passwordSuccess && (
+                                <div className="text-green-500 text-sm">{t.passwordChanged}</div>
+                              )}
+                              <div className="flex justify-start rtl:justify-end mt-4">
+                                <Button
+                                  type="submit"
+                                  variant="register"
+                                  className="rounded-2xl h-[52px] w-[140px]"
+                                >
+                                  {t.submit}
+                                </Button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
           </div>
         </div>
       </SidebarInset>

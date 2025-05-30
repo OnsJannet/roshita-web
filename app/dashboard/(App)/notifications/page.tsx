@@ -42,12 +42,6 @@ export default function Page() {
 
   console.log("notifications from not page", notifications);
 
-  // Helper function to extract consultation ID from message
-  const extractConsultationId = (message: string): number | null => {
-    const match = message.match(/\(ID: (\d+)\)/);
-    return match ? parseInt(match[1], 10) : null;
-  };
-
   // Breadcrumb items
   const items = [
     { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
@@ -91,8 +85,6 @@ export default function Page() {
                 language === "ar" ? "rtl" : "ltr"
               }`}
             >
-
-
               <div className="space-y-4 p-4 ">
                 {notifications.length === 0 ? (
                   <div className="rounded-lg bg-white p-6 text-center ">
@@ -104,9 +96,12 @@ export default function Page() {
                   </div>
                 ) : (
                   notifications.map((notification, index) => {
+                    // Use the translation from the backend based on current language
+                    const translatedMessage = notification.translations?.[language]?.message || notification.message;
+                    console.log("translatedMessage", translatedMessage);
                     return (
                       <div
-                        key={index} // Modified key to ensure uniqueness
+                        key={index}
                         className={`bg-white p-6 rounded-lg border-l-4  ${
                           notification.status === 'unread' 
                             ? 'border-roshitaDarkBlue' 
@@ -134,15 +129,7 @@ export default function Page() {
                                   ? 'text-gray-900' 
                                   : 'text-gray-600'
                               }`}>
-                                {notification.message.includes("New Consultation Request (ID:")
-                                  ? language === "ar"
-                                    ? `تم استلام طلب استشارة جديد رقم ${extractConsultationId(notification.message)}`
-                                    : `A new consultation request #${extractConsultationId(notification.message)} has been received`
-                                  : notification.message === "A patient has selected your organization for treatment."
-                                    ? language === "ar"
-                                      ? `قام المريض ${notification.data?.patient || 'أنس جنات'} باختيار مؤسستكم للعلاج (${notification.data?.service_type || 'عملية'})`
-                                      : `Patient ${notification.data?.patient || 'أنس جنات'} has selected your organization for ${notification.data?.service_type || 'Operation'} treatment`
-                                    : notification.message}
+                                {translatedMessage}
                               </h3>
                               <p className="text-sm text-gray-500 mt-1">
                                 {new Date(notification.timestamp || Date.now()).toLocaleString(
@@ -151,18 +138,6 @@ export default function Page() {
                               </p>
                             </div>
                           </div>
-                          {/*{consultationId && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Navigate to consultation details
-                                // router.push(`/consultations/${consultationId}`);
-                              }}
-                              className="text-sm text-roshitaDarkBlue hover:text-roshitaDarkBlue/80 font-medium"
-                            >
-                              {language === "ar" ? "عرض التفاصيل" : "View Details"}
-                            </button>
-                          )}*/}
                         </div>
                       </div>
                     );

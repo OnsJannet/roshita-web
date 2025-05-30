@@ -70,6 +70,18 @@ interface Notification {
       name: string;
     };
     consultation_request_id?: number;
+    translations?: {
+      en?: {
+        message: string;
+        doctor?: string;
+        medical_organizations?: string;
+      };
+      ar?: {
+        message: string;
+        doctor?: string;
+        medical_organizations?: string;
+      };
+    };
   };
 }
 
@@ -80,10 +92,8 @@ const Page = () => {
   const router = useRouter();
   const [language, setLanguage] = useState<Language>("ar");
   const [errorMessage, setErrorMessage] = useState("");
-  //const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showLoading, setShowLoading] = useState<boolean>(true);
-  //const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>(""); 
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
@@ -111,7 +121,6 @@ const Page = () => {
     if (storedUserId) {
       setUserId(storedUserId);
     }
-    // Don't set loading to false here
   }, []);
 
   const {
@@ -125,11 +134,8 @@ const Page = () => {
     userType: "patient",
   });
 
-  // Add a new useEffect to handle loading state based on notifications
   useEffect(() => {
-    // Check if notifications have been loaded
     if (notifications !== undefined) {
-      // Add a small delay to ensure DOM is ready
       const timer = setTimeout(() => {
         setLoading(false);
         setShowLoading(false);
@@ -170,133 +176,28 @@ const Page = () => {
     return 'You have a new notification';
   }, []);
 
-  /*const fetchNotifications = useCallback(async (): Promise<Notification[]> => {
-    try {
-      const token = localStorage.getItem("access");
-      const patientId = localStorage.getItem("patientId");
-      if (!token || !patientId) {
-        throw new Error("No access token or patient ID found. Please log in.");
-      }
-
-      const response = await fetch(
-        `https://test-roshita.net/api/patient-notifications/${patientId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch notifications: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      return data.map((notification: any) => ({
-        ...notification,
-        created_at: new Date(notification.created_at).toLocaleString(),
-      })).sort((a: Notification, b: Notification) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      throw error;
+  // Helper functions to get translated content
+  const getTranslatedMessage = (notification: Notification): string => {
+    if (notification.data?.translations && (language === "en" || language === "ar")) {
+      return notification.data.translations[language]?.message || notification.message;
     }
-  }, []);*/
+    return notification.message;
+  };
 
-  /*const setupWebSocket = useCallback((patientId: string) => {
-    if (!patientId) return () => {};
-  
-    const MAX_RETRIES = 5;
-    const BASE_DELAY = 1000; // 1 second
-    const MAX_DELAY = 30000; // 30 seconds
-    let retryCount = 0;
-    let sockets: WebSocket[] = [];
-  
-    const createSocket = (url: string): WebSocket => {
-      let socket: WebSocket;
-  
-      const connect = () => {
-        socket = new WebSocket(url);
-  
-        socket.onopen = () => {
-          console.log(`WebSocket connected: ${url}`);
-          retryCount = 0; // Reset retry count on successful connection
-        };
-  
-        socket.onmessage = (event: MessageEvent) => {
-          try {
-            const data = JSON.parse(event.data);
-        
-            if (data.type === 'send_notification') {
-              console.log('Received notification:', data); // ✅ Log the notification payload
-        
-              setNotifications(prev => {
-                const newNotification: Notification = {
-                  id: Date.now(),
-                  type: determineNotificationType(data.data),
-                  message: data.data.message || getDefaultMessage(data.data),
-                  status: 'unread',
-                  created_at: new Date().toISOString(),
-                  data: {
-                    consultation_id: data.data.consultation_request_id,
-                    doctor_id: data.data.doctor_id,
-                    hospital_id: data.data.organization?.id,
-                    patient: data.data.patient,
-                    doctor: data.data.doctor,
-                    appointment_date: data.data.appointment_date,
-                    organization: data.data.organization,
-                    consultation_request_id: data.data.consultation_request_id
-                  }
-                };
-                return [newNotification, ...prev];
-              });
-            }
-          } catch (error) {
-            console.error('Error processing WebSocket message:', error);
-          }
-        };
-        
-  
-        socket.onerror = (error) => {
-          console.error('WebSocket error:', error);
-        };
-  
-        socket.onclose = (event) => {
-          console.log(`WebSocket closed: ${url}`, event.code, event.reason);
-  
-          if (event.code !== 1000 && retryCount < MAX_RETRIES) {
-            retryCount++;
-            const delay = Math.min(BASE_DELAY * 2 ** retryCount, MAX_DELAY);
-            console.log(`Attempting to reconnect in ${delay}ms...`);
-            setTimeout(connect, delay);
-          }
-        };
-      };
-  
-      connect();
-      return socket!; // Assert socket is defined since it's initialized in connect()
-    };
-  
-    // Create WebSocket connections
-    sockets = [
-      `wss://test-roshita.net:8080/ws/notifications/patient-doctor-suggest/${patientId}/`,
-      `wss://test-roshita.net:8080/ws/notifications/doctor-consultation-response-accepted/${patientId}/`,
-      `wss://test-roshita.net:8080/ws/notifications/patient-doctor-response/${patientId}/`
-    ].map(url => createSocket(url));
-  
-    // Cleanup function
-    return () => {
-      sockets.forEach(socket => {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.close(1000, 'Component unmounting');
-        }
-      });
-    };
-  }, [determineNotificationType, getDefaultMessage]);*/
+  const getTranslatedDoctor = (notification: Notification): string | undefined => {
+    if (notification.data?.translations && (language === "en" || language === "ar")) {
+      return notification.data.translations[language]?.doctor || notification.data?.doctor;
+    }
+    return notification.data?.doctor;
+  };
+
+  const getTranslatedMedicalOrg = (notification: Notification): string | undefined => {
+    if (notification.data?.translations && (language === "en" || language === "ar")) {
+      return notification.data.translations[language]?.medical_organizations || 
+             notification.data?.organization?.name;
+    }
+    return notification.data?.organization?.name;
+  };
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -351,14 +252,6 @@ const Page = () => {
     loadProfileData();
   }, []);
 
-  /*useEffect(() => {
-    setLoading(false); // Set loading to false immediately since we're using WebSocket
-    const patientId = localStorage.getItem("userId");
-    if (patientId) {
-      return setupWebSocket(patientId);
-    }
-  }, [setupWebSocket]);*/
-
   const filterAppointments = (
     appointments: any[],
     type: "previous" | "next"
@@ -383,16 +276,6 @@ const Page = () => {
   const handleConsultationsClick = () => router.push("/consultations");
   const handleError = (errorMessage: string) => setErrorMessage(errorMessage);
 
- /*const markAsRead = (id: number) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, status: 'read' } : notif
-      )
-    );
-    // Here you would also call your API to mark the notification as read
-  };*/
-
-  // Use showLoading instead of loading for the conditional render
   if (showLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen mx-auto">
@@ -486,67 +369,75 @@ const Page = () => {
                 </p>
               </div>
             ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`bg-white p-6 rounded-lg border-l-4 ${
-                    notification.status === 'unread' 
-                      ? 'border-roshitaDarkBlue' 
-                      : 'border-gray-200'
-                  }`}
-                  dir={language === "ar" ? "rtl" : "ltr"}
-                  onClick={() => markAsRead(notification.id)}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2 ${
-                        notification.status === 'unread' 
-                          ? 'bg-roshitaDarkBlue/10' 
-                          : 'bg-gray-100'
-                      }`}>
-                        <Bell className={`h-5 w-5 ${
-                          notification.status === 'unread' 
-                            ? 'text-roshitaDarkBlue' 
-                            : 'text-gray-500'
-                        }`} />
-                      </div>
-                      <div>
-                        <h3 className={`font-semibold ${
-                          notification.status === 'unread' 
-                            ? 'text-gray-900' 
-                            : 'text-gray-600'
-                        }`}>
-                          {notification.message === "Consultation request accepted!" 
-                            ? (notification.data?.status !== "Reviewed"
-                              ? language === "ar"
-                                ? "تم اختيار استشارتك من قبل مستشفى وتم إرسالها إلى طبيب للمراجعة"
-                                : "Your consultation got picked up by a hospital. It's sent to a doctor to review."
-                              : language === "ar"
-                                ? `تم قبول طلب الاستشارة! الدكتور ${notification.data?.doctor} من ${notification.data?.medical_organizations}`
-                                : `Consultation request accepted! Dr. ${notification.data?.doctor} from ${notification.data?.medical_organizations}`)
-                            : notification.message === "New suggestion created!" && notification.data?.organization
-                              ? language === "ar"
-                                ? `اقترح طبيبك طبيباً جديداً لك من ${notification.data.organization.name}`
-                                : `Your doctor suggested a new doctor for you from ${notification.data.organization.name}`
-                              : notification.message}
-                        </h3>
+              notifications.map((notification) => {
+                //@ts-ignore
+                const translatedMessage = getTranslatedMessage(notification);
+                                //@ts-ignore
+                const translatedDoctor = getTranslatedDoctor(notification);
+                                //@ts-ignore
+                const translatedMedicalOrg = getTranslatedMedicalOrg(notification);
 
+                return (
+                  <div
+                    key={notification.id}
+                    className={`bg-white p-6 rounded-lg border-l-4 ${
+                      notification.status === 'unread' 
+                        ? 'border-roshitaDarkBlue' 
+                        : 'border-gray-200'
+                    }`}
+                    dir={language === "ar" ? "rtl" : "ltr"}
+                    onClick={() => markAsRead(notification.id)}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`rounded-full p-2 ${
+                          notification.status === 'unread' 
+                            ? 'bg-roshitaDarkBlue/10' 
+                            : 'bg-gray-100'
+                        }`}>
+                          <Bell className={`h-5 w-5 ${
+                            notification.status === 'unread' 
+                              ? 'text-roshitaDarkBlue' 
+                              : 'text-gray-500'
+                          }`} />
+                        </div>
+                        <div>
+                          <h3 className={`font-semibold ${
+                            notification.status === 'unread' 
+                              ? 'text-gray-900' 
+                              : 'text-gray-600'
+                          }`}>
+                            {translatedMessage === "Consultation request accepted!" 
+                              ? (notification.data?.status !== "Reviewed"
+                                ? language === "ar"
+                                  ? "تم اختيار استشارتك من قبل مستشفى وتم إرسالها إلى طبيب للمراجعة"
+                                  : "Your consultation got picked up by a hospital. It's sent to a doctor to review."
+                                : language === "ar"
+                                  ? `تم قبول طلب الاستشارة! الدكتور ${translatedDoctor} من ${translatedMedicalOrg}`
+                                  : `Consultation request accepted! Dr. ${translatedDoctor} from ${translatedMedicalOrg}`)
+                              : translatedMessage === "New suggestion created!" && notification.data?.organization
+                                ? language === "ar"
+                                  ? `اقترح طبيبك طبيباً جديداً لك من ${translatedMedicalOrg}`
+                                  : `Your doctor suggested a new doctor for you from ${translatedMedicalOrg}`
+                                : translatedMessage}
+                          </h3>
+                        </div>
                       </div>
+                      {notification.data?.consultation_id && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/consultations/${notification.data?.consultation_id}`);
+                          }}
+                          className="text-sm text-roshitaDarkBlue hover:text-roshitaDarkBlue/80 font-medium"
+                        >
+                          {translations[language].viewDetails}
+                        </button>
+                      )}
                     </div>
-                    {notification.data?.consultation_id && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/consultations/${notification.data?.consultation_id}`);
-                        }}
-                        className="text-sm text-roshitaDarkBlue hover:text-roshitaDarkBlue/80 font-medium"
-                      >
-                        {translations[language].viewDetails}
-                      </button>
-                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

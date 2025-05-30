@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 
+interface Translation {
+  consultation_request_id?: number;
+  message: string;
+  [key: string]: any;
+}
+
 interface Notification {
   id: number;
   patient?: string;
@@ -10,6 +16,11 @@ interface Notification {
   status?: string;
   message: string;
   data?: any;
+  translations?: {
+    en: Translation;
+    ar: Translation;
+  };
+  uniqueKey?: string; // Added for duplicate checking
 }
 
 interface UseNotificationSocketProps {
@@ -21,6 +32,7 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [newNotificationCount, setNewNotificationCount] = useState(0);
 
   useEffect(() => {
     let sockets: WebSocket[] = [];
@@ -36,31 +48,23 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
     // Set up appropriate endpoints based on user type
     switch (userType) {
       case 'patient':
-        // Patient receives notifications from multiple endpoints
         endpoints = [
           `${baseUrl}/patient-doctor-suggest/${userId}`,
           `${baseUrl}/patient-doctor-response/${userId}`,   
           `${baseUrl}/hospital-response-second-opinion-request-user/${userId}`, 
-          //`${baseUrl}/hospital-new-second-opinion/${userId}/`  
-          //`${baseUrl}/doctor-consultation-response-accepted/${userId}`,   
         ];
         break;
       case 'doctor':
-        // Doctor receives notifications when assigned to consultations
         endpoints = [
           `${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`,          
-          //`${baseUrl}/doctor-consultation-request-assigned/${userId}/`,
         ];
         break;
       case 'hospital':
-        // Hospital receives notifications for new consultations and when selected by doctors
         endpoints = [
-          //`${baseUrl}/hospital-new-consultation/${userId}/`,
           `${baseUrl}/hospital-selected-by-doctor/${userId}/`,
           `${baseUrl}/hospital-new-second_opinion/${userId}/`,
-          `${baseUrl}/hospital-response-second-opinion-request-hospital-staff/${userId}/`,
+          `${baseUrl}/doctor-response-second-opinion-request-hospital-staff/${userId}/`,
           `${baseUrl}/user-accept-second-opinion-request-hospital/${userId}/`,
-
         ];
         break;
       default:
@@ -87,17 +91,53 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
             const data = JSON.parse(event.data);
             console.log('Parsed WebSocket message:', data);
             
+            // Create a unique key based on the message content and consultation ID
+            const consultationId = data.translations?.en?.consultation_request_id || 
+                                 data.translations?.ar?.consultation_request_id ||
+                                 data.data?.consultation_request_id;
+            const uniqueKey = `${data.message}_${consultationId}`;
+
+            // Process the notification with translations
             const notification: Notification = {
               id: Date.now(),
               message: data.message || 'New notification',
               status: 'unread',
               timestamp: new Date().toISOString(),
               data: data,
-              ...(data.data || {}) // Spread any additional data fields
+              ...(data.data || {}), // Spread any additional data fields
+              translations: data.translations || {
+                en: { message: data.message || 'New notification' },
+                ar: { message: data.message || 'إشعار جديد' }
+              },
+              uniqueKey // Add unique key for duplicate checking
             };
             
-            console.log('Processed notification:', notification);
-            setNotifications((prev) => [notification, ...prev]);
+            // If translations exist in the data, use them
+            if (data.translations) {
+              notification.translations = {
+                en: {
+                  ...data.translations.en,
+                  message: data.translations.en.message || data.message || 'New notification'
+                },
+                ar: {
+                  ...data.translations.ar,
+                  message: data.translations.ar.message || data.message || 'إشعار جديد'
+                }
+              };
+            }
+            
+            console.log('Processed notification with translations:', notification);
+            
+            setNotifications(prev => {
+              // Check if notification with same uniqueKey already exists
+              const isDuplicate = prev.some(n => n.uniqueKey === uniqueKey);
+              
+              if (!isDuplicate) {
+                setNewNotificationCount(count => count + 1); // Increment counter for new notifications
+                return [notification, ...prev];
+              }
+              return prev;
+            });
           } catch (parseError) {
             console.error('Error parsing WebSocket message:', parseError);
             console.log('Raw message that failed to parse:', event.data);
@@ -147,15 +187,27 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
 
   const markAsRead = (id: number) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, status: 'read' } : n))
+      prev.map((n) => {
+        if (n.id === id && n.status === 'unread') {
+          setNewNotificationCount(count => count - 1); // Decrement counter when marking as read
+          return { ...n, status: 'read' };
+        }
+        return n;
+      })
     );
+  };
+
+  const resetNotificationCount = () => {
+    setNewNotificationCount(0);
   };
 
   return {
     notifications,
     isConnected,
     error,
+    newNotificationCount,
     removeNotification,
-    markAsRead
+    markAsRead,
+    resetNotificationCount
   };
 };

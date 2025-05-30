@@ -242,7 +242,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                     </div>
                   </td>
                   <td className="py-3 px-2 text-gray-700 p-4 flex justify-end">
-                    {index === 0 || index === 3 ? (
+                    {index === 3 ? (
                       // Editable input for phone number (index 0) or booking price (index 3)
                       <div className="flex items-center gap-1">
                         <input
@@ -304,14 +304,17 @@ const InformationCard: React.FC<InformationCardProps> = ({
                     {field.label}
                   </td>
                   <td className="pl-4 py-3 px-2 text-gray-700 p-4 flex justify-start">
-                    {index === 0 ? (
+                    {index === 3 ? (
                       // Editable phone number input
+                      <div className="flex items-center gap-1">
                       <input
                         type="text"
                         value={field.value}
                         onChange={(event) => handleFieldChange(index, event)}
-                        className={`${"text-start p-2"} ${getBorderClass()} rounded`}
+                        className={`text-start p-2 ${getBorderClass()} rounded`}
                       />
+                      <span>DL</span>
+                    </div>
                     ) : field.isDropdown ? (
                       <select
                         value={field.value}
@@ -331,7 +334,7 @@ const InformationCard: React.FC<InformationCardProps> = ({
                         )}
                       </select>
                     ) : (
-                      <p className="pl-4">{field.value}</p>
+                      <p className="pl-4">{field.value} </p>
                     )}
                   </td>
                   <td className="py-3 px-2 text-gray-500 p-4 text-center">

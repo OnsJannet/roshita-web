@@ -79,7 +79,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
       }
 
       const response = await fetch(
-        `https://test-roshita.net/api/consultation-requests/${requestNumber}/hide/`,
+        `https://test-roshita.net/api/second-opinion-requests/${requestNumber}/hide/`,
         {
           method: 'POST',
           headers: {
