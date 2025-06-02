@@ -142,7 +142,7 @@ export default function Page() {
     if (!formData.specialty) missingFields.push(language === "ar" ? "التخصص" : "Specialty");
     if (!formData.city) missingFields.push(language === "ar" ? "المدينة" : "City");
     if (!formData.fixedPrice.trim()) missingFields.push(language === "ar" ? "سعر الحجز" : "Booking Price");
-    if (!formData.rating) missingFields.push(language === "ar" ? "التقييم" : "Rating");
+    //if (!formData.rating) missingFields.push(language === "ar" ? "التقييم" : "Rating");
     if (!formData.phoneNumber?.trim()) missingFields.push(language === "ar" ? "رقم التليفون" : "Phone Number");
     if (!formData.payMethode?.trim()) missingFields.push(language === "ar" ? "طريقة الدفع" : "Payment Method");
     if (!formData.email?.trim()) missingFields.push(language === "ar" ? "البريد الإلكتروني" : "Email");
@@ -524,7 +524,7 @@ export default function Page() {
                         طريقة الدفع
                       </td>
                     </tr>
-                    <tr className="border-t p-4">
+                    {/*<tr className="border-t p-4">
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">
                           <MoveRight className="h-4 w-4" />
@@ -541,7 +541,7 @@ export default function Page() {
                         />
                       </td>
                       <td className="py-3 px-2 text-gray-500 p-4">التقييم</td>
-                    </tr>
+                    </tr>*/}
                     <tr className="border-t p-4">
                       <td className="py-3 px-2 text-gray-500 p-4 text-center">
                         <div className="flex justify-center">

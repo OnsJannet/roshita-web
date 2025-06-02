@@ -1,14 +1,112 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Bell, CircleCheck, LogOut, MonitorCheck, Settings, UserRound } from "lucide-react";
-import AppointementsCard from "@/components/unique/AppointementsCard"; // Adjust the import path as needed
+import AppointementsCard from "@/components/unique/AppointementsCard";
 import { useRouter } from "next/navigation";
 import { fetchProfileDetails } from "@/lib/api";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
 import ConsultationDropdown from "@/components/shared/ConsultationDropdown";
 import { Button } from "@/components/ui/button";
-import FileUploader from "@/components/shared/fileUploader";
 import { Label } from "@/components/ui/label";
+
+// FileUploader component with remove functionality
+const FileUploader = ({ 
+  idPrefix, 
+  onFilesChange, 
+  language 
+}: { 
+  idPrefix: string; 
+  onFilesChange: (files: File[]) => void; 
+  language: "ar" | "en" 
+}) => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<{name: string, url: string}[]>([]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...newFiles]);
+      
+      // Create previews
+      const newPreviews = newFiles.map(file => ({
+        name: file.name,
+        url: URL.createObjectURL(file)
+      }));
+      setPreviews(prev => [...prev, ...newPreviews]);
+      
+      onFilesChange([...files, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
+    setFiles(newFiles);
+    
+    const newPreviews = [...previews];
+    URL.revokeObjectURL(newPreviews[index].url);
+    newPreviews.splice(index, 1);
+    setPreviews(newPreviews);
+    
+    onFilesChange(newFiles);
+  };
+
+  useEffect(() => {
+    return () => {
+      // Clean up object URLs
+      previews.forEach(preview => URL.revokeObjectURL(preview.url));
+    };
+  }, [previews]);
+
+  return (
+    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+      <input
+        id={`${idPrefix}-file-upload`}
+        type="file"
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <label
+        htmlFor={`${idPrefix}-file-upload`}
+        className="cursor-pointer flex flex-col items-center justify-center p-4"
+      >
+        <div className="text-center">
+          <p className="text-sm text-gray-500">
+            {language === "ar" 
+              ? "اسحب وأسقط الملفات هنا أو انقر لاختيار الملفات" 
+              : "Drag & drop files here or click to select"}
+          </p>
+        </div>
+      </label>
+      
+      {/* File previews with remove option */}
+      <div className="mt-4 space-y-2">
+        {previews.map((preview, index) => (
+          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+            <div className="flex items-center">
+              <a 
+                href={preview.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {preview.name}
+              </a>
+            </div>
+            <button
+              type="button"
+              onClick={() => removeFile(index)}
+              className="text-red-500 hover:text-red-700"
+            >
+              {language === "ar" ? "إزالة" : "Remove"}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 type Language = "ar" | "en";
 
@@ -43,11 +141,11 @@ interface EditProfileData {
     last_name: string;
     email: string;
   };
-  gender: string; // "male", "female", etc.
-  service_country: number; // assuming this is an ID for a country
-  birthday: string; // ISO date string
-  city: number; // assuming this is an ID for the city
-  user_type: number; // assuming this is an ID for user type
+  gender: string;
+  service_country: number;
+  birthday: string;
+  city: number;
+  user_type: number;
   address: string;
 }
 
@@ -91,12 +189,10 @@ const Page = () => {
   const [uploadedMedicalReportFiles, setUploadedMedicalReportFiles] = useState<File[]>([]);
 
   const handleFilesChangeXRays = (files: File[]) => {
-    console.log("X-ray files:", files);
     setUploadedXRaysFiles(files);
   };
 
   const handleFilesChangeMedicalReport = (files: File[]) => {
-    console.log("Medical report files:", files);
     setUploadedMedicalReportFiles(files);
   };
 
@@ -104,7 +200,6 @@ const Page = () => {
     const token = localStorage.getItem("access");
     const patient_id = localStorage.getItem("patientId") || "";
   
-    // Validation for required fields (medical reports are now required)
     const missingFields = [];
     if (!selectedSpecialty) {
       missingFields.push(language === "ar" ? "التخصص" : "specialty");
@@ -141,14 +236,12 @@ const Page = () => {
       formData.append("specialty_id", selectedSpecialty);
       formData.append("type", type);
   
-      // Append X-Ray files with metadata
       uploadedXRaysFiles.forEach((file, index) => {
         formData.append(`uploaded_files`, file);
         formData.append(`uploaded_files[${index}][content_file_type]`, "X-Ray");
         formData.append(`uploaded_files[${index}][description]`, "Lung X-ray Report");
       });
   
-      // Append Medical Report files with metadata
       uploadedMedicalReportFiles.forEach((file, index) => {
         const offsetIndex = uploadedXRaysFiles.length + index;
         formData.append(`uploaded_files`, file);
@@ -156,13 +249,7 @@ const Page = () => {
         formData.append(`uploaded_files[${offsetIndex}][description]`, "Blood test results");
       });
   
-      //@ts-ignore
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ":", pair[1]);
-      }
-  
       const response = await fetch(
-        //"https://www.test-roshita.net/api/user-consultation-requests/",
         "https://www.test-roshita.net/api/user-second-opinion-requests/",
         {
           method: "POST",
@@ -177,7 +264,6 @@ const Page = () => {
       const responseData = await response.json();
   
       if (!response.ok) {
-        // Try to get error message from backend response
         const backendError = responseData.detail || 
                             responseData.message || 
                             (language === "ar" 
@@ -186,8 +272,6 @@ const Page = () => {
         
         throw new Error(backendError);
       }
-  
-      console.log("Consultation request created:", responseData);
   
       setResponses([...responses, responseMessage]);
       setResponseMessage("");
@@ -204,7 +288,6 @@ const Page = () => {
         : "Failed to create consultation request. Please try again.";
       
       if (error instanceof Error) {
-        // If we have a specific error message from the backend, use it
         errorMessage = error.message;
       }
       
@@ -213,6 +296,27 @@ const Page = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    if (storedLanguage) {
+      setLanguage(storedLanguage as Language);
+    } else {
+      setLanguage("ar");
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "language") {
+        setLanguage((event.newValue as Language) || "ar");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("access");
@@ -263,14 +367,13 @@ const Page = () => {
 
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
-      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+          <div className="bg-white p-6 rounded-md max-w-md w-full">
             <div className="text-center">
-            <div className="flex justify-center">
-            <CircleCheck className="h-12 w-12 text-green-500" />
-            </div>
+              <div className="flex justify-center">
+                <CircleCheck className="h-12 w-12 text-green-500" />
+              </div>
               <h3 className="mt-2 text-lg font-medium text-gray-900">
                 {language === "ar"
                   ? "تم الإرسـال بنجاح"
@@ -433,16 +536,15 @@ const Page = () => {
                 </div>
               ) : (
                 <div>
-
-{errorMessage && (
-            <div
-            className={`text-red-500 bg-red-100 p-4 rounded ${
-              language === "ar" ? "text-start" : "text-end"
-            }`}
-          >
-    {errorMessage}
-    </div>
-)}
+                  {errorMessage && (
+                    <div
+                      className={`text-red-500 bg-red-100 p-4 rounded ${
+                        language === "ar" ? "text-start" : "text-end"
+                      }`}
+                    >
+                      {errorMessage}
+                    </div>
+                  )}
                   {type === "without" ? (
                     <div
                       style={{ direction: language === "ar" ? "rtl" : "ltr" }}
@@ -486,7 +588,6 @@ const Page = () => {
                       </p>
 
                       <div className="p-4">
-                        {/* Specialty Dropdown */}
                         <div className="mt-6 mb-6">
                           <Label>
                             {language === "ar" ? "اختر التخصص" : "Select Specialty"}
@@ -546,7 +647,6 @@ const Page = () => {
                           </div>
                         </div>
 
-
                         <div className="flex justify-center w-full gap-2">
                           <button
                             onClick={handleSendResponse}
@@ -581,7 +681,6 @@ const Page = () => {
                       </p>
 
                       <div className="p-4">
-                        {/* Specialty Dropdown */}
                         <div className="mt-6 mb-6">
                           <Label>
                             {language === "ar" ? "اختر التخصص" : "Select Specialty"}

@@ -574,7 +574,7 @@ const Sidebar = React.forwardRef<
                   >
                     <div>
                       <h2
-                        onClick={() => (window.location.href = "/")}
+                        //onClick={() => (window.location.href = "/")}
                         className={`${
                           language === "ar" ? "text-right" : "text-left"
                         } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
@@ -599,7 +599,7 @@ const Sidebar = React.forwardRef<
                       src="/logos/ShortLogo.png"
                       alt="roshita logo"
                       className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
-                      onClick={() => (window.location.href = "/")}
+                      //onClick={() => (window.location.href = "/")}
                     />
                   </div>
                 </div>
@@ -707,7 +707,7 @@ const Sidebar = React.forwardRef<
                   >
                     <div>
                       <h2
-                        onClick={() => (window.location.href = "/")}
+                        //onClick={() => (window.location.href = "/")}
                         className={`${
                           language === "ar" ? "text-right" : "text-left"
                         } font-bold lg:text-[16px] text-[12px] cursor-pointer`}
@@ -732,7 +732,7 @@ const Sidebar = React.forwardRef<
                       src="/logos/ShortLogo.png"
                       alt="roshita logo"
                       className="lg:w-[40px] w-[30px] lg:h-[40px] h-[30px] cursor-pointer"
-                      onClick={() => (window.location.href = "/")}
+                      //onClick={() => (window.location.href = "/")}
                     />
                   </div>
               </div>

@@ -1,48 +1,43 @@
 "use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
-import NotificationCard from "@/components/shared/NotificationCard";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
-import { Notification } from "@/types/notification";
 import { Bell } from "lucide-react";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
 
 type Language = "ar" | "en";
 
 export default function Page() {
   const [language, setLanguage] = useState<Language>("ar");
   const [loading, setLoading] = useState<boolean>(true);
-  const [userId, setUserId] = useState<string>(""); // Initialize as empty string
+  const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language');
+    const storedUserId = localStorage.getItem('medicalOrganizationId');
+    
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
     }
-
-    const storedUserId = localStorage.getItem('medicalOrganizationId');
-    console.log('Stored userId:', storedUserId);
     if (storedUserId) {
       setUserId(storedUserId);
     }
+    
     setLoading(false);
   }, []);
 
   const {
     notifications,
-    isConnected,
     error,
-    removeNotification,
     markAsRead,
+    isLoading: socketLoading
   } = useNotificationSocket({
     userId,
     userType: "hospital",
   });
 
-  console.log("notifications from not page", notifications);
-
-  // Breadcrumb items
   const items = [
     { label: language === "ar" ? "الرئسية" : "Dashboard", href: "#" },
     {
@@ -50,6 +45,14 @@ export default function Page() {
       href: "/dashboard/notifications",
     },
   ];
+
+  if (loading || socketLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen mx-auto">
+        <LoadingDoctors />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -81,13 +84,13 @@ export default function Page() {
               </div>
             )}
             <div
-              className={`flex flex-col border  rounded-lg bg-white  max-w-[1280px] mx-auto ${
+              className={`flex flex-col border rounded-lg bg-white max-w-[1280px] mx-auto ${
                 language === "ar" ? "rtl" : "ltr"
               }`}
             >
-              <div className="space-y-4 p-4 ">
+              <div className="space-y-4 p-4">
                 {notifications.length === 0 ? (
-                  <div className="rounded-lg bg-white p-6 text-center ">
+                  <div className="rounded-lg bg-white p-6 text-center">
                     <p className="text-gray-500">
                       {language === "ar"
                         ? "لا توجد إشعارات جديدة"
@@ -96,13 +99,11 @@ export default function Page() {
                   </div>
                 ) : (
                   notifications.map((notification, index) => {
-                    // Use the translation from the backend based on current language
                     const translatedMessage = notification.translations?.[language]?.message || notification.message;
-                    console.log("translatedMessage", translatedMessage);
                     return (
                       <div
                         key={index}
-                        className={`bg-white p-6 rounded-lg border-l-4  ${
+                        className={`bg-white p-6 rounded-lg border-l-4 ${
                           notification.status === 'unread' 
                             ? 'border-roshitaDarkBlue' 
                             : 'border-gray-200'

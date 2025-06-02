@@ -252,7 +252,7 @@ export default function Page() {
                     </TabsList>
                   </Tabs>
 
-                  {/* Specialty Dropdown */}
+                  {/* Specialty Dropdown 
                   <Select onValueChange={setSelectedSpecialty}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder={language === "ar" ? "اختر التخصص" : "Select specialty"} />
@@ -267,7 +267,7 @@ export default function Page() {
                       ))}
                     </SelectContent>
                   </Select>
-
+*/}
                   {/* Display Selected Filters */}
                   <div className="flex gap-2 items-center">
                     {selectedDate && (

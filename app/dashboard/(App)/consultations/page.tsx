@@ -370,7 +370,12 @@ export default function Page() {
                       language={language}
                       diagnosisDescription={consultation?.diagnosis_description_request}
                                             //@ts-ignore
-                      doctorMsg={consultation?.consultation_response?.diagnosis_description_response || ""}
+                      doctorMsg={
+                        consultation.consultation_response
+                                            //@ts-ignore                        
+                          ?.diagnosis_description_response ||
+                        (language === "ar" ? "لا توجد رسالة من الطبيب" : "No doctor message available")
+                      }
                                             //@ts-ignore
                       typeOfService={consultation?.consultation_response?.type_of_service || ""}
                       //@ts-ignore

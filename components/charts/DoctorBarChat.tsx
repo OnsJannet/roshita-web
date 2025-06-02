@@ -180,17 +180,18 @@ export function DoctorBarChat() {
               accessibilityLayer
               data={chartData}
               layout="vertical"
-              margin={{ left: 0, right: 20, top: 10, bottom: 10 }}
-              width={undefined}
+              margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              width={80}
               height={undefined}
             >
               <YAxis
                 dataKey="browser"
                 type="category"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={8}
                 axisLine={false}
                 fontSize={11}
+                width={100}
                 tickFormatter={(value: string): string =>
                   (chartConfig[value as keyof typeof chartConfig]?.label || value).toString()
                 }

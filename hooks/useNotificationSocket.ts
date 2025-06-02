@@ -20,7 +20,7 @@ interface Notification {
     en: Translation;
     ar: Translation;
   };
-  uniqueKey?: string; // Added for duplicate checking
+  uniqueKey?: string;
 }
 
 interface UseNotificationSocketProps {
@@ -33,86 +33,111 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newNotificationCount, setNewNotificationCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  const MAX_CONNECTION_ATTEMPTS = 3;
 
-  useEffect(() => {
-    let sockets: WebSocket[] = [];
 
-    if (!userId) {
-      setError('User ID is required for WebSocket connection');
-      return;
-    }
-
-    let baseUrl = 'wss://test-roshita.net:8080/ws/notifications';
-    let endpoints: string[] = [];
-
-    // Set up appropriate endpoints based on user type
-    switch (userType) {
+  const getEndpoints = (type: string): string[] => {
+    const baseUrl = 'wss://test-roshita.net:8080/ws/notifications';
+    switch (type) {
       case 'patient':
-        endpoints = [
+        return [
           `${baseUrl}/patient-doctor-suggest/${userId}`,
-          `${baseUrl}/patient-doctor-response/${userId}`,   
-          `${baseUrl}/hospital-response-second-opinion-request-user/${userId}`, 
+          `${baseUrl}/patient-doctor-response/${userId}`,
+          `${baseUrl}/hospital-response-second-opinion-request-user/${userId}`,
         ];
-        break;
       case 'doctor':
-        endpoints = [
-          `${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`,          
+        return [
+          `${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`,
         ];
-        break;
       case 'hospital':
-        endpoints = [
+        return [
           `${baseUrl}/hospital-selected-by-doctor/${userId}/`,
           `${baseUrl}/hospital-new-second_opinion/${userId}/`,
           `${baseUrl}/doctor-response-second-opinion-request-hospital-staff/${userId}/`,
           `${baseUrl}/user-accept-second-opinion-request-hospital/${userId}/`,
         ];
-        break;
       default:
-        setError('Invalid user type');
-        return;
+        return [];
     }
+  };
+  
+  useEffect(() => {
+    let sockets: WebSocket[] = [];
+    let activeConnections = 0;
+    let successfulConnections = 0;
+    const totalEndpoints = getEndpoints(userType).length;
+
+    const cleanup = () => {
+      sockets.forEach(socket => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
+      });
+    };
+
+    if (!userId) {
+      setIsLoading(false);
+      return cleanup;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setConnectionAttempts(0);
+
+
+    const endpoints = getEndpoints(userType);
+    if (endpoints.length === 0) {
+      setError('Invalid user type');
+      setIsLoading(false);
+      return cleanup;
+    }
+
+    const checkAllConnections = () => {
+      if (successfulConnections === endpoints.length) {
+        setIsLoading(false);
+        setIsConnected(true);
+      } else if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS * endpoints.length) {
+        setError('Failed to establish all connections');
+        setIsLoading(false);
+      }
+    };
 
     const connectWebSocket = (endpoint: string) => {
       try {
-        console.log('Attempting to connect to WebSocket at:', endpoint);
-        
         const socket = new WebSocket(endpoint);
         sockets.push(socket);
+        activeConnections++;
 
         socket.onopen = () => {
-          setIsConnected(true);
-          setError(null);
           console.log('WebSocket connected successfully:', endpoint);
+          successfulConnections++;
+          checkAllConnections();
         };
 
         socket.onmessage = (event) => {
-          console.log('Raw WebSocket message:', event.data);
           try {
             const data = JSON.parse(event.data);
-            console.log('Parsed WebSocket message:', data);
-            
-            // Create a unique key based on the message content and consultation ID
             const consultationId = data.translations?.en?.consultation_request_id || 
                                  data.translations?.ar?.consultation_request_id ||
                                  data.data?.consultation_request_id;
             const uniqueKey = `${data.message}_${consultationId}`;
 
-            // Process the notification with translations
             const notification: Notification = {
               id: Date.now(),
               message: data.message || 'New notification',
               status: 'unread',
               timestamp: new Date().toISOString(),
               data: data,
-              ...(data.data || {}), // Spread any additional data fields
+              ...(data.data || {}),
               translations: data.translations || {
                 en: { message: data.message || 'New notification' },
                 ar: { message: data.message || 'إشعار جديد' }
               },
-              uniqueKey // Add unique key for duplicate checking
+              uniqueKey
             };
             
-            // If translations exist in the data, use them
             if (data.translations) {
               notification.translations = {
                 en: {
@@ -126,70 +151,62 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
               };
             }
             
-            console.log('Processed notification with translations:', notification);
-            
             setNotifications(prev => {
-              // Check if notification with same uniqueKey already exists
               const isDuplicate = prev.some(n => n.uniqueKey === uniqueKey);
-              
               if (!isDuplicate) {
-                setNewNotificationCount(count => count + 1); // Increment counter for new notifications
+                setNewNotificationCount(count => count + 1);
                 return [notification, ...prev];
               }
               return prev;
             });
           } catch (parseError) {
             console.error('Error parsing WebSocket message:', parseError);
-            console.log('Raw message that failed to parse:', event.data);
           }
         };
 
-        socket.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          setError('WebSocket connection error');
-          setIsConnected(false);
+        socket.onerror = () => {
+          activeConnections--;
+          setConnectionAttempts(prev => prev + 1);
+          setTimeout(() => {
+            if (connectionAttempts < MAX_CONNECTION_ATTEMPTS * endpoints.length) {
+              connectWebSocket(endpoint);
+            } else {
+              checkAllConnections();
+            }
+          }, 5000);
         };
 
-        socket.onclose = (event) => {
-          console.log('WebSocket closed:', event);
-          setIsConnected(false);
-          setTimeout(() => connectWebSocket(endpoint), 5000);
+        socket.onclose = () => {
+          activeConnections--;
         };
 
-        return socket;
       } catch (err) {
         console.error('WebSocket connection failed:', err);
-        setError('Failed to establish WebSocket connection');
-        setIsConnected(false);
-        setTimeout(() => connectWebSocket(endpoint), 5000);
-        return null;
+        setConnectionAttempts(prev => prev + 1);
+        setTimeout(() => {
+          if (connectionAttempts < MAX_CONNECTION_ATTEMPTS * endpoints.length) {
+            connectWebSocket(endpoint);
+          } else {
+            checkAllConnections();
+          }
+        }, 5000);
       }
     };
 
-    // Connect to all relevant endpoints
-    endpoints.forEach(endpoint => {
-      connectWebSocket(endpoint);
-    });
+    endpoints.forEach(endpoint => connectWebSocket(endpoint));
 
-    return () => {
-      // Clean up all socket connections
-      sockets.forEach(socket => {
-        if (socket) {
-          socket.close();
-        }
-      });
-    };
+    return cleanup;
   }, [userId, userType]);
 
   const removeNotification = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
   const markAsRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => {
+    setNotifications(prev =>
+      prev.map(n => {
         if (n.id === id && n.status === 'unread') {
-          setNewNotificationCount(count => count - 1); // Decrement counter when marking as read
+          setNewNotificationCount(count => count - 1);
           return { ...n, status: 'read' };
         }
         return n;
@@ -208,6 +225,7 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
     newNotificationCount,
     removeNotification,
     markAsRead,
-    resetNotificationCount
+    resetNotificationCount,
+    isLoading
   };
 };

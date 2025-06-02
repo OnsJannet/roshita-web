@@ -364,6 +364,13 @@ const RequestCard: React.FC<RequestCardProps> = ({
     </div>
   </div>
 )}
+
+{doctorMsg !== "" && userType === "hospital" && (
+      <div className="mb-3 mt-3">
+        <strong>{content.doctorDiagnosisLabel}</strong>
+        <p className="mt-1">{doctorMsg}</p>
+      </div>
+    )}
            {userType === "patient" && diagnosisDescription && ( // Show initial diagnosis for patient if available
             <>
               <strong>{content.initialDiagnosisDescriptionLabel}</strong>
