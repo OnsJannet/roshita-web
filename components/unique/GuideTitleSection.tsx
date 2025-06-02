@@ -10,6 +10,14 @@ interface GuideTitleSectionProps {
   onSpecialtyChange: (SpecialityTerm: string) => void;
 }
 
+interface StatsData {
+  totalDoctors: number;
+  totalLabs: number;
+  totalHospitals: number;
+  totalPatients: number;
+  totalSpecialties: number;
+}
+
 const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
   onSearchChange,
   onCountryChange,
@@ -18,6 +26,9 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
   const [search, setSearch] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearchChange = (newSearch: string) => {
     setSearch(newSearch);
@@ -57,6 +68,29 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://test-roshita.net/api/kpis/roshita-entity/totals');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch statistics');
+        }
+
+        const data: StatsData = await response.json();
+        setStats(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        console.error('Error fetching statistics:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div>
       <div className="relative w-full h-[80vh] lg:flex-row flex-col bg-cover bg-center bg-[url('/Images/medicalBanner.png')] z-1">
@@ -83,7 +117,7 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
             <div className="flex justify-between flex-row-reverse lg:gap-10 w-[80%] mx-auto mt-8">
               <div>
                 <h2 className="text-white text-[60px] text-semibold text-end">
-                  263
+                {stats?.totalDoctors}
                 </h2>
                 <h2 className="text-white text-[24px] text-semibold text-end">
                   {language === "ar" ? "الأطباء" : "Doctors"}
@@ -91,7 +125,7 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
               </div>
               <div>
                 <h2 className="text-white text-[60px] text-semibold text-end">
-                  891
+                {stats?.totalHospitals}
                 </h2>
                 <h2 className="text-white text-[24px] text-semibold text-end">
                   {language === "ar" ? "مستشفيات" : "Hospitals"}
@@ -99,7 +133,7 @@ const GuideTitleSection: React.FC<GuideTitleSectionProps> = ({
               </div>
               <div>
                 <h2 className="text-white text-[60px] text-semibold text-end">
-                  10+
+                {stats?.totalLabs}
                 </h2>
                 <h2 className="text-white text-[24px] text-semibold text-end">
                   {language === "ar" ? "مختبرات" : "Labs"}

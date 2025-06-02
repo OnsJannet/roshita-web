@@ -54,7 +54,7 @@ export default function RootLayout({
     return null; // Or show a loading spinner
   }
 
-  console.log("dashboard");
+
 
   return <>{children}</>;
 }
