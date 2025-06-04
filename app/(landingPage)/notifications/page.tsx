@@ -86,15 +86,9 @@ interface Notification {
 }
 
 const Page = () => {
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
-  const [filterType, setFilterType] = useState<"previous" | "next">("next");
-  const router = useRouter();
   const [language, setLanguage] = useState<Language>("ar");
-  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [showLoading, setShowLoading] = useState<boolean>(true);
-  const [userId, setUserId] = useState<string>(""); 
+  const [userId, setUserId] = useState<string>("");
   const [profileData, setProfileData] = useState<EditProfileData>({
     user: {
       first_name: "",
@@ -112,12 +106,10 @@ const Page = () => {
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language');
+    const storedUserId = localStorage.getItem('userId');
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
     }
-
-    const storedUserId = localStorage.getItem('userId');
-    console.log('Stored userId:', storedUserId);
     if (storedUserId) {
       setUserId(storedUserId);
     }
@@ -138,131 +130,38 @@ const Page = () => {
     if (notifications !== undefined) {
       const timer = setTimeout(() => {
         setLoading(false);
-        setShowLoading(false);
       }, 500);
-      
       return () => clearTimeout(timer);
     }
   }, [notifications]);
 
-  console.log("notifications from not page", notifications);
+  const formatNotificationDateTime = (notification: any, lang: Language) => {
+    const notificationDate = notification.notification_date 
+      ? new Date(notification.notification_date)
+      : new Date(notification.timestamp || Date.now());
+    
+    const dateFormatter = new Intl.DateTimeFormat(lang === 'ar' ? 'en-US' : 'en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    
+    const timeFormatter = new Intl.DateTimeFormat(lang === 'ar' ? 'en-US' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
 
-  const determineNotificationType = useCallback((data: any): Notification['type'] => {
-    if (data.consultation_request_id && data.status === 'Accepted') {
-      return 'consultation_request';
-    }
-    if (data.doctor && data.message?.includes('suggestion')) {
-      return 'doctor_suggestion';
-    }
-    if (data.status === 'Reviewed') {
-      return 'consultation_response';
-    }
-    if (data.organization) {
-      return 'hospital_response';
-    }
-    return 'consultation_request';
-  }, []);
-
-  const getDefaultMessage = useCallback((data: any): string => {
-    if (data.doctor && data.organization) {
-      return `New update from Dr. ${data.doctor.split(' ')[1]} at ${data.organization.name}`;
-    }
-    if (data.doctor) {
-      return `New message from Dr. ${data.doctor.split(' ')[1]}`;
-    }
-    if (data.organization) {
-      return `New update from ${data.organization.name}`;
-    }
-    return 'You have a new notification';
-  }, []);
-
-  // Helper functions to get translated content
-  const getTranslatedMessage = (notification: Notification): string => {
-    if (notification.data?.translations && (language === "en" || language === "ar")) {
-      return notification.data.translations[language]?.message || notification.message;
-    }
-    return notification.message;
-  };
-
-  const getTranslatedDoctor = (notification: Notification): string | undefined => {
-    if (notification.data?.translations && (language === "en" || language === "ar")) {
-      return notification.data.translations[language]?.doctor || notification.data?.doctor;
-    }
-    return notification.data?.doctor;
-  };
-
-  const getTranslatedMedicalOrg = (notification: Notification): string | undefined => {
-    if (notification.data?.translations && (language === "en" || language === "ar")) {
-      return notification.data.translations[language]?.medical_organizations || 
-             notification.data?.organization?.name;
-    }
-    return notification.data?.organization?.name;
-  };
-
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem("language");
-    if (storedLanguage) {
-      setLanguage(storedLanguage as Language);
-    } else {
-      setLanguage("ar");
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "language") {
-        setLanguage((event.newValue as Language) || "ar");
-      }
+    return {
+      formattedDate: dateFormatter.format(notificationDate),
+      formattedTime: timeFormatter.format(notificationDate),
+      day: notification.notification_day || dateFormatter.formatToParts(notificationDate)
+        .find(part => part.type === 'weekday')?.value || ''
     };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  useEffect(() => {
-    const storedAppointments = localStorage.getItem("appointments");
-    if (storedAppointments) {
-      const parsedAppointments = JSON.parse(storedAppointments);
-      setAppointments(parsedAppointments);
-      filterAppointments(parsedAppointments, "next");
-    }
-  }, []);
-
-  useEffect(() => {
-    const loadProfileData = async () => {
-      try {
-        const data = await fetchProfileDetails();
-        setProfileData({
-          user: {
-            first_name: data.user?.first_name || "",
-            last_name: data.user?.last_name || "",
-            email: data.user?.email || "",
-            id: data.user?.id || "",
-          },
-          gender: data.gender || "",
-          service_country: data.service_country || 2,
-          birthday: data.birthday || "",
-          city: data.city || 1,
-          user_type: data.user_type || 0,
-          address: data.address || "",
-        });
-      } catch (error) {
-        console.error("Error loading profile data", error);
-      }
-    };
-
-    loadProfileData();
-  }, []);
-
-  const filterAppointments = (
-    appointments: any[],
-    type: "previous" | "next"
-  ) => {
-    const today = new Date();
-    const filtered = type === "next"
-      ? appointments.filter(appt => new Date(appt.reservation.reservation_date) > today)
-      : appointments.filter(appt => new Date(appt.reservation.reservation_date) <= today);
-    setFilteredAppointments(filtered);
   };
 
+  const router = useRouter();
   const handleLogout = () => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
@@ -274,9 +173,8 @@ const Page = () => {
   const handleAppointmentsClick = () => router.push("/appointments");
   const handleSettingsPasswordClick = () => router.push("/password-change");
   const handleConsultationsClick = () => router.push("/consultations");
-  const handleError = (errorMessage: string) => setErrorMessage(errorMessage);
 
-  if (showLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen mx-auto">
         <LoadingDoctors />
@@ -284,17 +182,11 @@ const Page = () => {
     );
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
     <div className="flex justify-center flex-col p-8 bg-[#fafafa]">
       <div>
         <div
-          className={`flex ${
-            language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
-          } flex-col justify-start gap-10 mx-auto`}
+          className={`flex ${language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"} flex-col justify-start gap-10 mx-auto`}
         >
           <div className="flex lg:w-[20%] w-[100%] justify-start gap-10 mx-auto p-4 bg-white rounded flex-col">
             <div className="mx-auto flex justify-center">
@@ -370,57 +262,99 @@ const Page = () => {
               </div>
             ) : (
               notifications.map((notification) => {
-                //@ts-ignore
-                const translatedMessage = getTranslatedMessage(notification);
-                                //@ts-ignore
-                const translatedDoctor = getTranslatedDoctor(notification);
-                                //@ts-ignore
-                const translatedMedicalOrg = getTranslatedMedicalOrg(notification);
+                const translatedMessage = notification.translations?.[language]?.message || notification.message;
+                const translatedData = notification.translations?.[language] || {};
+                const { formattedDate, formattedTime, day } = formatNotificationDateTime(notification, language);
 
                 return (
                   <div
                     key={notification.id}
-                    className={`bg-white p-6 rounded-lg border-l-4 ${
-                      notification.status === 'unread' 
-                        ? 'border-roshitaDarkBlue' 
-                        : 'border-gray-200'
-                    }`}
+                    className={`bg-white p-6 rounded-lg border-l-4 ${notification.status === 'unread' ? 'border-roshitaDarkBlue' : 'border-gray-200'}`}
                     dir={language === "ar" ? "rtl" : "ltr"}
                     onClick={() => markAsRead(notification.id)}
                   >
                     <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`rounded-full p-2 ${
-                          notification.status === 'unread' 
-                            ? 'bg-roshitaDarkBlue/10' 
-                            : 'bg-gray-100'
-                        }`}>
-                          <Bell className={`h-5 w-5 ${
-                            notification.status === 'unread' 
-                              ? 'text-roshitaDarkBlue' 
-                              : 'text-gray-500'
-                          }`} />
+                      <div className="flex items-start gap-3 w-full">
+                        <div className={`rounded-full p-2 mt-1 border-roshitaDarkBlue`}>
+                          <Bell className={`h-5 w-5 text-roshitaDarkBlue`} />
                         </div>
-                        <div>
-                          <h3 className={`font-semibold ${
-                            notification.status === 'unread' 
-                              ? 'text-gray-900' 
-                              : 'text-gray-600'
-                          }`}>
+                        <div className="w-full">
+                          <h3 className={`font-semibold ${language === "ar" ?  "text-right" : "text-left"} text-black`}>
                             {translatedMessage === "Consultation request accepted!" 
                               ? (notification.data?.status !== "Reviewed"
                                 ? language === "ar"
                                   ? "تم اختيار استشارتك من قبل مستشفى وتم إرسالها إلى طبيب للمراجعة"
                                   : "Your consultation got picked up by a hospital. It's sent to a doctor to review."
                                 : language === "ar"
-                                  ? `تم قبول طلب الاستشارة! الدكتور ${translatedDoctor} من ${translatedMedicalOrg}`
-                                  : `Consultation request accepted! Dr. ${translatedDoctor} from ${translatedMedicalOrg}`)
+                                /*@ts-ignore*/
+                                  ? `تم قبول طلب الاستشارة! الدكتور ${translatedData.doctor} من ${translatedData.medical_organizations}`
+                                  /*@ts-ignore*/
+                                  : `Consultation request accepted! Dr. ${translatedData.doctor} from ${translatedData.medical_organizations}`)
                               : translatedMessage === "New suggestion created!" && notification.data?.organization
                                 ? language === "ar"
-                                  ? `اقترح طبيبك طبيباً جديداً لك من ${translatedMedicalOrg}`
-                                  : `Your doctor suggested a new doctor for you from ${translatedMedicalOrg}`
+                                /*@ts-ignore*/
+                                  ? `اقترح طبيبك طبيباً جديداً لك من ${translatedData.medical_organizations}`
+                                  /*@ts-ignore*/
+                                  : `Your doctor suggested a new doctor for you from ${translatedData.medical_organizations}`
                                 : translatedMessage}
                           </h3>
+                          
+                          <div className={`mt-2 space-y-1 text-sm ${language === "ar" ?  "text-right" : "text-left"}` }>
+                            {/*@ts-ignore*/}
+                            {translatedData.consultation_response_id && (
+                              <p className="text-gray-600">
+                                <span className="font-medium">{language === 'ar' ? 'رقم الاستشارة: ' : 'Consultation No: '}</span>
+                                {/*@ts-ignore*/}
+                                {translatedData.consultation_response_id}
+                              </p>
+                            )}
+                            {/*@ts-ignore*/}
+                            {translatedData.patient && (
+                              <p className="text-gray-600">
+                                <span className="font-medium">{language === 'ar' ? 'المريض: ' : 'Patient: '}</span>
+                                {/*@ts-ignore*/}
+                                {translatedData.patient}
+                              </p>
+                            )}
+                            {/*@ts-ignore*/}
+                            {translatedData.doctor && (
+                              <p className="text-gray-600">
+                                <span className="font-medium">{language === 'ar' ? 'الطبيب: ' : 'Doctor: '}</span>
+                                {/*@ts-ignore*/}
+                                {translatedData.doctor}
+                              </p>
+                            )}
+                            {/*@ts-ignore*/}
+                            {translatedData.service_type && (
+                              <p className="text-gray-600">
+                                <span className="font-medium">{language === 'ar' ? 'نوع الخدمة: ' : 'Service Type: '}</span>
+                                {/*@ts-ignore*/}
+                                {translatedData.service_type}
+                              </p>
+                            )}
+                            {/*@ts-ignore*/}
+                            {translatedData.medical_organizations && (
+                              <p className="text-gray-600">
+                                <span className="font-medium">{language === 'ar' ? 'المنظمة الطبية: ' : 'Medical Organization: '}</span>
+                                {/*@ts-ignore*/}
+                                {translatedData.medical_organizations}
+                              </p>
+                            )}
+                            {/*@ts-ignore*/}
+                            {translatedData.estimated_cost && (
+                              <p className="text-gray-600">
+                                <span className="font-medium">{language === 'ar' ? 'التكلفة المقدرة: ' : 'Estimated Cost: '}</span>
+                                {/*@ts-ignore*/}
+                                {translatedData.estimated_cost[0]} SAR
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                            <span>{formattedDate}</span>
+                            <span>•</span>
+                            <span>{formattedTime}</span>
+                          </div>
                         </div>
                       </div>
                       {notification.data?.consultation_id && (

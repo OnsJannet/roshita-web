@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import LanguageSwitcher from "../layout/LanguageSwitcher";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 const iconMapping: Record<string, React.ComponentType<any>> = {
   House,
@@ -441,6 +442,9 @@ const Sidebar = React.forwardRef<
       xRays: false,
       doctor: false,
     });
+    const [userId, setUserId] = React.useState("");
+    const [userType, setUserType] = React.useState<"patient" | "doctor" | "hospital">("patient");
+    const { newNotificationCount } = useNotificationSocket({ userId, userType });
 
     const router = useRouter();
 
@@ -519,9 +523,10 @@ const Sidebar = React.forwardRef<
       if (typeof window !== "undefined") {
         const userString = localStorage.getItem("user");
 
-
         if (userString) {
           const user = JSON.parse(userString);
+          setUserId(user.id);
+          setUserType(user.user_type.toLowerCase());
 
           setUserRoles({
             lab: user?.medical_organization_type === "Laboratory",
@@ -613,10 +618,16 @@ const Sidebar = React.forwardRef<
                         className="h-10"
                       >
                         <SidebarMenuButton asChild>
-                          <a href={item.url} className="font-medium ">
-                            {/* Dynamically render the icon */}
+                          <a href={item.url} className="font-medium relative">
                             {IconComponent && (
-                              <IconComponent className="mr-2 h-6 w-6 mb-1" />
+                              <div className="relative">
+                                <IconComponent className="mr-2 h-6 w-6 mb-1" />
+                                {item.icon === "Bell" && newNotificationCount > 0 && (
+                                  <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
+                                    {newNotificationCount}
+                                  </span>
+                                )}
+                              </div>
                             )}{" "}
                             {/* Apply margin-right for spacing */}
                             {language === "ar" ? item.title : item.foreginTitle}

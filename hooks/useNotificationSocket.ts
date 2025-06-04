@@ -21,6 +21,9 @@ interface Notification {
     ar: Translation;
   };
   uniqueKey?: string;
+  notification_date: string;
+  notification_time: string;
+  notification_day: string;
 }
 
 interface UseNotificationSocketProps {
@@ -36,7 +39,6 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
   const [isLoading, setIsLoading] = useState(true);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
   const MAX_CONNECTION_ATTEMPTS = 3;
-
 
   const getEndpoints = (type: string): string[] => {
     const baseUrl = 'wss://test-roshita.net:8080/ws/notifications';
@@ -62,7 +64,18 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
         return [];
     }
   };
-  
+
+  const formatNotificationDateTime = () => {
+    const now = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    return {
+      date: now.toISOString().split('T')[0], // YYYY-MM-DD format
+      time: now.toTimeString().slice(0, 5),  // HH:MM format
+      day: days[now.getDay()]                // Full day name
+    };
+  };
+
   useEffect(() => {
     let sockets: WebSocket[] = [];
     let activeConnections = 0;
@@ -85,7 +98,6 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
     setIsLoading(true);
     setError(null);
     setConnectionAttempts(0);
-
 
     const endpoints = getEndpoints(userType);
     if (endpoints.length === 0) {
@@ -122,7 +134,8 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
             const consultationId = data.translations?.en?.consultation_request_id || 
                                  data.translations?.ar?.consultation_request_id ||
                                  data.data?.consultation_request_id;
-            const uniqueKey = `${data.message}_${consultationId}`;
+            const uniqueKey = `${consultationId}_${data.translations?.en?.message || data.translations?.ar?.message || data.message}`;
+            const { date, time, day } = formatNotificationDateTime();
 
             const notification: Notification = {
               id: Date.now(),
@@ -135,7 +148,10 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
                 en: { message: data.message || 'New notification' },
                 ar: { message: data.message || 'إشعار جديد' }
               },
-              uniqueKey
+              uniqueKey,
+              notification_date: date,
+              notification_time: time,
+              notification_day: day
             };
             
             if (data.translations) {
@@ -150,14 +166,22 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
                 }
               };
             }
-            
-            setNotifications(prev => {
+
+                        /*setNotifications(prev => {
               const isDuplicate = prev.some(n => n.uniqueKey === uniqueKey);
               if (!isDuplicate) {
-                setNewNotificationCount(count => count + 1);
+                // Old implementation commented out but preserved
+                //setNewNotificationCount(count => count + 1);
+                // New implementation using array length
+                setNewNotificationCount(prev.length + 1);
                 return [notification, ...prev];
               }
               return prev;
+            });*/
+            
+            setNotifications(prev => {
+              setNewNotificationCount(prev.length + 1);
+              return [notification, ...prev];
             });
           } catch (parseError) {
             console.error('Error parsing WebSocket message:', parseError);

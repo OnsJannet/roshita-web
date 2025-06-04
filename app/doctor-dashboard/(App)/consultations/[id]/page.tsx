@@ -192,7 +192,7 @@ export default function Page() {
       );
 
       const data = await response.json();
-      
+      window.location.href = "/doctor-dashboard/consultations";
       if (!response.ok) {
         throw new Error(data.message || data.detail || "Failed to send response");
       }

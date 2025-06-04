@@ -16,7 +16,7 @@ export default function Page() {
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language');
-    const storedUserId = localStorage.getItem('userId'); // Changed from medicalOrganizationId to userId for doctors
+    const storedUserId = localStorage.getItem('userId');
     
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
@@ -36,7 +36,7 @@ export default function Page() {
     isLoading: socketLoading
   } = useNotificationSocket({
     userId,
-    userType: "doctor", // Changed from hospital to doctor
+    userType: "doctor",
   });
 
   const items = [
@@ -47,7 +47,6 @@ export default function Page() {
     },
   ];
 
-  // Show loader until all connections are established or failed after max attempts
   const showLoader = loading || (socketLoading && !error);
 
   if (showLoader) {
@@ -57,6 +56,32 @@ export default function Page() {
       </div>
     );
   }
+
+  const formatNotificationDateTime = (notification: any, lang: Language) => {
+    const notificationDate = notification.notification_date 
+      ? new Date(notification.notification_date)
+      : new Date(notification.timestamp || Date.now());
+    
+    const dateFormatter = new Intl.DateTimeFormat(lang === 'ar' ? 'en-US' : 'en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    
+    const timeFormatter = new Intl.DateTimeFormat(lang === 'ar' ? 'en-US' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    return {
+      formattedDate: dateFormatter.format(notificationDate),
+      formattedTime: timeFormatter.format(notificationDate),
+      day: notification.notification_day || dateFormatter.formatToParts(notificationDate)
+        .find(part => part.type === 'weekday')?.value || ''
+    };
+  };
 
   return (
     <SidebarProvider>
@@ -104,6 +129,9 @@ export default function Page() {
                 ) : (
                   notifications.map((notification, index) => {
                     const translatedMessage = notification.translations?.[language]?.message || notification.message;
+                    const translatedData = notification.translations?.[language] || {};
+                    const { formattedDate, formattedTime, day } = formatNotificationDateTime(notification, language);
+
                     return (
                       <div
                         key={index}
@@ -116,31 +144,73 @@ export default function Page() {
                         onClick={() => markAsRead(notification.id)}
                       >
                         <div className="flex justify-between items-start mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`rounded-full p-2 ${
-                              notification.status === 'unread' 
-                                ? 'bg-roshitaDarkBlue/10' 
-                                : 'bg-gray-100'
-                            }`}>
-                              <Bell className={`h-5 w-5 ${
-                                notification.status === 'unread' 
-                                  ? 'text-roshitaDarkBlue' 
-                                  : 'text-gray-500'
-                              }`} />
+                          <div className="flex items-start gap-3 w-full">
+                            <div className={`rounded-full p-2 mt-1 border-roshitaDarkBlue`}>
+                              <Bell className={`h-5 w-5 text-roshitaDarkBlue`} />
                             </div>
-                            <div>
-                              <h3 className={`font-semibold ${
-                                notification.status === 'unread' 
-                                  ? 'text-gray-900' 
-                                  : 'text-gray-600'
-                              }`}>
-                                {translatedMessage}
+                            <div className="w-full">
+                              <h3 className={`font-semibold text-black`}>
+                                {/*@ts-ignore */}
+                                {translatedMessage} 
                               </h3>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {new Date(notification.timestamp || Date.now()).toLocaleString(
-                                  language === 'ar' ? 'en-Us' : 'en-US'
+                              
+                              <div className="mt-2 space-y-1 text-sm">
+                                 {/*@ts-ignore */}
+                              {translatedData.consultation_response_id && (
+  <p className="text-gray-600">
+    <span className="font-medium">{language === 'ar' ? 'رقم الاستشارة: ' : 'Consultation No: '}</span>
+     {/*@ts-ignore */}
+    {translatedData.consultation_response_id}
+  </p>
+)}
+
+                                {/*@ts-ignore */}
+                                {translatedData.patient_name && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">{language === 'ar' ? 'المريض: ' : 'Patient: '}</span>
+                                                                    {/*@ts-ignore */}
+                                    {translatedData.patient_name}
+                                  </p>
                                 )}
-                              </p>
+                                                                {/*@ts-ignore */}
+                                {translatedData.doctor && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">{language === 'ar' ? 'الطبيب: ' : 'Doctor: '}</span>
+                                                                    {/*@ts-ignore */}
+                                    {translatedData.doctor}
+                                  </p>
+                                )}
+                                                                {/*@ts-ignore */}
+                                {translatedData.service_type && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">{language === 'ar' ? 'نوع الخدمة: ' : 'Service Type: '}</span>
+                                                                    {/*@ts-ignore */}
+                                    {translatedData.service_type}
+                                  </p>
+                                )}
+                                                                {/*@ts-ignore */}
+                                {translatedData.medical_organizations && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">{language === 'ar' ? 'المنظمة الطبية: ' : 'Medical Organization: '}</span>
+                                                                    {/*@ts-ignore */}
+                                    {translatedData.medical_organizations}
+                                  </p>
+                                )}
+                                                                {/*@ts-ignore */}
+                                {translatedData.estimated_cost && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">{language === 'ar' ? 'التكلفة المقدرة: ' : 'Estimated Cost: '}</span>
+                                                                    {/*@ts-ignore */}
+                                    {translatedData.estimated_cost[0]} SAR
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                                <span>{formattedDate}</span>
+                                <span>•</span>
+                                <span>{formattedTime}</span>
+                              </div>
                             </div>
                           </div>
                         </div>

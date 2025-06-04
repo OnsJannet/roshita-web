@@ -216,6 +216,8 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
                           </option>
                         ))}
                       </select>
+                    ) : index === 0 || index === 3 ? ( // For email/phone number (first field)
+                      <div className="text-end bg-transparent p-2 rounded">{field.value}</div>
                     ) : (
                       <input
                         type="text"
@@ -234,6 +236,7 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
                   <td className="py-3 px-2 text-gray-500">
                     {translate(field.label)}
                   </td>
+                  // And for the English (LTR) version:
                   <td className="py-3 px-2 text-gray-700 text-left">
                     {index === 1 && cities ? (
                       <select
@@ -250,6 +253,8 @@ const InformationUserCard: React.FC<InformationCardProps> = ({
                           </option>
                         ))}
                       </select>
+                    ) : index === 0 ? ( // For email/phone number (first field)
+                      <div className="text-left bg-gray-100 p-2 rounded">{field.value}</div>
                     ) : (
                       <input
                         type="text"
