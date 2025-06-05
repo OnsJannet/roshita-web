@@ -195,7 +195,7 @@ export default function Page() {
                                   <p className="text-gray-600">
                                     <span className="font-medium">{language === 'ar' ? 'التكلفة المقدرة: ' : 'Estimated Cost: '}</span>
                                     {/*@ts-ignore */}
-                                    {translatedData.estimated_cost[0]} SAR
+                                    {translatedData.estimated_cost[0]} 
                                   </p>
                                 )}
                               </div>
