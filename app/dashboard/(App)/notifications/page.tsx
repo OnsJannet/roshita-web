@@ -183,7 +183,7 @@ export default function Page() {
     </span>
 
                                 {/*@ts-ignore */}
-    {new Date(translatedData.reservation_date).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+    {new Date(translatedData.reservation_date).toLocaleDateString(language === 'ar' ? 'en-US' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
