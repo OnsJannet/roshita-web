@@ -166,6 +166,7 @@ export default function Page() {
                                     {translatedData.patient}
                                   </p>
                                 )}
+
                                 {/*@ts-ignore */}
                                 {translatedData.doctor && (
                                   <p className="text-gray-600">
@@ -174,6 +175,23 @@ export default function Page() {
                                     {translatedData.doctor}
                                   </p>
                                 )}
+                                {/* @ts-ignore */}
+{translatedData.reservation_date && (
+  <p className="text-gray-600">
+    <span className="font-medium">
+      {language === 'ar' ? 'تاريخ الحجز: ' : 'Reservation Date: '}
+    </span>
+
+                                {/*@ts-ignore */}
+    {new Date(translatedData.reservation_date).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })}
+  </p>
+)}
+
                                 {/*@ts-ignore */}
                                 {translatedData.service_type && (
                                   <p className="text-gray-600">
