@@ -45,20 +45,23 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
     switch (type) {
       case 'patient':
         return [
-          `${baseUrl}/patient-doctor-suggest/${userId}`,
-          `${baseUrl}/patient-doctor-response/${userId}`,
-          `${baseUrl}/hospital-response-second-opinion-request-user/${userId}`,
+          //`${baseUrl}/patient-doctor-suggest/${userId}`,
+          //`${baseUrl}/patient-doctor-response/${userId}`,
+          //`${baseUrl}/hospital-response-second-opinion-request-user/${userId}`,
+          `${baseUrl}/patient/${userId}/`,
         ];
       case 'doctor':
         return [
-          `${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`,
+          //`${baseUrl}/doctor-second-opinion-request-assigned/${userId}/`,
+          `${baseUrl}/doctor/${userId}/`,
         ];
       case 'hospital':
         return [
-          `${baseUrl}/hospital-selected-by-doctor/${userId}/`,
-          `${baseUrl}/hospital-new-second_opinion/${userId}/`,
-          `${baseUrl}/doctor-response-second-opinion-request-hospital-staff/${userId}/`,
-          `${baseUrl}/user-accept-second-opinion-request-hospital/${userId}/`,
+          //`${baseUrl}/hospital-selected-by-doctor/${userId}/`,
+          //`${baseUrl}/hospital-new-second_opinion/${userId}/`,
+          //`${baseUrl}/doctor-response-second-opinion-request-hospital-staff/${userId}/`,
+          //`${baseUrl}/user-accept-second-opinion-request-hospital/${userId}/`,
+          `${baseUrl}/hospital/${userId}/`,
         ];
       default:
         return [];
