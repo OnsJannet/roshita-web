@@ -2,7 +2,11 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import Breadcrumb from "@/components/layout/app-breadcrumb";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
@@ -15,16 +19,16 @@ export default function Page() {
   const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    const storedUserId = localStorage.getItem('medicalOrganizationId');
-    
+    const storedLanguage = localStorage.getItem("language");
+    const storedUserId = localStorage.getItem("medicalOrganizationId");
+
     if (storedLanguage) {
       setLanguage(storedLanguage as Language);
     }
     if (storedUserId) {
       setUserId(storedUserId);
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -32,7 +36,7 @@ export default function Page() {
     notifications,
     error,
     markAsRead,
-    isLoading: socketLoading
+    isLoading: socketLoading,
   } = useNotificationSocket({
     userId,
     userType: "hospital",
@@ -56,30 +60,40 @@ export default function Page() {
 
   const formatNotificationDateTime = (notification: any, lang: Language) => {
     // Try to get date from notification_date first, then fall back to timestamp
-    const notificationDate = notification.notification_date 
+    const notificationDate = notification.notification_date
       ? new Date(notification.notification_date)
       : new Date(notification.timestamp || Date.now());
-    
+
     // Format date
-    const dateFormatter = new Intl.DateTimeFormat(lang === 'ar' ? 'en-US' : 'en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    
+    const dateFormatter = new Intl.DateTimeFormat(
+      lang === "ar" ? "en-US" : "en-US",
+      {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }
+    );
+
     // Format time (12-hour format with AM/PM)
-    const timeFormatter = new Intl.DateTimeFormat(lang === 'ar' ? 'en-US' : 'en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+    const timeFormatter = new Intl.DateTimeFormat(
+      lang === "ar" ? "en-US" : "en-US",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }
+    );
 
     return {
       formattedDate: dateFormatter.format(notificationDate),
       formattedTime: timeFormatter.format(notificationDate),
-      day: notification.notification_day || dateFormatter.formatToParts(notificationDate)
-        .find(part => part.type === 'weekday')?.value || ''
+      day:
+        notification.notification_day ||
+        dateFormatter
+          .formatToParts(notificationDate)
+          .find((part) => part.type === "weekday")?.value ||
+        "",
     };
   };
 
@@ -128,9 +142,13 @@ export default function Page() {
                   </div>
                 ) : (
                   notifications.map((notification, index) => {
-                    const translatedMessage = notification.translations?.[language]?.message || notification.message;
-                    const translatedData = notification.translations?.[language] || {};
-                    const { formattedDate, formattedTime, day } = formatNotificationDateTime(notification, language);
+                    const translatedMessage =
+                      notification.translations?.[language]?.message ||
+                      notification.message;
+                    const translatedData =
+                      notification.translations?.[language] || {};
+                    const { formattedDate, formattedTime, day } =
+                      formatNotificationDateTime(notification, language);
 
                     return (
                       <div
@@ -141,28 +159,40 @@ export default function Page() {
                       >
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-start gap-3 w-full">
-                            <div className={`rounded-full p-2 mt-1 border-roshitaDarkBlue `}>
-                              <Bell className={`h-5 w-5 text-roshitaDarkBlue`} />
+                            <div
+                              className={`rounded-full p-2 mt-1 border-roshitaDarkBlue `}
+                            >
+                              <Bell
+                                className={`h-5 w-5 text-roshitaDarkBlue`}
+                              />
                             </div>
                             <div className="w-full">
                               <h3 className={`font-semibold text-black`}>
                                 {translatedMessage}
                               </h3>
-                              
+
                               <div className="mt-2 space-y-1 text-sm">
-                                                                 {/*@ts-ignore */}
-                              {translatedData.consultation_response_id && (
-                                <p className="text-gray-600">
-                                  <span className="font-medium">{language === 'ar' ? 'رقم الاستشارة: ' : 'Consultation No: '}</span>
-                                  {/*@ts-ignore */}
-                                  {translatedData.consultation_response_id}
-                                </p>
-                              )}
+                                {/*@ts-ignore */}
+                                {translatedData.consultation_response_id && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "رقم الاستشارة: "
+                                        : "Consultation No: "}
+                                    </span>
+                                    {/*@ts-ignore */}
+                                    {translatedData.consultation_response_id}
+                                  </p>
+                                )}
                                 {/*@ts-ignore */}
                                 {translatedData.patient && (
                                   <p className="text-gray-600">
-                                    <span className="font-medium">{language === 'ar' ? 'المريض: ' : 'Patient: '}</span>
-                                   {/*@ts-ignore */}
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "المريض: "
+                                        : "Patient: "}
+                                    </span>
+                                    {/*@ts-ignore */}
                                     {translatedData.patient}
                                   </p>
                                 )}
@@ -170,32 +200,47 @@ export default function Page() {
                                 {/*@ts-ignore */}
                                 {translatedData.doctor && (
                                   <p className="text-gray-600">
-                                    <span className="font-medium">{language === 'ar' ? 'الطبيب: ' : 'Doctor: '}</span>
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "الطبيب: "
+                                        : "Doctor: "}
+                                    </span>
                                     {/*@ts-ignore */}
                                     {translatedData.doctor}
                                   </p>
                                 )}
                                 {/* @ts-ignore */}
-{translatedData.reservation_date && (
-  <p className="text-gray-600">
-    <span className="font-medium">
-      {language === 'ar' ? 'تاريخ الحجز: ' : 'Reservation Date: '}
-    </span>
+                                {translatedData.reservation_date && (
+                                  <p className="text-gray-600">
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "تاريخ الحجز: "
+                                        : "Reservation Date: "}
+                                    </span>
 
-                                {/*@ts-ignore */}
-    {new Date(translatedData.reservation_date).toLocaleDateString(language === 'ar' ? 'en-US' : 'en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })}
-  </p>
-)}
+                                    {/*@ts-ignore */}
+                                    {new Date(
+                                      translatedData.reservation_date
+                                    ).toLocaleDateString(
+                                      language === "ar" ? "en-US" : "en-US",
+                                      {
+                                        weekday: "long",
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      }
+                                    )}
+                                  </p>
+                                )}
 
                                 {/*@ts-ignore */}
                                 {translatedData.service_type && (
                                   <p className="text-gray-600">
-                                    <span className="font-medium">{language === 'ar' ? 'نوع الخدمة: ' : 'Service Type: '}</span>
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "نوع الخدمة: "
+                                        : "Service Type: "}
+                                    </span>
                                     {/*@ts-ignore */}
                                     {translatedData.service_type}
                                   </p>
@@ -203,7 +248,11 @@ export default function Page() {
                                 {/*@ts-ignore */}
                                 {translatedData.medical_organizations && (
                                   <p className="text-gray-600">
-                                    <span className="font-medium">{language === 'ar' ? 'المنظمة الطبية: ' : 'Medical Organization: '}</span>
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "المنظمة الطبية: "
+                                        : "Medical Organization: "}
+                                    </span>
                                     {/*@ts-ignore */}
                                     {translatedData.medical_organizations}
                                   </p>
@@ -211,17 +260,21 @@ export default function Page() {
                                 {/*@ts-ignore */}
                                 {translatedData.estimated_cost && (
                                   <p className="text-gray-600">
-                                    <span className="font-medium">{language === 'ar' ? 'التكلفة المقدرة: ' : 'Estimated Cost: '}</span>
+                                    <span className="font-medium">
+                                      {language === "ar"
+                                        ? "التكلفة المقدرة: "
+                                        : "Estimated Cost: "}
+                                    </span>
                                     {/*@ts-ignore */}
-                                    {translatedData.estimated_cost[0]} 
+                                    {translatedData.estimated_cost[0]}
                                   </p>
                                 )}
                               </div>
 
                               <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                                <span>{formattedDate}</span>
+                                <span>{notification.notification_date}</span>
                                 <span>•</span>
-                                <span>{formattedTime}</span>
+                                <span>{notification.notification_time}</span>
                               </div>
                             </div>
                           </div>

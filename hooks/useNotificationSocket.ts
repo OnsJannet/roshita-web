@@ -131,65 +131,66 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
           checkAllConnections();
         };
 
-        socket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            const consultationId = data.translations?.en?.consultation_request_id || 
-                                 data.translations?.ar?.consultation_request_id ||
-                                 data.data?.consultation_request_id;
-            const uniqueKey = `${consultationId}_${data.translations?.en?.message || data.translations?.ar?.message || data.message}`;
-            const { date, time, day } = formatNotificationDateTime();
+socket.onmessage = (event) => {
+  try {
+    const data = JSON.parse(event.data);
+    console.log('Raw WebSocket message:', data);
 
-            const notification: Notification = {
-              id: Date.now(),
-              message: data.message || 'New notification',
-              status: 'unread',
-              timestamp: new Date().toISOString(),
-              data: data,
-              ...(data.data || {}),
-              translations: data.translations || {
-                en: { message: data.message || 'New notification' },
-                ar: { message: data.message || 'إشعار جديد' }
-              },
-              uniqueKey,
-              notification_date: date,
-              notification_time: time,
-              notification_day: day
-            };
-            
-            if (data.translations) {
-              notification.translations = {
-                en: {
-                  ...data.translations.en,
-                  message: data.translations.en.message || data.message || 'New notification'
-                },
-                ar: {
-                  ...data.translations.ar,
-                  message: data.translations.ar.message || data.message || 'إشعار جديد'
-                }
-              };
-            }
+    const translation = data.data?.translations?.en || data.data?.translations?.ar || {};
+    const consultationId =
+      translation.consultation_request_id || data.data?.consultation_request_id || 'unknown';
+    const messageContent =
+      translation.message || data.message || 'New notification';
+    const uniqueKey = `${consultationId}_${messageContent}`;
+    const { date, time, day } = formatNotificationDateTime();
 
-                        /*setNotifications(prev => {
-              const isDuplicate = prev.some(n => n.uniqueKey === uniqueKey);
-              if (!isDuplicate) {
-                // Old implementation commented out but preserved
-                //setNewNotificationCount(count => count + 1);
-                // New implementation using array length
-                setNewNotificationCount(prev.length + 1);
-                return [notification, ...prev];
-              }
-              return prev;
-            });*/
-            
-            setNotifications(prev => {
-              setNewNotificationCount(prev.length + 1);
-              return [notification, ...prev];
-            });
-          } catch (parseError) {
-            console.error('Error parsing WebSocket message:', parseError);
-          }
-        };
+    const notification: Notification = {
+      id: Date.now(),
+      message: messageContent,
+      status: 'unread',
+      timestamp: new Date().toISOString(),
+      data: data.data,
+      translations: data.data?.translations || {
+        en: { message: 'New notification' },
+        ar: { message: 'إشعار جديد' },
+      },
+      uniqueKey,
+      notification_date: date,
+      notification_time: time,
+      notification_day: day,
+
+      // Add details manually from translation
+      patient: translation.patient,
+      doctor: translation.doctor,
+      service_type: translation.service_type,
+      note: translation.diagnosis_description_response,
+      status: translation.status,
+    };
+
+    console.log('Constructed notification:', notification);
+
+    setNotifications((prev) => {
+      const isDuplicate = prev.some((n) => {
+        const isSameKey = n.uniqueKey === uniqueKey;
+        const isRecentDuplicate =
+          isSameKey && Date.now() - new Date(n.timestamp || 0).getTime() < 5000;
+        return isRecentDuplicate;
+      });
+
+      if (!isDuplicate) {
+        console.log('Adding new notification:', notification);
+        setNewNotificationCount((count) => count + 1);
+        return [notification, ...prev];
+      } else {
+        console.log('Duplicate notification detected, skipping:', notification);
+        return prev;
+      }
+    });
+  } catch (parseError) {
+    console.error('Error parsing WebSocket message:', parseError, event.data);
+  }
+};
+
 
         socket.onerror = () => {
           activeConnections--;

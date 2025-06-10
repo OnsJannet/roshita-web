@@ -124,7 +124,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
         throw new Error('Failed to mark as attended');
       }
 
-      window.location.reload();
+      //window.location.reload();
     } catch (error) {
       console.error('Error marking as attended:', error);
     } finally {
@@ -168,6 +168,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
         : `/dashboard/consultations/${requestNumber}`;
     window.location.href = url;
   };
+
+  console.log("userType", userType)
 
   const formatDate = (dateString: string) => {
     try {
@@ -262,7 +264,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
           </button>
           
           {/* Client Attended Button */}
-          {(status === "Completed" || status === "completed") && userType !== "patient" && (
+          {(status === "Completed" || status === "completed") && (userType === "hospital" || userType === "Hospital") && (
             <button
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
               onClick={handleMarkAsAttended}

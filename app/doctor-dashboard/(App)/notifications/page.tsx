@@ -207,9 +207,9 @@ export default function Page() {
                               </div>
 
                               <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                                <span>{formattedDate}</span>
+                                <span>{notification.notification_date}</span>
                                 <span>•</span>
-                                <span>{formattedTime}</span>
+                                <span>{notification.notification_time}</span>
                               </div>
                             </div>
                           </div>
