@@ -40,6 +40,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
   const [hospitalDescription, setHospitalDescription] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const [isMarkingAttended, setIsMarkingAttended] = useState(false);
 
   const translateStatus = (statusKey: string, lang: "ar" | "en"): string => {
     const translations = {
@@ -52,7 +53,6 @@ const RequestCard: React.FC<RequestCardProps> = ({
         "Reviewed": "Reviewed",
         "Accepted": "Accepted",
         "Rejected": "Rejected",
-        // Add other statuses as needed
       },
       ar: {
         "Pending": "قيد الانتظار",
@@ -63,7 +63,6 @@ const RequestCard: React.FC<RequestCardProps> = ({
         "Reviewed": "تمت المراجعة",
         "Accepted": "مقبول",
         "Rejected": "مرفوض",
-        // Add other statuses as needed
       },
     };
     return translations[lang][statusKey as keyof typeof translations[typeof lang]] || statusKey;
@@ -101,7 +100,37 @@ const RequestCard: React.FC<RequestCardProps> = ({
     }
   };
 
-  console.log("userType", userType)
+  const handleMarkAsAttended = async () => {
+    setIsMarkingAttended(true);
+    try {
+      const token = localStorage.getItem('access');
+      if (!token) {
+        console.error('No access token found');
+        return;
+      }
+
+      const response = await fetch(
+        `https://test-roshita.net/api/patient-second-opinion-request-attend/${consultationResponseId}/`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to mark as attended');
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error marking as attended:', error);
+    } finally {
+      setIsMarkingAttended(false);
+    }
+  };
 
   const content = {
     title: language === "ar" ? "تفاصيل الطلب" : "Request Details",
@@ -113,7 +142,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
     specialityLabel: language === "ar" ? "التخصص" : "Speciality",
     detailsButton: language === "ar" ? "تفاصيل" : "Details",
     transferButton: language === "ar" ? "تحويل" : "Transfer",
-    statusLabel: language === "ar"? "الحالة" : "Status", // Changed from content.status to content.statusLabel for clarity
+    statusLabel: language === "ar"? "الحالة" : "Status",
     hospitalResponseTitle: language === "ar" ? "رد المستشفى" : "Hospital Response",
     doctorDiagnosisLabel: language === "ar" ? "وصف التشخيص (من الطبيب)" : "Diagnosis Description (from Doctor)",
     serviceTypeLabel: language === "ar" ? "نوع الخدمة" : "Service Type",
@@ -124,6 +153,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
     submittingResponseButton: language === "ar" ? "جاري الإرسال..." : "Submitting...",
     initialDiagnosisDescriptionLabel: language === "ar" ? "وصف التشخيص" : "Diagnosis Description",
     noDescriptionProvidedLabel: language === "ar" ? "لا يوجد وصف" : "No description provided",
+    clientAttendedButton: language === "ar" ? "تم حضور العميل" : "Client Attended",
+    markingAttendedButton: language === "ar" ? "جاري التحديث..." : "Marking...",
   };
 
   const handleTransferClick = () => {
@@ -138,7 +169,6 @@ const RequestCard: React.FC<RequestCardProps> = ({
     window.location.href = url;
   };
 
-  // Fixed date formatting
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -158,8 +188,6 @@ const RequestCard: React.FC<RequestCardProps> = ({
   };
 
   const formattedDate = formatDate(requestDate);
-  console.log("requestDate", requestDate)
-  console.log("formattedDate", formattedDate)
 
   const handleSendHospitalResponse = async () => {
     if (!requestNumber) {
@@ -221,17 +249,28 @@ const RequestCard: React.FC<RequestCardProps> = ({
         
         {/* Buttons section */}
         <div className={`flex gap-4 ${language === "ar" ? "flex-row justify-start order-first lg:order-none" : "flex-row-reverse justify-end"}`}>
-        <button
-  className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-  onClick={() => userType === "doctor" ? handleDetailsClick() : setIsExpanded(!isExpanded)}
->
-  {userType === "doctor" 
-    ? (language === "ar" ? "عرض التفاصيل" : "View Details")
-    : isExpanded 
-      ? (language === "ar" ? "إخفاء التفاصيل" : "Hide Details") 
-      : content.detailsButton
-  }
-</button>
+          <button
+            className="bg-[#1782c4] hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => userType === "doctor" ? handleDetailsClick() : setIsExpanded(!isExpanded)}
+          >
+            {userType === "doctor" 
+              ? (language === "ar" ? "عرض التفاصيل" : "View Details")
+              : isExpanded 
+                ? (language === "ar" ? "إخفاء التفاصيل" : "Hide Details") 
+                : content.detailsButton
+            }
+          </button>
+          
+          {/* Client Attended Button */}
+          {(status === "Completed" || status === "completed") && userType !== "patient" && (
+            <button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleMarkAsAttended}
+              disabled={isMarkingAttended}
+            >
+              {isMarkingAttended ? content.markingAttendedButton : content.clientAttendedButton}
+            </button>
+          )}
           
           {userType !== "hospital" && userType !== "doctor" && (
             <button className="border bg-red-500 border-[#eb6f7d] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded">
@@ -267,28 +306,27 @@ const RequestCard: React.FC<RequestCardProps> = ({
         {/* Information section */}
         <div className={`text-gray-700 text-base flex lg:w-[60%] ${
           language === "ar" ? "lg:flex-row-reverse" : "lg:flex-row"
-        } flex-col gap-4`}> {/* Modified: Unified gap to gap-4 */}
-          <div className="flex flex-col gap-1 lg:flex-1"> {/* Added lg:flex-1 */}
+        } flex-col gap-4`}>
+          <div className="flex flex-col gap-1 lg:flex-1">
             <p><strong>{content.requestNumberLabel}</strong></p>
             <p>{requestNumber}</p>
           </div>
-          <div className="flex flex-col gap-1 lg:flex-1"> {/* Added lg:flex-1 */}
+          <div className="flex flex-col gap-1 lg:flex-1">
             <p><strong>{content.patientNameLabel}</strong></p>
             <p>{patientName}</p>
           </div>
-          <div className="flex flex-col gap-1 lg:flex-1"> {/* Added lg:flex-1 */}
+          <div className="flex flex-col gap-1 lg:flex-1">
             <p><strong>{content.requestDateLabel}</strong></p>
             <p>{formattedDate}</p>
           </div>
-          <div className="flex flex-col gap-1 lg:flex-1"> {/* Added lg:flex-1 */}
-            <p><strong>{content.statusLabel}</strong></p> {/* Corrected: Was content.specialityLabel and an extra strong tag, now uses content.statusLabel */}
+          <div className="flex flex-col gap-1 lg:flex-1">
+            <p><strong>{content.statusLabel}</strong></p>
             <p>{translateStatus(status, language)}</p>
           </div>
         </div>
-
       </div>
 
-      {/* Expanded content - appears below everything */}
+      {/* Expanded content */}
       {isExpanded && (
         <div className="w-full mt-4 bg-transparent rounded-lg p-4 border-t border-gray-200">
           {userType !== "doctor" && status !== "Hospital Reviewing" && (
@@ -298,80 +336,81 @@ const RequestCard: React.FC<RequestCardProps> = ({
             </>
           )}
 
-{userType === "hospital" && status === "Hospital Reviewing" && doctorMsg && (
-  <div className="w-full" dir={language === "ar" ? "rtl" : "ltr"}>
-    <h3 className="text-lg font-semibold mb-2">
-      {content.hospitalResponseTitle}
-    </h3>
-    {diagnosisDescription !== "" && (
-      <div className="mb-3">
-        <strong>{content.initialDiagnosisDescriptionLabel}:</strong>
-        <p className="mt-1">{diagnosisDescription}</p>
-      </div>
-    )}
-    {doctorMsg !== "" && (
-      <div className="mb-3">
-        <strong>{content.doctorDiagnosisLabel}:</strong>
-        <p className="mt-1">{doctorMsg}</p>
-      </div>
-    )}
-    {typeOfService !== "" && (
-      <div className="mb-3">
-        <strong>{content.serviceTypeLabel}:</strong>
-        <p className="mt-1">{typeOfService}</p>
-      </div>
-    )}
+          {userType === "hospital" && status === "Hospital Reviewing" && doctorMsg && (
+            <div className="w-full" dir={language === "ar" ? "rtl" : "ltr"}>
+              <h3 className="text-lg font-semibold mb-2">
+                {content.hospitalResponseTitle}
+              </h3>
+              {diagnosisDescription !== "" && (
+                <div className="mb-3">
+                  <strong>{content.initialDiagnosisDescriptionLabel}:</strong>
+                  <p className="mt-1">{diagnosisDescription}</p>
+                </div>
+              )}
+              {doctorMsg !== "" && (
+                <div className="mb-3">
+                  <strong>{content.doctorDiagnosisLabel}:</strong>
+                  <p className="mt-1">{doctorMsg}</p>
+                </div>
+              )}
+              {typeOfService !== "" && (
+                <div className="mb-3">
+                  <strong>{content.serviceTypeLabel}:</strong>
+                  <p className="mt-1">{typeOfService}</p>
+                </div>
+              )}
 
-    <div className="mt-4">
-      <h4 className="text-md font-semibold mb-2">
-        {content.submitYourResponseTitle}
-      </h4>
-      <div className="mb-3">
-        <label htmlFor={`hospitalDescription-${requestNumber}`} className="block text-sm font-medium text-gray-700">
-          {content.hospitalDescriptionLabel}
-        </label>
-        <textarea
-          id={`hospitalDescription-${requestNumber}`}
-          rows={3}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 ${language === "ar" ? "text-right" : "text-left"}`}
-          value={hospitalDescription}
-          onChange={(e) => setHospitalDescription(e.target.value)}
-          dir={language === "ar" ? "rtl" : "ltr"}
-        />
-      </div>
-      <div className="mb-3">
-        <label htmlFor={`estimatedCost-${requestNumber}`} className="block text-sm font-medium text-gray-700">
-          {content.estimatedCostLabel}
-        </label>
-        <input
-          type="text"
-          id={`estimatedCost-${requestNumber}`}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 ${language === "ar" ? "text-right" : "text-left"}`}
-          value={estimatedCost}
-          onChange={(e) => setEstimatedCost(e.target.value)}
-          dir={language === "ar" ? "rtl" : "ltr"}
-        />
-      </div>
-      <button
-        onClick={handleSendHospitalResponse}
-        disabled={isSubmittingResponse}
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
-      >
-        {isSubmittingResponse
-          ? content.submittingResponseButton
-          : content.submitResponseButton}
-      </button>
-    </div>
-  </div>
-)}
+              <div className="mt-4">
+                <h4 className="text-md font-semibold mb-2">
+                  {content.submitYourResponseTitle}
+                </h4>
+                <div className="mb-3">
+                  <label htmlFor={`hospitalDescription-${requestNumber}`} className="block text-sm font-medium text-gray-700">
+                    {content.hospitalDescriptionLabel}
+                  </label>
+                  <textarea
+                    id={`hospitalDescription-${requestNumber}`}
+                    rows={3}
+                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 ${language === "ar" ? "text-right" : "text-left"}`}
+                    value={hospitalDescription}
+                    onChange={(e) => setHospitalDescription(e.target.value)}
+                    dir={language === "ar" ? "rtl" : "ltr"}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor={`estimatedCost-${requestNumber}`} className="block text-sm font-medium text-gray-700">
+                    {content.estimatedCostLabel}
+                  </label>
+                  <input
+                    type="text"
+                    id={`estimatedCost-${requestNumber}`}
+                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 ${language === "ar" ? "text-right" : "text-left"}`}
+                    value={estimatedCost}
+                    onChange={(e) => setEstimatedCost(e.target.value)}
+                    dir={language === "ar" ? "rtl" : "ltr"}
+                  />
+                </div>
+                <button
+                  onClick={handleSendHospitalResponse}
+                  disabled={isSubmittingResponse}
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                >
+                  {isSubmittingResponse
+                    ? content.submittingResponseButton
+                    : content.submitResponseButton}
+                </button>
+              </div>
+            </div>
+          )}
 
-{doctorMsg !== "" && userType === "hospital" && (
-      <div className="mb-3 mt-3">
-        <strong>{content.doctorDiagnosisLabel}</strong>
-        <p className="mt-1">{doctorMsg}</p>
-      </div>
-    )}
-           {userType === "patient" && diagnosisDescription && ( // Show initial diagnosis for patient if available
+          {doctorMsg !== "" && userType === "hospital" && (
+            <div className="mb-3 mt-3">
+              <strong>{content.doctorDiagnosisLabel}</strong>
+              <p className="mt-1">{doctorMsg}</p>
+            </div>
+          )}
+          
+          {userType === "patient" && diagnosisDescription && (
             <>
               <strong>{content.initialDiagnosisDescriptionLabel}</strong>
               <p className="mt-2">{diagnosisDescription || content.noDescriptionProvidedLabel}</p>

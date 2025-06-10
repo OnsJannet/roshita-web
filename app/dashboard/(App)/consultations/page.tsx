@@ -74,36 +74,40 @@ export default function Page() {
   };
 
   // Fetch all consultations from the API
-  const fetchAllConsultations = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("access");
-      const response = await fetch(
-        `https://test-roshita.net/api/second-opinion-requests/unreviewing_second_opinion/?page=${currentPage}&page_size=${itemsPerPage}`,
-        {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch consultations");
+const fetchAllConsultations = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("access");
+    const response = await fetch(
+      `https://test-roshita.net/api/second-opinion-requests/unreviewing_second_opinion/?page=${currentPage}&page_size=${itemsPerPage}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      const data: APIResponse = await response.json();
-      console.log("API Response Data:", data);
-      setConsultations(data.results || []);
-      setTotalPages(Math.ceil(data.count / itemsPerPage));
-    } catch (error) {
-      console.error("Error fetching consultations:", error);
-      setConsultations([]);
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error("Failed to fetch consultations");
     }
-  };
+
+    const data: APIResponse = await response.json();
+    console.log("API Response Data:", data);
+    
+    // Sort consultations by id before setting state
+    const sortedConsultations = (data.results);
+    
+    setConsultations(sortedConsultations);
+    setTotalPages(Math.ceil(data.count / itemsPerPage));
+  } catch (error) {
+    console.error("Error fetching consultations:", error);
+    setConsultations([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Fetch hospital-specific consultations from the API
   const fetchHospitalConsultations = async () => {
