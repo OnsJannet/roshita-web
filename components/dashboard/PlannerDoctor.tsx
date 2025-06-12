@@ -407,7 +407,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       const data = await response.json();
       console.log("Doctor suggestion created successfully:", data);
       setIsSendToAnotherDoctorModalOpen(false);
-      //window.location.reload()
+      window.location.reload()
     } catch (error) {
       console.error("Error:", error);
     }
