@@ -164,6 +164,7 @@ socket.onmessage = (event) => {
       doctor: translation.doctor,
       service_type: translation.service_type,
       note: translation.diagnosis_description_response,
+      //@ts-ignore
       status: translation.status,
     };
 
