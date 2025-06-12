@@ -34,6 +34,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import LoadingDoctors from "../layout/LoadingDoctors";
+//import { DatePicker } from "../ui/DatePicker";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const API_URL = "https://www.test-roshita.net/api/appointment-reservations/";
 
@@ -119,12 +122,13 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
   const [serviceType, setServiceType] = useState("");
   const [note, setNote] = useState("");
   const [patientId, setPatientId] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const APPOINTMENTS_PER_PAGE = 5;
   const paginatedAppointments = appointments.slice(
     (page - 1) * APPOINTMENTS_PER_PAGE,
     page * APPOINTMENTS_PER_PAGE
   );
-
+  const [reservationDateTime, setReservationDateTime] = useState<string | null>(null);
   const noDataMessage = language === "ar" ? "لا توجد بيانات لعرضها" : "No data to show";
   const nextText = language === "ar" ? "التالي" : "Next";
   const previousText = language === "ar" ? "السابق" : "Previous";
@@ -376,9 +380,12 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     const payload = {
       patient: patientId,
       appointment_reservation: selectedAppointmentId,
-      medical_organization_ids: [selectedHospitalId],
-      service_type: serviceType,
-      note: note,
+      //medical_organization_ids: [selectedHospitalId],
+      selected_medical_organization: selectedHospitalId,
+      reservation_date: reservationDateTime
+      //service_type: serviceType,
+      //doctor_id: selectedDoctorId,
+      //note: note,
     };
 
     try {
@@ -400,7 +407,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       const data = await response.json();
       console.log("Doctor suggestion created successfully:", data);
       setIsSendToAnotherDoctorModalOpen(false);
-      window.location.reload()
+      //window.location.reload()
     } catch (error) {
       console.error("Error:", error);
     }
@@ -430,6 +437,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       submit: "Submit",
       selectHospital: "Select Hospital",
       selectDoctor: "Select Doctor",
+      selectData: "Select date and time",
       statuses: {
         "pending": "Pending",
         "confirmed": "Confirmed",
@@ -466,6 +474,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
       submit: "إرسال",
       selectHospital: "اختر المستشفى",
       selectDoctor: "اختر الطبيب",
+      selectData: "حدد التاريخ والوقت",   
       statuses: {
         "pending": "قيد الانتظار",
         "confirmed": "مؤكد",
@@ -936,107 +945,117 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
           </Dialog>
 
           {/* Dialog for Sending to Another Doctor */}
-          <Dialog
-            open={isSendToAnotherDoctorModalOpen}
-            onOpenChange={setIsSendToAnotherDoctorModalOpen}
+          <Dialog open={isSendToAnotherDoctorModalOpen} onOpenChange={setIsSendToAnotherDoctorModalOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle className="text-center">{t.sendToAnotherDoctor}</DialogTitle>
+    </DialogHeader>
+    <div className={`space-y-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+      <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+        <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectHospital}</label>
+        <Select
+          onValueChange={(value) => setSelectedHospitalId(value ? Number(value) : 0)}
+          dir={language === 'ar' ? 'rtl' : 'ltr'}
+        >
+          <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
+            <SelectValue placeholder={t.selectHospital} />
+          </SelectTrigger>
+          <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
+            {/* Filter unique hospitals by ID */}
+            {/*@ts-ignore*/}
+            {[...new Map(hospitals.map(h => [h.id, h])).values()].map((hospital) => (
+              <SelectItem key={hospital.id} value={hospital.user_id?.toString() || hospital.id?.toString() }>
+                {hospital.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="w-full">
+          <label className={`block mb-2 mt-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectData}</label>
+              <DatePicker
+              //@ts-ignore
+              selected={reservationDateTime ? new Date(reservationDateTime) : null}
+              //@ts-ignore
+              onChange={(date: Date) => {
+                if (date) {
+                  setReservationDateTime(date.toISOString());
+                }
+              }}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              dateFormat="MMMM d, yyyy h:mm aa"
+              minDate={new Date()}
+              className="w-full p-2 border rounded"
+              placeholderText={t.selectData}
+              locale={language === 'ar' ? 'ar' : undefined}
+              popperClassName="z-[1001]" // Higher than dialog
+              //@ts-ignore
+              popperPlacement={language === 'ar' ? 'auto-end' : 'auto-start'}
+              dropdownMode="select"
+              />
+      </div>
+      </div>
+
+      {/*{selectedHospitalId && (
+        <div className={`flex flex-col gap-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+          <label className={`block ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t.selectDoctor}</label>
+          <Select
+            onValueChange={(value) => setSelectedDoctorId(Number(value))}
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
           >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-center">
-                  {t.sendToAnotherDoctor}{" "}
-                  {/* Title for the send to another doctor modal */}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {/* Hospital Selection Dropdown */}
-                <Select
-                  onValueChange={(value) => setSelectedHospitalId(Number(value))} // Set selected hospital ID
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.selectHospital} />{" "}
-                    {/* Placeholder for hospital selection */}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hospitals.map((hospital) => (
-                      <SelectItem
-                        key={hospital.id}
-                        value={hospital.id.toString()}
-                      >
-                        {hospital.name} {/* Display hospital names */}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <SelectTrigger className={language === 'ar' ? 'text-right' : 'text-left'}>
+              <SelectValue placeholder={t.selectDoctor} />
+            </SelectTrigger>
+            <SelectContent className={language === 'ar' ? 'text-right' : 'text-left'}>
 
-                {/* Doctor Selection Dropdown (only shown if a hospital is selected) */}
-                {selectedHospitalId && (
-                  <Select
-                    onValueChange={(value) => setSelectedDoctorId(Number(value))} // Set selected doctor ID
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t.selectDoctor} />{" "}
-                      {/* Placeholder for doctor selection */}
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hospitals
-                        .find((hospital) => hospital.id === selectedHospitalId)
-                        ?.doctors.map((doctor) => (
-                          <SelectItem
-                            key={doctor.id}
-                            value={doctor.id.toString()}
-                          >
-                            {doctor.name} {/* Display doctor names */}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                )}
-
-                {/* Service Type Selection Dropdown */}
-                <Select
-                  onValueChange={(value) => setServiceType(value)} // Set the selected service type
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        language === "ar"
-                          ? "اختر نوع الخدمة"
-                          : "Select Service Type" // Placeholder for service type selection
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Shelter">
-                      {language === "ar" ? "مأوى" : "Shelter"}{" "}
-                      {/* Shelter option */}
-                    </SelectItem>
-                    <SelectItem value="Shelter Operation">
-                      {language === "ar" ? "عملية مأوى" : "Shelter Operation"}{" "}
-                      {/* Shelter Operation option */}
-                    </SelectItem>
-                    <SelectItem value="Operation">
-                      {language === "ar" ? "عملية" : "Operation"}{" "}
-                      {/* Operation option */}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Additional Notes Input */}
-                <Input
-                  placeholder="Additional Notes" // Placeholder for additional notes
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)} // Handle note input change
-                />
-
-                {/* Submit Button for Sending to Another Doctor */}
-                <Button
-                  onClick={handleSendToAnotherDoctorSubmit}
-                  className="w-full"
-                >
-                  {t.submit} {/* Submit button for sending to another doctor */}
-                </Button>
-              </div>
-            </DialogContent>
+              {(hospitals.find(h => h.user_id === selectedHospitalId)?.doctors || []).map((doctor) => (
+                <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                  {doctor.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div>
+        <label>{language === "ar" ? "نوع الخدمة" : "Service Type"}</label>
+        <Select
+          value={serviceType}
+          onValueChange={(value) => setServiceType(value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={language === "ar" ? "اختر نوع الخدمة" : "Select service type"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Shelter">
+              {language === "ar" ? "مأوى" : "Shelter"}
+            </SelectItem>
+            <SelectItem value="Shelter Operation">
+              {language === "ar" ? "عملية المأوى" : "Shelter Operation"}
+            </SelectItem>
+            <SelectItem value="Operation">
+              {language === "ar" ? "عملية" : "Operation"}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <label>{language === "ar" ? "ملاحظات" : "Notes"}</label>
+        <textarea
+          className="w-full p-2 border rounded"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>*/}
+      <Button
+        onClick={handleSendToAnotherDoctorSubmit}
+        disabled={isProcessing || !selectedHospitalId }
+      >
+        {isProcessing ? t.processing : t.submit}
+      </Button>
+    </div>
+  </DialogContent>
           </Dialog>
 
           {paginatedAppointments.length > 0 && (

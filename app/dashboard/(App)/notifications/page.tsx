@@ -219,8 +219,7 @@ export default function Page() {
                                     </span>
 
                                     {/*@ts-ignore */}
-                                    {new Date(
-                                      translatedData.reservation_date
+                                    {new Date(translatedData.reservation_date
                                     ).toLocaleDateString(
                                       language === "ar" ? "en-US" : "en-US",
                                       {
