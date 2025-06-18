@@ -41,7 +41,7 @@ export const useNotificationSocket = ({ userId, userType }: UseNotificationSocke
   const MAX_CONNECTION_ATTEMPTS = 3;
 
   const getEndpoints = (type: string): string[] => {
-    const baseUrl = 'wss://test-roshita.net:8080/ws/notifications';
+    const baseUrl = 'wss://www.test-roshita.net:8080/ws/notifications';
     switch (type) {
       case 'patient':
         return [
