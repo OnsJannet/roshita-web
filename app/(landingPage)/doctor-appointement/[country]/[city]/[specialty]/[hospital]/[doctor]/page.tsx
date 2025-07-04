@@ -95,16 +95,16 @@ const Page = () => {
       : decodeURIComponent(params.country)
     : undefined;
 
+  const city = params?.city
+    ? Array.isArray(params.city)
+      ? decodeURIComponent(params.city[0])
+      : decodeURIComponent(params.city)
+    : undefined;
+
   const specialty = params?.specialty
     ? Array.isArray(params.specialty)
       ? decodeURIComponent(params.specialty[0])
       : decodeURIComponent(params.specialty)
-    : undefined;
-
-  const state = params?.state
-    ? Array.isArray(params.state)
-      ? decodeURIComponent(params.state[0])
-      : decodeURIComponent(params.state)
     : undefined;
 
   const hospital = params?.hospital
@@ -113,48 +113,66 @@ const Page = () => {
       : decodeURIComponent(params.hospital)
     : undefined;
 
+  const doctor = params?.doctor
+    ? Array.isArray(params.doctor)
+      ? decodeURIComponent(params.doctor[0])
+      : decodeURIComponent(params.doctor)
+    : undefined;
+
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState<string[]>([]);
   const [selectedSpeciality, setSelectedSpeciality] = useState<string[]>([]);
-  const [selectedState, setSelectedState] = useState<string[]>([]);
-  const [selectedHospitals, setSelectedHospitals] = useState<string[]>([]);
+  const [selectedHospital, setSelectedHospital] = useState<string[]>([]);
+  const [selectedDoctor, setSelectedDoctor] = useState<string[]>([]);
 
   // Check if filters came from URL params
   useEffect(() => {
-    const hasParams = country || specialty || state || hospital;
+    const hasParams = country || city || specialty || hospital || doctor;
     setFiltersDisabled(!!hasParams);
-  }, [country, specialty, state, hospital]);
+  }, [country, city, specialty, hospital, doctor]);
 
   // Update URL when filters change
   const updateUrlWithFilters = () => {
-    const queryParams = new URLSearchParams();
-    
-    if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
-      queryParams.set("specialty", selectedSpeciality[0]);
-    }
-    if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
-      queryParams.set("country", selectedCountry[0]);
-    }
-    if (selectedState.length > 0 && selectedState[0] !== "all") {
-      queryParams.set("state", selectedState[0]);
-    }
-    if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
-      queryParams.set("hospital", selectedHospitals[0]);
-    }
+    const basePath = "/doctor-appointement";
+    let newPath = basePath;
 
-    const newUrl = `${pathname}?${queryParams.toString()}`;
-    router.push(newUrl);
+    // Build the path with the selected filters in the specified order
+    const countryPath = selectedCountry.length > 0 && selectedCountry[0] !== "all" 
+      ? `/${encodeURIComponent(selectedCountry[0])}` 
+      : "/all";
+    
+    const cityPath = selectedCity.length > 0 && selectedCity[0] !== "all" 
+      ? `/${encodeURIComponent(selectedCity[0])}` 
+      : "/all";
+    
+    const specialtyPath = selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all" 
+      ? `/${encodeURIComponent(selectedSpeciality[0])}` 
+      : "/all";
+    
+    const hospitalPath = selectedHospital.length > 0 && selectedHospital[0] !== "all" 
+      ? `/${encodeURIComponent(selectedHospital[0])}` 
+      : "/all";
+    
+    const doctorPath = selectedDoctor.length > 0 && selectedDoctor[0] !== "all" 
+      ? `/${encodeURIComponent(selectedDoctor[0])}` 
+      : "/all";
+
+    newPath += `${countryPath}${cityPath}${specialtyPath}${hospitalPath}${doctorPath}`;
+    
+    router.push(newPath);
   };
 
   // Automatic filter reset when URL params change
   useEffect(() => {
-    setSelectedCountry(country ? [country] : []);
-    setSelectedSpeciality(specialty ? [specialty] : []);
-    setSelectedState(state ? [state] : []);
-    setSelectedHospitals(hospital ? [hospital] : []);
+    setSelectedCountry(country && country !== "all" ? [country] : []);
+    setSelectedCity(city && city !== "all" ? [city] : []);
+    setSelectedSpeciality(specialty && specialty !== "all" ? [specialty] : []);
+    setSelectedHospital(hospital && hospital !== "all" ? [hospital] : []);
+    setSelectedDoctor(doctor && doctor !== "all" ? [doctor] : []);
     setSelectedPrices([]);
     setCurrentPage(1);
-  }, [country, specialty, state, hospital]);
+  }, [country, city, specialty, hospital, doctor]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -170,11 +188,14 @@ const Page = () => {
         if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
           queryParams.append("country", selectedCountry[0]);
         }
-        if (selectedState.length > 0 && selectedState[0] !== "all") {
-          queryParams.append("city", selectedState[0]);
+        if (selectedCity.length > 0 && selectedCity[0] !== "all") {
+          queryParams.append("city", selectedCity[0]);
         }
-        if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
-          queryParams.append("medical_organization", selectedHospitals[0]);
+        if (selectedHospital.length > 0 && selectedHospital[0] !== "all") {
+          queryParams.append("medical_organization", selectedHospital[0]);
+        }
+        if (selectedDoctor.length > 0 && selectedDoctor[0] !== "all") {
+          queryParams.append("doctor", selectedDoctor[0]);
         }
         
         const response = await fetch(
@@ -202,7 +223,7 @@ const Page = () => {
         }
         
         setDoctors(doctorsData);
-        setDoctorCount(data.count);
+        setDoctorCount(totalCount);
       } catch (err: any) {
         setError(err.message);
         setDoctors([]);
@@ -213,26 +234,26 @@ const Page = () => {
     };
 
     fetchDoctors();
-  }, [currentPage, selectedCountry, selectedSpeciality, selectedState, selectedHospitals]);
+  }, [currentPage, selectedCountry, selectedCity, selectedSpeciality, selectedHospital, selectedDoctor]);
 
   // Update URL when filters change (except price)
   useEffect(() => {
-    if (selectedCountry.length > 0 || selectedSpeciality.length > 0 || 
-        selectedState.length > 0 || selectedHospitals.length > 0) {
+    if (selectedCountry.length > 0 || selectedCity.length > 0 || 
+        selectedSpeciality.length > 0 || selectedHospital.length > 0 || selectedDoctor.length > 0) {
       updateUrlWithFilters();
     }
-  }, [selectedCountry, selectedSpeciality, selectedState, selectedHospitals]);
+  }, [selectedCountry, selectedCity, selectedSpeciality, selectedHospital, selectedDoctor]);
 
   const resetFilters = () => {
     setSelectedPrices([]);
     setSelectedCountry([]);
+    setSelectedCity([]);
     setSelectedSpeciality([]);
-    setSelectedState([]);
-    setSelectedHospitals([]);
+    setSelectedHospital([]);
+    setSelectedDoctor([]);
     setCurrentPage(1);
     setFiltersDisabled(false);
-    //@ts-ignore
-    router.push(pathname);
+    router.push("/doctor-appointement/all/all/all/all/all");
   };
 
   const totalPages = Math.ceil(doctorCount / doctorsPerPage);
@@ -242,6 +263,12 @@ const Page = () => {
   };
 
   const filteredDoctors = doctors.filter(doctor => {
+    // Filter by doctor name if selected
+    if (selectedDoctor.length > 0 && selectedDoctor[0] !== "all" && 
+        !doctor.name.toLowerCase().includes(selectedDoctor[0].toLowerCase())) {
+      return false;
+    }
+    
     if (selectedPrices.length > 0 && selectedPrices[0] !== "all" && !selectedPrices.includes(doctor.price)) {
       return false;
     }
@@ -251,13 +278,12 @@ const Page = () => {
       return false;
     }
     
-    if (selectedHospitals.length > 0 && selectedHospitals[0] !== "all") {
+    if (selectedHospital.length > 0 && selectedHospital[0] !== "all") {
       const hospitalMatch = doctor.medical_organizations.some(org => {
-        // تحسين المقارنة لتكون غير حساسة لحالة الأحرف
         const orgName = org.name.toLowerCase();
         const orgForeignName = org.foreign_name ? org.foreign_name.toLowerCase() : '';
         
-        return selectedHospitals.some(hospital => {
+        return selectedHospital.some(hospital => {
           const selectedHospitalName = hospital.toLowerCase();
           return orgName.includes(selectedHospitalName) || 
                  orgForeignName.includes(selectedHospitalName) ||
@@ -270,7 +296,6 @@ const Page = () => {
     }
     
     if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
-      // التحقق من وجود بيانات البلد قبل المقارنة
       const countryMatch = doctor.medical_organizations.some(org => {
         if (!org.city || !org.city.country) return false;
         
@@ -286,8 +311,8 @@ const Page = () => {
       if (!countryMatch) return false;
     }
     
-    if (selectedState.length > 0 && selectedState[0] !== "all" && 
-        !selectedState.some(state => doctor.city && doctor.city.toLowerCase().includes(state.toLowerCase()))) {
+    if (selectedCity.length > 0 && selectedCity[0] !== "all" && 
+        !selectedCity.some(c => doctor.city && doctor.city.toLowerCase().includes(c.toLowerCase()))) {
       return false;
     }
     
@@ -308,17 +333,15 @@ const Page = () => {
             selectedPrices={selectedPrices}
             setSelectedPrices={setSelectedPrices}
             selectedCountries={selectedCountry}
-            setSelectedCountries={(values) => {
-              setSelectedCountry(values);
-            }}
+            setSelectedCountries={setSelectedCountry}
+            selectedCities={selectedCity}
+            setSelectedCities={setSelectedCity}
             selectedSpecialties={selectedSpeciality}
-            setSelectedSpecialties={(values) => {
-              setSelectedSpeciality(values);
-            }}
-            selectedHospitals={selectedHospitals}
-            setSelectedHospitals={(values) => {
-              setSelectedHospitals(values);
-            }}
+            setSelectedSpecialties={setSelectedSpeciality}
+            selectedHospitals={selectedHospital}
+            setSelectedHospitals={setSelectedHospital}
+            selectedDoctors={selectedDoctor}
+            setSelectedDoctors={setSelectedDoctor}
             disabled={filtersDisabled}
           />
 

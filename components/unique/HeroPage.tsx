@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Filters from "../shared/Filters";
 import { Button } from "../ui/button";
 import Cta from "./Cta";
+import DoctorSearchFilters from "../shared/DoctorSearchFilters";
 
 const HeroPage = () => {
   const [language, setLanguage] = useState<string>("");
@@ -79,7 +80,7 @@ const HeroPage = () => {
         </div>
       </div>
       <div className="!z-[9999]">
-        <Filters />
+        <DoctorSearchFilters/>
       </div>
     </div>
   );

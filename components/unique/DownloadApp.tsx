@@ -86,11 +86,11 @@ const DownloadApp: React.FC = () => {
           />
         </div>
         {/* Download Button */}
-        <div className="flex lg:justify-end justify-center mt-4">
+        {/*<div className="flex lg:justify-end justify-center mt-4">
           <button className="bg-roshitaBlue font-semibold py-[14px] px-14 rounded-lg mb-6 lg:mb-0 text-white mt-2">
             {translations[language].downloadButton}
           </button>
-        </div>
+        </div>*/}
       </div>
     </div>
   );
