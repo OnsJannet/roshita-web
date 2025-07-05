@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ServiceData {
   title: string;
@@ -19,6 +19,13 @@ interface LanguageContent {
 
 const ServicesComponent: React.FC = () => {
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+
+    useEffect(() => {
+      // Get language from localStorage
+      const storedLanguage = localStorage.getItem("language") || "ar";
+      //@ts-ignore
+      setLanguage(storedLanguage);
+    }, []);
 
   const content: LanguageContent = {
     ar: {

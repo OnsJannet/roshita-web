@@ -1,7 +1,17 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { AlignLeft, UserRound, X } from "lucide-react"; // Added X icon
+import {
+  AlignLeft,
+  ArrowBigLeft,
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Stethoscope,
+  User,
+  UserRound,
+  X,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -51,17 +61,13 @@ const NavBar = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showLoginDropdown, setShowLoginDropdown] = useState(false);
-  // const [showRegisterDropdown, setShowRegisterDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const router = useRouter();
 
   const toggleLoginDropdown = () => setShowLoginDropdown((prev) => !prev);
-  // const toggleRegisterDropdown = () => setShowRegisterDropdown((prev) => !prev);
-
   const toggleMobileMenu = () => setShowMobileMenu((prev) => !prev);
-  const closeMobileMenu = () => setShowMobileMenu(false); // Function to close mobile menu
+  const closeMobileMenu = () => setShowMobileMenu(false);
 
-  // Modified click handlers to close mobile menu
   const handleClickLogin = () => {
     closeMobileMenu();
     window.location.href = "/login";
@@ -224,68 +230,79 @@ const NavBar = () => {
                     <Button
                       onClick={toggleLoginDropdown}
                       variant="login"
-                      className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
+                      className="h-[52px] w-[140px] rounded-md text-[18px] font-semibold"
                     >
                       {language === "ar" ? "تسجيل الدخول" : "Login"}
                     </Button>
                     {showLoginDropdown && (
-                      <div className="absolute right-0 mt-2 w-[200px] bg-white shadow-lg rounded-md border border-gray-200 z-[9999]">
+                      <div
+                        className={`absolute ${
+                          language === "ar" ? "right-0" : "left-0"
+                        } mt-2 w-[240px] bg-white shadow-lg rounded-md border border-gray-200 z-[9999]`}
+                      >
                         <Button
                           onClick={handleClickLogin}
                           variant="dropdown"
-                          className={`block w-full px-4 py-2 hover:bg-gray-100 ${
-                            language === "ar" ? "text-right" : "text-left"
+                          className={`w-full px-6 py-6 hover:bg-gray-100 border-b border-gray-200 items-center flex ${
+                            language === "en"
+                              ? "flex-row-reverse justify-end gap-4"
+                              :  "justify-end gap-4"
                           }`}
                         >
                           {language === "ar" ? "تسجيل الدخول" : "Login"}
+                          <User className="h-4 w-4 text-[#1588C8]" />
                         </Button>
                         <Button
                           onClick={handleClickLoginProfessionally}
                           variant="dropdown"
-                          className={`block w-full px-4 py-2 hover:bg-gray-100 ${
-                            language === "ar" ? "text-right" : "text-left"
+                          className={`w-full px-6 py-6 hover:bg-gray-100 border-b border-gray-200 items-center flex ${
+                            language === "en"
+                              ? "flex-row-reverse justify-end gap-4"
+                              : "justify-end gap-4"
                           }`}
                         >
                           {language === "ar"
-                            ? "تسجيل الدخول كمهني"
-                            : "Login as professional"}
+                            ? "تسجيل دخول الطبيب"
+                            : "Doctor Login"}
+                          <Stethoscope className="h-4 w-4 text-[#1588C8]" />
+                        </Button>
+                        <Button
+                          onClick={handleClickLoginProfessionally}
+                          variant="dropdown"
+                          className={`w-full px-6 py-6 hover:bg-gray-100 border-b border-gray-200 items-center flex ${
+                            language === "en"
+                              ? "flex-row-reverse justify-end gap-4"
+                              :  "justify-end gap-4"
+                          }`}
+                        >
+                          {language === "ar"
+                            ? "تسجيل دخول المستشفى"
+                            : "Hospital Login"}
+                          <Building2 className="h-4 w-4 text-[#1588C8]" />
                         </Button>
                       </div>
                     )}
                   </div>
                   <div className="relative">
                     <Button
-                      // onClick={toggleRegisterDropdown}
-                      onClick={handleClickRegister} // Changed to directly call handleClickRegister
+                      onClick={handleClickRegister}
                       variant="register"
-                      className="h-[52px] w-[140px] rounded-2xl text-[18px] font-semibold"
+                      className="h-[52px] w-[140px] rounded-md text-[18px] font-semibold gap-2 items-center"
                     >
-                      {language === "ar" ? "تسجيل" : "Register"}
+                      {language === "ar" ? (
+                        <>
+                                                  <ArrowLeft className="h-4 w-4" />
+                          <span>إنضم إلينا</span>
+
+                        </>
+                      ) : (
+                        <>
+
+                          <span>Register</span>
+                                                    <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
                     </Button>
-                    {/* {showRegisterDropdown && (
-                      <div className="absolute right-0 mt-2 w-[200px] bg-white shadow-lg rounded-md border border-gray-200 z-[9999]">
-                        <Button
-                          onClick={handleClickRegister}
-                          variant="dropdown"
-                          className={`block w-full px-4 py-2 hover:bg-gray-100 ${
-                            language === "ar" ? "text-right" : "text-left"
-                          }`}
-                        >
-                          {language === "ar" ? "تسجيل" : "Register"}
-                        </Button>
-                        <Button
-                          onClick={handleClickRegisterProfessionally}
-                          variant="dropdown"
-                          className={`block w-full px-4 py-2 hover:bg-gray-100 ${
-                            language === "ar" ? "text-right" : "text-left"
-                          }`}
-                        >
-                          {language === "ar"
-                            ? "تسجيل كمهني"
-                            : "Register as professional"}
-                        </Button>
-                      </div>
-                    )} */}
                   </div>
                 </>
               )}
@@ -336,15 +353,23 @@ const NavBar = () => {
         {/* Mobile Menu Content */}
         {showMobileMenu && (
           <div className="lg:hidden fixed inset-0 bg-gray-800 bg-opacity-50 z-[99999]">
-            <div className={`flex flex-col items-center justify-start bg-white h-full pt-4 ${language === "ar" ? "text-right" : "text-left"}`}>
+            <div
+              className={`flex flex-col items-center justify-start bg-white h-full pt-4 ${
+                language === "ar" ? "text-right" : "text-left"
+              }`}
+            >
               {/* Close Button (X) */}
-              <div className={`w-full flex ${language === "ar" ? "justify-start pl-4" : "justify-end pr-4"}`}>
-                <X 
+              <div
+                className={`w-full flex ${
+                  language === "ar" ? "justify-start pl-4" : "justify-end pr-4"
+                }`}
+              >
+                <X
                   className="h-8 w-8 text-gray-700 cursor-pointer"
                   onClick={closeMobileMenu}
                 />
               </div>
-              
+
               <img
                 src="/logos/ShortLogo.png"
                 alt="roshita logo"
@@ -383,15 +408,6 @@ const NavBar = () => {
                   >
                     {language === "ar" ? "تسجيل" : "Register"}
                   </Button>
-                  {/* <Button
-                    onClick={handleClickRegisterProfessionally}
-                    variant="link"
-                    className="mb-4 text-xl hover:bg-gray-100 w-full text-center hover:no-underline"
-                  >
-                    {language === "ar"
-                      ? "تسجيل كمهني"
-                      : "Register as professional"}
-                  </Button> */}
                 </>
               ) : (
                 <>

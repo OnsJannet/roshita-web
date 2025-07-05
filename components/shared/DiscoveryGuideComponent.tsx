@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flower2, Stethoscope, Pill, Syringe } from 'lucide-react';
 
@@ -25,6 +25,13 @@ interface LanguageContent {
 const DiscoveryGuideComponent: React.FC = () => {
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   const router = useRouter();
+
+      useEffect(() => {
+        // Get language from localStorage
+        const storedLanguage = localStorage.getItem("language") || "ar";
+        //@ts-ignore
+        setLanguage(storedLanguage);
+      }, []);
 
   const content: LanguageContent = {
     ar: {

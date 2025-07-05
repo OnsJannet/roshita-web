@@ -206,6 +206,13 @@ const MedicalCarousel: React.FC<CarouselProps> = ({
 const MedicalCarouselExample: React.FC = () => {
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
 
+      useEffect(() => {
+        // Get language from localStorage
+        const storedLanguage = localStorage.getItem("language") || "ar";
+        //@ts-ignore
+        setLanguage(storedLanguage);
+      }, []);
+
   const offersData: CarouselItem[] = [
     {
       id: '1',

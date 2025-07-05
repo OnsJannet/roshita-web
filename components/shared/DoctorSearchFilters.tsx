@@ -8,6 +8,13 @@ const DoctorSearchForm = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [language, setLanguage] = useState("ar"); // Default to Arabic
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const [countdownEnded, setCountdownEnded] = useState(false);
 
   const [specialties, setSpecialties] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -17,6 +24,40 @@ const DoctorSearchForm = () => {
   const [allDoctors, setAllDoctors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Calculate time remaining until July 31, 2025, 00:00 Libya time (UTC+2)
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      // Libya is UTC+2, but we need to account for the current timezone offset
+      const libyaOffset = 2 * 60 * 60 * 1000; // Libya is UTC+2
+      const targetDate = new Date('2025-07-31T00:00:00+02:00'); // July 31, 2025, 00:00 Libya time
+
+      
+      const difference = targetDate.getTime() - now.getTime();
+      
+      if (difference <= 0) {
+        setCountdownEnded(true);
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      }
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+      
+      return { days, hours, minutes, seconds };
+    };
+    
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+    
+    // Initial calculation
+    setTimeLeft(calculateTimeLeft());
+    
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     // Get language from localStorage
@@ -154,18 +195,14 @@ const DoctorSearchForm = () => {
     }
   }, [selectedSpecialty, selectedCountry, selectedCity, allDoctors]);
 
+  const handleSearch = () => {
+    const country = selectedCountry ? encodeURIComponent(selectedCountry) : "all";
+    const city = selectedCity ? encodeURIComponent(selectedCity) : "all";
+    const specialty = selectedSpecialty ? encodeURIComponent(selectedSpecialty) : "all";
+    const doctor = selectedDoctor ? encodeURIComponent(selectedDoctor) : "all";
 
-
-const handleSearch = () => {
-  const country = selectedCountry ? encodeURIComponent(selectedCountry) : "all";
-  const city = selectedCity ? encodeURIComponent(selectedCity) : "all";
-  const specialty = selectedSpecialty ? encodeURIComponent(selectedSpecialty) : "all";
-  const doctor = selectedDoctor ? encodeURIComponent(selectedDoctor) : "all";
-
-  window.location.href = `/doctor-appointement/${country}/${city}/${specialty}/all/${doctor}`;
-};
-
-
+    window.location.href = `/doctor-appointement/${country}/${city}/${specialty}/all/${doctor}`;
+  };
 
   const fieldStyle = "flex flex-col gap-2 w-[200px]";
 
@@ -182,6 +219,11 @@ const handleSearch = () => {
       search: "بحث",
       searching: "جاري البحث...",
       error: "خطأ",
+      countdownTitle: "الوقت المتبقي حتى 31 يوليو 2025",
+      days: "يوم",
+      hours: "ساعة",
+      minutes: "دقيقة",
+      seconds: "ثانية",
     },
     en: {
       doctor: "Doctor",
@@ -195,6 +237,11 @@ const handleSearch = () => {
       search: "Search",
       searching: "Searching...",
       error: "Error",
+      countdownTitle: "Time remaining until July 31, 2025",
+      days: "day",
+      hours: "hour",
+      minutes: "minute",
+      seconds: "second",
     },
   };
 
@@ -209,6 +256,51 @@ const handleSearch = () => {
     //@ts-ignore
     return country.flag || "/images/lb-flag.png";
   };
+
+  // Format number with Arabic numerals if language is Arabic
+  const formatNumber = (num) => {
+    if (language === 'ar') {
+      return num.toLocaleString('en-EG');
+    }
+    return num;
+  };
+
+  if (!countdownEnded) {
+    return (
+      <div
+        className="flex items-center justify-center min-h-[201.95px] rounded-2xl p-6 w-[40%] mx-auto bg-white bg-opacity-75 relative"
+        style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
+      >
+        <div className="flex flex-col items-center justify-center gap-4 w-full text-center">
+          <div className="flex flex-row gap-6 items-center justify-center">
+            {/* Days */}
+            <div className="flex flex-col items-center">
+              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.days)}</span>
+              <span className="text-sm text-[#1588C8]">{t.days}</span>
+            </div>
+            
+            {/* Hours */}
+            <div className="flex flex-col items-center">
+              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.hours)}</span>
+              <span className="text-sm text-[#1588C8]">{t.hours}</span>
+            </div>
+            
+            {/* Minutes */}
+            <div className="flex flex-col items-medium">
+              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.minutes)}</span>
+              <span className="text-sm text-[#1588C8]">{t.minutes}</span>
+            </div>
+            
+            {/* Seconds */}
+            <div className="flex flex-col items-medium">
+              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.seconds)}</span>
+              <span className="text-sm text-[#1588C8]">{t.seconds}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
