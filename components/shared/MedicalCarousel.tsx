@@ -73,13 +73,11 @@ const MedicalCarousel: React.FC<CarouselProps> = ({
           <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">
             {language === 'ar' ? (
               <>
-                <span>عروض </span>
-                <span className="text-blue-500">واشتراكات</span>
+                <span>    {title} </span>
               </>
             ) : (
               <>
-                <span>Offers </span>
-                <span className="text-blue-500">& Subscriptions</span>
+                <span>{title} </span>
               </>
             )}
           </h2>
@@ -219,7 +217,7 @@ const MedicalCarouselExample: React.FC = () => {
       title: language === 'ar' ? 'تشخيص اسنان' : 'Dental Diagnosis',
       subtitle: language === 'ar' ? 'عيادة' : 'Clinic',
       price: '1500',
-      image: '/Images/dentist.png',
+      image: '/Images/dental.png',
       badge: language === 'ar' ? 'جديد' : 'New'
     },
     {
@@ -227,7 +225,7 @@ const MedicalCarouselExample: React.FC = () => {
       title: language === 'ar' ? 'أطفال' : 'Pediatrics',
       subtitle: language === 'ar' ? 'عيادة' : 'Clinic',
       price: '1200',
-      image: '/api/placeholder/300/200',
+      image: '/Images/children.png',
       badge: language === 'ar' ? 'جديد' : 'New'
     },
     {
@@ -235,23 +233,15 @@ const MedicalCarouselExample: React.FC = () => {
       title: language === 'ar' ? 'عيادات الجلدية' : 'Dermatology',
       subtitle: language === 'ar' ? 'عيادة' : 'Clinic',
       price: '1800',
-      image: '/api/placeholder/300/200',
+      image: '/Images/skin.png',
       badge: language === 'ar' ? 'جديد' : 'New'
     },
     {
       id: '4',
-      title: language === 'ar' ? 'تشخيص نسائية' : 'Gynecology',
-      subtitle: language === 'ar' ? 'عيادة' : 'Clinic',
-      price: '2000',
-      image: '/api/placeholder/300/200',
-      badge: language === 'ar' ? 'جديد' : 'New'
-    },
-    {
-      id: '5',
       title: language === 'ar' ? 'عيادة القلب' : 'Cardiology',
       subtitle: language === 'ar' ? 'عيادة' : 'Clinic',
       price: '2500',
-      image: '/api/placeholder/300/200',
+      image: '/Images/alkestra.png',
       badge: language === 'ar' ? 'جديد' : 'New'
     }
   ];
@@ -298,15 +288,15 @@ const MedicalCarouselExample: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Offers Carousel */}
-      {/*<MedicalCarousel
-        title={language === 'ar' ? 'عروض واشتراكات' : 'Offers & Subscriptions'}
+     <MedicalCarousel
+        title={language === 'ar' ? 'عروض ' : 'Offers'}
         subtitle={language === 'ar' ? 
           'أكثر عروض وخدمات رخيصة الخدمات الطبية المتميزة باستعمال منتجات عالية الجودة كل هذا يمكنكم من تحرير وقتكم' : 
           'More affordable offers and services for distinguished medical services using high-quality products, all of this allows you to free up your time'
         }
         data={offersData}
         language={language}
-      />*/}
+      />
 
       {/* Specialty Carousel */}
       <MedicalCarousel

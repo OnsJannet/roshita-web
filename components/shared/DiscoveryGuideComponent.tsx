@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Flower2, Stethoscope, Pill, Syringe } from 'lucide-react';
+import { Flower2, Stethoscope, Pill, Syringe, Building2 } from 'lucide-react';
 
 interface ServiceCard {
   title: string;
@@ -39,14 +39,19 @@ const DiscoveryGuideComponent: React.FC = () => {
       subheading: 'مانقدمه',
       description: 'منصة شاملة تحتوي على كافة المعلومات الخاصة بالصيدليات، الأطباء، مراكز التحاليل، والمرافق الطبية في تونس وليبيا. يهدف الدليل إلى تسهيل وصول المستخدمين إلى الخدمات الصحية من خلال بيانات محدثة، دقيقة، وشاملة مما يختصر الوقت ويحسن تجربة الرعاية الصحية.',
       services: [
-        {
-          title: 'التحاليل',
-          description: 'تقديم كافة المعلومات حول التحاليل',
+                {
+          title: 'مستشفيات',
+          description: 'تقديم كافة المعلومات حول مستشفيات',
+          buttonText: 'إنضم إلينا'
+        },
+                {
+          title: 'الأطباء',
+          description: 'تقديم كافة المعلومات حول الأطباء',
           buttonText: 'إنضم إلينا'
         },
         {
-          title: 'الأطباء',
-          description: 'تقديم كافة المعلومات حول الأطباء',
+          title: 'التحاليل',
+          description: 'تقديم كافة المعلومات حول التحاليل',
           buttonText: 'إنضم إلينا'
         },
         {
@@ -61,14 +66,19 @@ const DiscoveryGuideComponent: React.FC = () => {
       subheading: 'Introduction',
       description: 'A comprehensive platform containing all information about pharmacies, doctors, analysis centers, and medical facilities in Tunisia and Libya. The guide aims to facilitate user access to health services through updated, accurate, and comprehensive data. This saves time and improves the healthcare experience.',
       services: [
-        {
-          title: 'Laboratory Tests',
-          description: 'Providing all information about laboratory tests',
+                {
+          title: 'Hospitals',
+          description: 'Providing all information about Hospitals',
+          buttonText: 'Join Us'
+        },
+                {
+          title: 'Doctors',
+          description: 'Providing all information about doctors',
           buttonText: 'Join Us'
         },
         {
-          title: 'Doctors',
-          description: 'Providing all information about doctors',
+          title: 'Laboratory Tests',
+          description: 'Providing all information about laboratory tests',
           buttonText: 'Join Us'
         },
         {
@@ -81,7 +91,7 @@ const DiscoveryGuideComponent: React.FC = () => {
   };
 
   const currentContent = content[language];
-  const icons = [Syringe, Stethoscope, Pill];
+  const icons = [Building2, Syringe, Stethoscope, Pill];
 
   const handleButtonClick = () => {
     router.push('/guide');
@@ -116,7 +126,7 @@ const DiscoveryGuideComponent: React.FC = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {currentContent.services.map((service, index) => {
             const IconComponent = icons[index];
             const isCenter = index === 1;

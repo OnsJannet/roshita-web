@@ -266,197 +266,207 @@ const DoctorSearchForm = () => {
     return num;
   };
 
-  if (!countdownEnded) {
-    return (
-      <div
-        className="flex items-center justify-center min-h-[201.95px] rounded-2xl p-6 w-[40%] mx-auto bg-white bg-opacity-75 relative"
-        style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
-      >
-        <div className="flex flex-col items-center justify-center gap-4 w-full text-center">
-          <div className="flex flex-row gap-6 items-center justify-center">
-            {/* Days */}
-            <div className="flex flex-col items-center">
-              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.days)}</span>
-              <span className="text-sm text-[#1588C8]">{t.days}</span>
-            </div>
-            
-            {/* Hours */}
-            <div className="flex flex-col items-center">
-              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.hours)}</span>
-              <span className="text-sm text-[#1588C8]">{t.hours}</span>
-            </div>
-            
-            {/* Minutes */}
-            <div className="flex flex-col items-medium">
-              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.minutes)}</span>
-              <span className="text-sm text-[#1588C8]">{t.minutes}</span>
-            </div>
-            
-            {/* Seconds */}
-            <div className="flex flex-col items-medium">
-              <span className="text-[100px] text-[#1588C8]">{formatNumber(timeLeft.seconds)}</span>
-              <span className="text-sm text-[#1588C8]">{t.seconds}</span>
-            </div>
-          </div>
+  return (
+    <div className="flex flex-col gap-4 w-full">
+      {/* Countdown Timer - Only show if countdown hasn't ended */}
+{!countdownEnded && (
+  <div
+    className="flex items-center justify-center min-h-[150px] md:min-h-[201.95px] rounded-2xl p-4 md:p-6 w-full md:w-4/5 lg:w-2/3 xl:w-[40%] mx-auto bg-white bg-opacity-75 relative mb-6 md:mb-10"
+    style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
+  >
+    <div className="flex flex-col items-center justify-center gap-2 md:gap-4 w-full text-center">
+      <div className="flex flex-row gap-2 sm:gap-4 md:gap-6 items-center justify-center">
+        {/* Days */}
+        <div className="flex flex-col items-center">
+          <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
+            {formatNumber(timeLeft.days)}
+          </span>
+          <span className="text-xs sm:text-sm text-[#1588C8]">{t.days}</span>
+        </div>
+        
+        {/* Hours */}
+        <div className="flex flex-col items-center">
+          <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
+            {formatNumber(timeLeft.hours)}
+          </span>
+          <span className="text-xs sm:text-sm text-[#1588C8]">{t.hours}</span>
+        </div>
+        
+        {/* Minutes */}
+        <div className="flex flex-col items-center">
+          <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
+            {formatNumber(timeLeft.minutes)}
+          </span>
+          <span className="text-xs sm:text-sm text-[#1588C8]">{t.minutes}</span>
+        </div>
+        
+        {/* Seconds */}
+        <div className="flex flex-col items-center">
+          <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
+            {formatNumber(timeLeft.seconds)}
+          </span>
+          <span className="text-xs sm:text-sm text-[#1588C8]">{t.seconds}</span>
         </div>
       </div>
-    );
-  }
+    </div>
+  </div>
+)}
 
-  return (
-    <div
-      className="flex items-center justify-center min-h-[201.95px] rounded-2xl p-6 max-w-[1280px] mx-auto bg-white relative"
-      style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
-    >
-      {error && (
-        <div className="text-red-500">
-          {t.error}: {error}
-        </div>
-      )}
+      {/* Search Form */}
+      <div
+        className="flex items-center justify-center min-h-[201.95px] rounded-2xl p-6 max-w-[1280px] mx-auto bg-white relative"
+        style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
+      >
+        {error && (
+          <div className="text-red-500">
+            {t.error}: {error}
+          </div>
+        )}
 
-      <div className="flex flex-wrap flex-row-reverse justify-between gap-4 w-full">
-        {/* Specialty */}
-        <div className={fieldStyle}>
-          <h1
-            className={`text-xl font-bold ${
-              language === "ar" ? "text-right" : "text-left"
-            }`}
-          >
-            {t.specialty}
-          </h1>
-          <div className="relative">
-            <select
-              className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+        <div className="flex flex-wrap flex-row-reverse justify-between gap-4 w-full">
+          {/* Specialty */}
+          <div className={fieldStyle}>
+            <h1
+              className={`text-xl font-bold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
-              value={selectedSpecialty}
-              onChange={(e) => setSelectedSpecialty(e.target.value)}
             >
-              <option value="">{t.selectSpecialty}</option>
-              {specialties.map((specialty) => (
-                //@ts-ignore
-                <option key={specialty.id} value={specialty.name}>
-                  {/*@ts-ignore*/}
-                  {specialty.name}
-                </option>
-              ))}
-            </select>
-            <Heart className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#1588C8]" />
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              {t.specialty}
+            </h1>
+            <div className="relative">
+              <select
+                className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+                  language === "ar" ? "text-right" : "text-left"
+                }`}
+                value={selectedSpecialty}
+                onChange={(e) => setSelectedSpecialty(e.target.value)}
+              >
+                <option value="">{t.selectSpecialty}</option>
+                {specialties.map((specialty) => (
+                  //@ts-ignore
+                  <option key={specialty.id} value={specialty.name}>
+                    {/*@ts-ignore*/}
+                    {specialty.name}
+                  </option>
+                ))}
+              </select>
+              <Heart className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#1588C8]" />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
-        </div>
 
-        {/* Country */}
-        <div className={fieldStyle}>
-          <h2
-            className={`text-lg font-semibold ${
-              language === "ar" ? "text-right" : "text-left"
-            }`}
-          >
-            {t.country}
-          </h2>
-          <div className="relative">
-            <select
-              className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+          {/* Country */}
+          <div className={fieldStyle}>
+            <h2
+              className={`text-lg font-semibold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
             >
-              <option value="">{t.selectCountry}</option>
-              {countries.map((country) => (
-                //@ts-ignore
-                <option key={country.id} value={country.name}>
-                  {/* @ts-ignore*/}
-                  {country.name}
-                </option>
-              ))}
-            </select>
-            <img
-              src={getCountryFlag(selectedCountry)}
-              alt="Country"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 object-contain"
-            />
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              {t.country}
+            </h2>
+            <div className="relative">
+              <select
+                className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+                  language === "ar" ? "text-right" : "text-left"
+                }`}
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+              >
+                <option value="">{t.selectCountry}</option>
+                {countries.map((country) => (
+                  //@ts-ignore
+                  <option key={country.id} value={country.name}>
+                    {/* @ts-ignore*/}
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+              <img
+                src={getCountryFlag(selectedCountry)}
+                alt="Country"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 object-contain"
+              />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
-        </div>
 
-        {/* City */}
-        <div className={fieldStyle}>
-          <h3
-            className={`text-lg font-semibold ${
-              language === "ar" ? "text-right" : "text-left"
-            }`}
-          >
-            {t.city}
-          </h3>
-          <div className="relative">
-            <select
-              className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+          {/* City */}
+          <div className={fieldStyle}>
+            <h3
+              className={`text-lg font-semibold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
             >
-              <option value="">{t.selectCity}</option>
-              {cities.map((city) => (
-                //@ts-ignore
-                <option key={city.id} value={city.name}>
-                  {/*@ts-ignore*/}
-                  {city.name}
-                </option>
-              ))}
-            </select>
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#1588C8]" />
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              {t.city}
+            </h3>
+            <div className="relative">
+              <select
+                className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+                  language === "ar" ? "text-right" : "text-left"
+                }`}
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+              >
+                <option value="">{t.selectCity}</option>
+                {cities.map((city) => (
+                  //@ts-ignore
+                  <option key={city.id} value={city.name}>
+                    {/*@ts-ignore*/}
+                    {city.name}
+                  </option>
+                ))}
+              </select>
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#1588C8]" />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
-        </div>
 
-        {/* Doctor */}
-        <div className={fieldStyle}>
-          <h3
-            className={`text-lg font-semibold ${
-              language === "ar" ? "text-right" : "text-left"
-            }`}
-          >
-            {t.doctor}
-          </h3>
-          <div className="relative">
-            <select
-              className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+          {/* Doctor */}
+          <div className={fieldStyle}>
+            <h3
+              className={`text-lg font-semibold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
-              value={selectedDoctor}
-              onChange={(e) => setSelectedDoctor(e.target.value)}
             >
-              <option value="">{t.selectDoctor}</option>
-              {doctors.map((doctor) => (
-                //@ts-ignore
-                <option key={doctor.id} value={doctor.id}>
-                  {/*@ts-ignore*/}
-                  {doctor.name}
-                </option>
-              ))}
-            </select>
-            <img
-              src="/images/stethoscope.png"
-              alt="Doctor"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
-            />
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              {t.doctor}
+            </h3>
+            <div className="relative">
+              <select
+                className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
+                  language === "ar" ? "text-right" : "text-left"
+                }`}
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+              >
+                <option value="">{t.selectDoctor}</option>
+                {doctors.map((doctor) => (
+                  //@ts-ignore
+                  <option key={doctor.id} value={doctor.id}>
+                    {/*@ts-ignore*/}
+                    {doctor.name}
+                  </option>
+                ))}
+              </select>
+              <img
+                src="/images/stethoscope.png"
+                alt="Doctor"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+              />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
-        </div>
 
-        {/* Search Button */}
-        <div className="flex items-end w-[200px]">
-          <button
-            className="bg-blue-600 text-white py-3 w-full rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-            onClick={handleSearch}
-            disabled={isLoading}
-          >
-            <Search className="h-4 w-4" />
-            {isLoading ? t.searching : t.search}
-          </button>
+          {/* Search Button */}
+          <div className="flex items-end w-[200px]">
+            <button
+              className="bg-blue-600 text-white py-3 w-full rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              onClick={handleSearch}
+              disabled={isLoading}
+            >
+              <Search className="h-4 w-4" />
+              {isLoading ? t.searching : t.search}
+            </button>
+          </div>
         </div>
       </div>
     </div>
