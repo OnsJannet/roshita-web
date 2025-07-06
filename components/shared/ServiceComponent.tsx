@@ -65,11 +65,18 @@ const ServicesComponent: React.FC = () => {
   };
 
   const currentContent = content[language];
-  const iconImages = [
+  /*const iconImages = [
     '/images/vector.png',
     '/images/percentage.png',
     '/images/computer.png'
-  ];
+  ];*/
+
+  const iconImages = [
+    'https://i.ibb.co/pjkGwjfm/Vector.png',
+    'https://i.ibb.co/tpF5j4gn/computer.png',
+    'https://i.ibb.co/FLzJ53KG/percentage.png'
+  ]
+
 
   return (
     <div className={`min-h-screen bg-[#f6f9fc] py-16 px-12 ${language === 'ar' ? 'rtl' : 'ltr'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
