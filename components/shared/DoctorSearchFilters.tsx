@@ -1,5 +1,5 @@
 "use client";
-import { Heart, MapPin, ChevronDown, Search } from "lucide-react";
+import { Heart, MapPin, ChevronDown, Search, Stethoscope, Globe } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 const DoctorSearchForm = () => {
@@ -31,31 +31,30 @@ const DoctorSearchForm = () => {
       const now = new Date();
       // Libya is UTC+2, but we need to account for the current timezone offset
       const libyaOffset = 2 * 60 * 60 * 1000; // Libya is UTC+2
-      const targetDate = new Date('2025-07-31T00:00:00+02:00'); // July 31, 2025, 00:00 Libya time
+      const targetDate = new Date("2025-07-31T00:00:00+02:00"); // July 31, 2025, 00:00 Libya time
 
-      
       const difference = targetDate.getTime() - now.getTime();
-      
+
       if (difference <= 0) {
         setCountdownEnded(true);
         return { days: 0, hours: 0, minutes: 0, seconds: 0 };
       }
-      
+
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
       const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((difference / 1000 / 60) % 60);
       const seconds = Math.floor((difference / 1000) % 60);
-      
+
       return { days, hours, minutes, seconds };
     };
-    
+
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
-    
+
     // Initial calculation
     setTimeLeft(calculateTimeLeft());
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -196,9 +195,13 @@ const DoctorSearchForm = () => {
   }, [selectedSpecialty, selectedCountry, selectedCity, allDoctors]);
 
   const handleSearch = () => {
-    const country = selectedCountry ? encodeURIComponent(selectedCountry) : "all";
+    const country = selectedCountry
+      ? encodeURIComponent(selectedCountry)
+      : "all";
     const city = selectedCity ? encodeURIComponent(selectedCity) : "all";
-    const specialty = selectedSpecialty ? encodeURIComponent(selectedSpecialty) : "all";
+    const specialty = selectedSpecialty
+      ? encodeURIComponent(selectedSpecialty)
+      : "all";
     const doctor = selectedDoctor ? encodeURIComponent(selectedDoctor) : "all";
 
     window.location.href = `/doctor-appointement/${country}/${city}/${specialty}/all/${doctor}`;
@@ -260,8 +263,8 @@ const DoctorSearchForm = () => {
   // Format number with Arabic numerals if language is Arabic
   //@ts-ignore
   const formatNumber = (num) => {
-    if (language === 'ar') {
-      return num.toLocaleString('en-EG');
+    if (language === "ar") {
+      return num.toLocaleString("en-EG");
     }
     return num;
   };
@@ -269,14 +272,14 @@ const DoctorSearchForm = () => {
   return (
     <div className="flex flex-col gap-4 w-full">
       {/* Countdown Timer - Only show if countdown hasn't ended */}
-{!countdownEnded && (
+      {/*{!countdownEnded && (
   <div
     className="flex items-center justify-center min-h-[150px] md:min-h-[201.95px] rounded-2xl p-4 md:p-6 w-full md:w-4/5 lg:w-2/3 xl:w-[40%] mx-auto bg-white bg-opacity-75 relative mb-6 md:mb-10"
     style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
   >
     <div className="flex flex-col items-center justify-center gap-2 md:gap-4 w-full text-center">
       <div className="flex flex-row gap-2 sm:gap-4 md:gap-6 items-center justify-center">
-        {/* Days */}
+   
         <div className="flex flex-col items-center">
           <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
             {formatNumber(timeLeft.days)}
@@ -284,7 +287,7 @@ const DoctorSearchForm = () => {
           <span className="text-xs sm:text-sm text-[#1588C8]">{t.days}</span>
         </div>
         
-        {/* Hours */}
+   
         <div className="flex flex-col items-center">
           <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
             {formatNumber(timeLeft.hours)}
@@ -292,7 +295,7 @@ const DoctorSearchForm = () => {
           <span className="text-xs sm:text-sm text-[#1588C8]">{t.hours}</span>
         </div>
         
-        {/* Minutes */}
+      
         <div className="flex flex-col items-center">
           <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
             {formatNumber(timeLeft.minutes)}
@@ -300,7 +303,7 @@ const DoctorSearchForm = () => {
           <span className="text-xs sm:text-sm text-[#1588C8]">{t.minutes}</span>
         </div>
         
-        {/* Seconds */}
+       
         <div className="flex flex-col items-center">
           <span className="text-[40px] sm:text-[60px] md:text-[80px] lg:text-[100px] text-[#1588C8]">
             {formatNumber(timeLeft.seconds)}
@@ -310,7 +313,7 @@ const DoctorSearchForm = () => {
       </div>
     </div>
   </div>
-)}
+)}*/}
 
       {/* Search Form */}
       <div
@@ -381,11 +384,7 @@ const DoctorSearchForm = () => {
                   </option>
                 ))}
               </select>
-              <img
-                src={getCountryFlag(selectedCountry)}
-                alt="Country"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 object-contain"
-              />
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#1588C8]" />
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
@@ -447,11 +446,7 @@ const DoctorSearchForm = () => {
                   </option>
                 ))}
               </select>
-              <img
-                src="/images/stethoscope.png"
-                alt="Doctor"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
-              />
+                <Stethoscope className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#1588C8]" />
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
           </div>

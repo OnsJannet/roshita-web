@@ -55,6 +55,70 @@ const fetchProfileDetails = async (): Promise<any> => {
   }
 };
 
+const CountdownTimer = ({ language }: { language: Language }) => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+  const [countdownEnded, setCountdownEnded] = useState(false);
+
+  const calculateTimeLeft = () => {
+    const now = new Date();
+    // Libya is UTC+2, but we need to account for the current timezone offset
+    const libyaOffset = 2 * 60 * 60 * 1000; // Libya is UTC+2
+    const targetDate = new Date('2025-07-31T00:00:00+02:00'); // July 31, 2025, 00:00 Libya time
+
+    const difference = targetDate.getTime() - now.getTime();
+    
+    if (difference <= 0) {
+      setCountdownEnded(true);
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+    
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((difference / 1000 / 60) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
+    
+    return { days, hours, minutes, seconds };
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  if (countdownEnded) {
+    return null;
+  }
+
+  return (
+    <div className={`flex items-center justify-center gap-2 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+      <div className="text-center bg-roshitaGreen/10 px-3 py-1 rounded-md">
+        <span className="font-bold text-roshitaGreen">{timeLeft.days}</span>
+        <span className="text-xs"> {language === "ar" ? "يوم" : "Days"}</span>
+      </div>
+      <div className="text-center bg-roshitaGreen/10 px-3 py-1 rounded-md">
+        <span className="font-bold text-roshitaGreen">{timeLeft.hours}</span>
+        <span className="text-xs"> {language === "ar" ? "ساعة" : "Hrs"}</span>
+      </div>
+      <div className="text-center bg-roshitaGreen/10 px-3 py-1 rounded-md">
+        <span className="font-bold text-roshitaGreen">{timeLeft.minutes}</span>
+        <span className="text-xs"> {language === "ar" ? "دقيقة" : "Min"}</span>
+      </div>
+      <div className="text-center bg-roshitaGreen/10 px-3 py-1 rounded-md">
+        <span className="font-bold text-roshitaGreen">{timeLeft.seconds}</span>
+        <span className="text-xs"> {language === "ar" ? "ثانية" : "Sec"}</span>
+      </div>
+    </div>
+  );
+};
+
 const NavBar = () => {
   const [language, setLanguage] = useState<Language>("ar");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -206,6 +270,11 @@ const NavBar = () => {
           />
         </div>
 
+        {/* Countdown Timer - Desktop */}
+        <div className="hidden lg:flex items-center">
+          <CountdownTimer language={language} />
+        </div>
+
         {/* Desktop Menu */}
         <div className="gap-4 lg:flex pt-2 hidden">
           {loading ? (
@@ -345,10 +414,17 @@ const NavBar = () => {
         </div>
 
         {/* Mobile Menu */}
-        <AlignLeft
-          className="lg:hidden flex items-center my-auto text-black h-8 w-auto cursor-pointer"
-          onClick={toggleMobileMenu}
-        />
+        <div className="lg:hidden flex items-center gap-2">
+          {/* Countdown Timer - Mobile */}
+          <div className="lg:hidden">
+            <CountdownTimer language={language} />
+          </div>
+          
+          <AlignLeft
+            className="text-black h-8 w-auto cursor-pointer"
+            onClick={toggleMobileMenu}
+          />
+        </div>
 
         {/* Mobile Menu Content */}
         {showMobileMenu && (
