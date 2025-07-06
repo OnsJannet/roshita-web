@@ -334,6 +334,7 @@ const Page = () => {
             setSelectedPrices={setSelectedPrices}
             selectedCountries={selectedCountry}
             setSelectedCountries={setSelectedCountry}
+            //@ts-ignore
             selectedCities={selectedCity}
             setSelectedCities={setSelectedCity}
             selectedSpecialties={selectedSpeciality}

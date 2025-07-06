@@ -258,6 +258,7 @@ const DoctorSearchForm = () => {
   };
 
   // Format number with Arabic numerals if language is Arabic
+  //@ts-ignore
   const formatNumber = (num) => {
     if (language === 'ar') {
       return num.toLocaleString('en-EG');
