@@ -36,14 +36,13 @@ const DownloadApp: React.FC = () => {
     { title: string; description: string; downloadButton: string }
   > = {
     ar: {
-      title: "حمّل تطبيق <span className='text-roshitaDarkBlue'> روشيتا</span>",
+      title: "حمّل تطبيق <span class='text-roshitaBlue'>روشيتا</span>",
       description:
-        "حجز وارسال استشارات طبية مع توفر أكبر  شبكة بين ذكارة ليبيا وتونس",
+        "حجز وارسال استشارات طبية مع توفر أكبر شبكة بين دكاترة ليبيا وتونس",
       downloadButton: "تحميـــــل",
     },
     en: {
-      title:
-        "Download the <span className='text-roshitaDarkBlue'>Rosheta</span> App",
+      title: "Download the <span class='text-roshitaBlue'>Rosheta</span> App",
       description:
         "Book and send medical consultations with the largest network between Libya and Tunisia.",
       downloadButton: "Download",
@@ -57,40 +56,34 @@ const DownloadApp: React.FC = () => {
         <img
           src="/Images/Phone.png"
           alt="phone application"
-          className="lg:w-3/4 w-40 max-w-[600px] lg:max-w-[300px] mt-[14px]"
+          className="lg:w-[80%] w-40 max-w-[600px] lg:max-w-[300px] mt-[14px]"
         />
       </div>
 
       {/* Text and Button Section */}
       <div className="flex-1 lg:text-left w-[50%]">
         <h2
-          className="text-black text-2xl lg:text-3xl font-bold mb-8 lg:text-end text-center"
+          className="text-black text-2xl lg:text-[40px] font-bold mb-8 lg:text-end text-center"
           dangerouslySetInnerHTML={{ __html: translations[language].title }}
         />
-        <p className="text-black text-base lg:text-xl mb-6 lg:text-end text-center font-bold">
+        <p className="text-black text-base font-[500] lg:text-2xl mb-6 lg:text-end text-center ">
           {translations[language].description}
         </p>
         <div
           className="flex justify-center lg:justify-end space-x-2 my-4 rounded-md"
-          style={{ backgroundSize: "40% 100%" }}
+          style={{ backgroundSize: "100% 100%" }}
         >
           <img
             src="/logos/applestore.png"
             alt="App Store"
-            className="h-10 w-auto cursor-pointer"
+            className="h-14 w-auto cursor-pointer"
           />
           <img
             src="/logos/googleplay.png"
             alt="Google Play"
-            className="h-10 w-auto cursor-pointer"
+            className="h-14 w-auto cursor-pointer"
           />
         </div>
-        {/* Download Button */}
-        {/*<div className="flex lg:justify-end justify-center mt-4">
-          <button className="bg-roshitaBlue font-semibold py-[14px] px-14 rounded-lg mb-6 lg:mb-0 text-white mt-2">
-            {translations[language].downloadButton}
-          </button>
-        </div>*/}
       </div>
     </div>
   );
