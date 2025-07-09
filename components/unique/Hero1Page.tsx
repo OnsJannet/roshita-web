@@ -22,7 +22,7 @@ const Hero1Page: React.FC = () => {
       {/* Background Image - Medical Professional */}
       <div className="absolute inset-0 overflow-hidden">
         <img
-          src="/Images/hero-page.png"
+          src="/Images/hero-page.jpg"
           alt="Medical Professional Background"
           className="w-full h-full object-cover object-center"
         />
