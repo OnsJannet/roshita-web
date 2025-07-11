@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,11 +54,10 @@ const Page = () => {
       last_name: lastName,
       email,
       password,
-      country_code: selectedCountry, // Add country code to the request
+      country_code: selectedCountry,
     };
 
     try {
-      // Send POST request to API for registration
       const response = await fetch(
         "https://test-roshita.net/api/account/register/",
         {
@@ -86,7 +84,6 @@ const Page = () => {
           result.first_name ||
           result.last_name;
 
-        // Add translation for "A user with that phone number already exists."
         if (errorMessage === "A user with that phone number already exists.") {
           errorMessage =
             language === "ar"
@@ -107,7 +104,6 @@ const Page = () => {
 
   const handleVerifyOTP = async (otp: string) => {
     try {
-      // Send OTP to the server for verification
       const response = await fetch(
         "https://test-roshita.net/api/account/verify-otp/",
         {
@@ -115,7 +111,7 @@ const Page = () => {
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken":
-              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE", // Consider managing CSRF token more dynamically
+              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE",
           },
           body: JSON.stringify({ otp, phone }),
         }
@@ -125,23 +121,18 @@ const Page = () => {
 
       if (response.ok && result.access) {
         console.log("OTP Verification Response:", result);
-
-        // Save the tokens and user info if OTP verification is successful
         localStorage.setItem("refresh", result.refresh);
         localStorage.setItem("access", result.access);
         localStorage.setItem("userId", String(result.user.id));
         localStorage.setItem("patientId", String(result.user.patient_id));
         localStorage.setItem("isLoggedIn", "true");
-
-        // Optionally, fetch user profile details here if needed, similar to mobile app
-        // For now, directly redirecting to the main page after successful OTP verification
         alert("OTP verification successful. Redirecting...");
-        window.location.href = "/"; // Redirect to the main page or dashboard
+        window.location.href = "/";
       } else {
         console.log("OTP Verification Error:", result);
         const errorMessage =
           result.detail || (language === "ar" ? "فشل التحقق من OTP. حاول مرة أخرى." : "OTP verification failed. Please try again.");
-        setError(errorMessage); // Display error in the UI
+        setError(errorMessage);
         alert(errorMessage);
       }
     } catch (error) {
@@ -152,7 +143,44 @@ const Page = () => {
     }
   };
 
-  // Get phone hint based on selected country
+  const handleResendOTP = async () => {
+    try {
+      setError("");
+      console.log("Resending OTP to:", phone);
+
+      const response = await fetch(
+        "https://test-roshita.net/api/account/resend-otp/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken":
+              "CCCV2F0mRnMsVX1awru7VhkRlYqfZSqIWnHiKk88nrCASNeSz3yVqUvLipMwrWAE",
+          },
+          body: JSON.stringify({
+            phone: phone,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("OTP Resent successfully:", result);
+        alert(language === "ar" ? "تم إعادة إرسال رمز التحقق" : "OTP has been resent");
+      } else {
+        console.log("OTP Resend Error:", result);
+        const errorMessage =
+          result.detail || result.phone?.[0] || 
+          (language === "ar" ? "فشل إعادة إرسال رمز التحقق" : "Failed to resend OTP");
+        setError(errorMessage);
+      }
+    } catch (error) {
+      console.error("Error during OTP resend:", error);
+      setError(language === "ar" ? "حدث خطأ أثناء إعادة إرسال رمز التحقق" : "An error occurred while resending OTP");
+    }
+  };
+
   const getPhoneHint = () => {
     if (language === "ar") {
       return selectedCountry === "LBY"
@@ -286,7 +314,6 @@ const Page = () => {
               />
             </div>
 
-            {/* Country Selection */}
             <div className="grid gap-2">
               <Label
                 className={language === "ar" ? "text-end" : "text-start"}
@@ -308,7 +335,7 @@ const Page = () => {
                   className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-md border ${selectedCountry === "TU" ? "border-roshitaBlue bg-blue-50" : "border-gray-200"}`}
                 >
                   <span>{language === "ar" ? "تونس" : "Tunisia"}</span>
-                  <Image src="/Images/tn-flag.webp" alt="Tunisia Flag" width={24} height={16} />
+                  <Image src="/Images/tunisia.png" alt="Tunisia Flag" width={24} height={16} />
                 </button>
               </div>
             </div>
@@ -320,7 +347,6 @@ const Page = () => {
               >
                 {language === "ar" ? "رقم الهاتف" : "Phone Number"}
               </Label>
-              {/* Phone Number Hint */}
               <p className={`text-xs text-gray-500 ${language === "ar" ? "text-right" : "text-left"} mb-1`}>
                 {getPhoneHint()}
               </p>
@@ -394,11 +420,11 @@ const Page = () => {
           className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-      {/* OTP Modal */}
       <OTPModal
         isOpen={isOTPModalOpen}
         onClose={() => setIsOTPModalOpen(false)}
         onVerify={handleVerifyOTP}
+        onResend={handleResendOTP}
         language={language}
       />
     </div>

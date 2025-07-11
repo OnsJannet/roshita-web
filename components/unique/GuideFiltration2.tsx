@@ -8,6 +8,7 @@ interface GuideFiltrationProps {
   onCountryChange: (countryTerm: string) => void;
   onSpecialtyChange: (specialtyTerm: string) => void;
   onCityChange: (cityTerm: string) => void;
+  initialFilter?: "doctorsSearch" | "hospitalsSearch" | "labs" | "pharmaciesSearch";
 }
 
 const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
@@ -15,12 +16,13 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
   onCountryChange,
   onSpecialtyChange,
   onCityChange,
+  initialFilter = "doctorsSearch" // Default value
 }) => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs" | "pharmaciesSearch">("doctorsSearch");
+  const [selectedFilter, setSelectedFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs" | "pharmaciesSearch">(initialFilter);
   const [language, setLanguage] = useState<Language>("ar");
   const [dropdownOpen, setDropdownOpen] = useState<"country" | "specialty" | "city" | null>(null);
 
@@ -29,6 +31,11 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
   const [cities, setCities] = useState<any[]>([]);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Update selectedFilter when initialFilter changes
+    setSelectedFilter(initialFilter);
+  }, [initialFilter]);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -188,10 +195,10 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
   };
 
   const filterTabs = [
-        { id: "hospitalsSearch", labelAr: "مستشفيات", labelEn: "Hospitals", icon: "Hos", disabled: false },
+    { id: "hospitalsSearch", labelAr: "مستشفيات", labelEn: "Hospitals", icon: "Hos", disabled: false },
     { id: "doctorsSearch", labelAr: "الأطباء", labelEn: "Doctors", icon: "Doc", disabled: false },
     { id: "pharmaciesSearch", labelAr: "صيدلية", labelEn: "Pharmacy", icon: "Pha", disabled: true },
-    { id: "labs", labelAr: "مختبرات", labelEn: "Labs", icon: "Lab", disabled: false }
+    { id: "labs", labelAr: "مختبرات", labelEn: "Labs", icon: "Lab", disabled: true }
   ];
 
   return (
@@ -201,7 +208,7 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
           <div
             key={tab.id}
             onClick={() => !tab.disabled && handleClick(tab.id as any)}
-            className={`lg:border-l-gray-200 border-b-gray-200 lg:border-l lg:border-b-transparent border-b p-4 flex justify-center items-center flex-row-reverse lg:w-[25%] w-full ${
+            className={`lg:border-l-gray-200 border-b-gray-200 lg:border-b-transparent border-b p-4 flex justify-center items-center flex-row-reverse lg:w-[25%] w-full ${
               tab.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
             } ${
               selectedFilter === tab.id ? "bg-roshitaDarkBlue text-white" : ""

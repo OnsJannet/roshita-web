@@ -133,7 +133,7 @@ const MedicalCarousel: React.FC<CarouselProps> = ({
               {data.map((item) => (
                 <div 
                   key={item.id} 
-                  className="flex-shrink-0 p-1 sm:p-2 md:p-3"
+                  className="flex p-1 sm:p-2 md:p-3 w-[40px]"
                   style={{ width: `${itemWidth}%` }}
                 >
                   <div className="bg-white rounded-xl md:rounded-2xl shadow-md md:shadow-lg overflow-hidden hover:shadow-lg md:hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
@@ -243,6 +243,42 @@ const MedicalCarouselExample: React.FC = () => {
       price: '2500',
       image: '/Images/alkestra.png',
       badge: language === 'ar' ? 'جديد' : 'New'
+    },
+    {
+      id: '5',
+      title: language === 'ar' ? 'أسنان' : 'Dentistry',
+      subtitle: language === 'ar' ? 'تخصص' : 'Specialty',
+      price: '1800',
+      image: '/Images/dentist.png',
+      badge: language === 'ar' ? 'جديد' : 'New',
+      href: '/doctor-appointement/all/all/أسنان/all/all'
+    },
+    {
+      id: '6',
+      title: language === 'ar' ? 'تجميل' : 'Cosmetic',
+      subtitle: language === 'ar' ? 'تخصص' : 'Specialty',
+      price: '3000',
+      image: '/Images/cosmetic.png',
+      badge: language === 'ar' ? 'جديد' : 'New',
+      href: '/doctor-appointement/all/all/جراحة%20تجميل/all/all'
+    },
+    {
+      id: '7',
+      title: language === 'ar' ? 'اختصاص عظام' : 'Orthopedics',
+      subtitle: language === 'ar' ? 'تخصص' : 'Specialty',
+      price: '2200',
+      image: '/Images/bones.png',
+      badge: language === 'ar' ? 'جديد' : 'New',
+      href: '/doctor-appointement/all/all/عظام/all/all'
+    },
+    {
+      id: '8',
+      title: language === 'ar' ? 'أمراض والقلب' : 'Cardiology',
+      subtitle: language === 'ar' ? 'تخصص' : 'Specialty',
+      price: '2800',
+      image: '/Images/Heart.png',
+      badge: language === 'ar' ? 'جديد' : 'New',
+      href: '/doctor-appointement/all/all/جراحة%20قلب%20وصدر/all/all'
     }
   ];
 
@@ -298,7 +334,7 @@ const MedicalCarouselExample: React.FC = () => {
         language={language}
       />
 
-      {/* Specialty Carousel */}
+      {/* Specialty Carousel
       <MedicalCarousel
         title={language === 'ar' ? 'أجد حسب التخصص' : 'Find by Specialty'}
         subtitle={language === 'ar' ? 
@@ -308,6 +344,7 @@ const MedicalCarouselExample: React.FC = () => {
         data={specialtyData}
         language={language}
       />
+       */}
     </div>
   );
 };

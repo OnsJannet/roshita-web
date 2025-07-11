@@ -64,9 +64,12 @@ const Page = () => {
   const [language, setLanguage] = useState<Language>("ar");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [doctorCount, setDoctorCount] = useState(0);
+  const [totalDoctors, setTotalDoctors] = useState(0);
   const [filtersDisabled, setFiltersDisabled] = useState(false);
   const doctorsPerPage = 5;
+
+  // Calculate total pages based on total doctors count
+  const totalPages = Math.ceil(totalDoctors / doctorsPerPage);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -137,7 +140,6 @@ const Page = () => {
     const basePath = "/doctor-appointement";
     let newPath = basePath;
 
-    // Build the path with the selected filters in the specified order
     const countryPath = selectedCountry.length > 0 && selectedCountry[0] !== "all" 
       ? `/${encodeURIComponent(selectedCountry[0])}` 
       : "/all";
@@ -171,9 +173,10 @@ const Page = () => {
     setSelectedHospital(hospital && hospital !== "all" ? [hospital] : []);
     setSelectedDoctor(doctor && doctor !== "all" ? [doctor] : []);
     setSelectedPrices([]);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [country, city, specialty, hospital, doctor]);
 
+  // Fetch doctors with pagination
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -181,6 +184,7 @@ const Page = () => {
         
         const queryParams = new URLSearchParams();
         queryParams.append("page", currentPage.toString());
+        queryParams.append("per_page", doctorsPerPage.toString());
         
         if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
           queryParams.append("specialty", selectedSpeciality[0]);
@@ -223,11 +227,11 @@ const Page = () => {
         }
         
         setDoctors(doctorsData);
-        setDoctorCount(totalCount);
+        setTotalDoctors(data.count);
       } catch (err: any) {
         setError(err.message);
         setDoctors([]);
-        setDoctorCount(0);
+        setTotalDoctors(0);
       } finally {
         setIsLoading(false);
       }
@@ -256,14 +260,12 @@ const Page = () => {
     router.push("/doctor-appointement/all/all/all/all/all");
   };
 
-  const totalPages = Math.ceil(doctorCount / doctorsPerPage);
-
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const filteredDoctors = doctors.filter(doctor => {
-    // Filter by doctor name if selected
     if (selectedDoctor.length > 0 && selectedDoctor[0] !== "all" && 
         !doctor.name.toLowerCase().includes(selectedDoctor[0].toLowerCase())) {
       return false;
@@ -380,11 +382,15 @@ const Page = () => {
                 />
               ))}
 
-              <PaginationDemo
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
+              {totalPages > 1 && (
+                <div className="mt-8 flex justify-center">
+                  <PaginationDemo
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>

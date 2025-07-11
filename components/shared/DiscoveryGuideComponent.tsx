@@ -7,6 +7,7 @@ interface ServiceCard {
   title: string;
   description: string;
   buttonText: string;
+  type: string;
 }
 
 interface Content {
@@ -42,22 +43,26 @@ const DiscoveryGuideComponent: React.FC = () => {
         {
           title: "مستشفيات",
           description: "تقديم كافة المعلومات حول مستشفيات",
-          buttonText: "إنضم إلينا",
+          buttonText: "إسكتشف ",
+          type: "hospitals"
         },
         {
           title: "الأطباء",
           description: "تقديم كافة المعلومات حول الأطباء",
-          buttonText: "إنضم إلينا",
+          buttonText: "إسكتشف",
+          type: "doctors"
         },
         {
           title: "التحاليل",
           description: "تقديم كافة المعلومات حول التحاليل",
-          buttonText: "إنضم إلينا",
+          buttonText: "إسكتشف",
+          type: "labs"
         },
         {
           title: "الصيدلية",
           description: "تقديم كافة المعلومات حول الصيدلية",
-          buttonText: "إنضم إلينا",
+          buttonText: "إسكتشف",
+          type: "pharmacies"
         },
       ],
     },
@@ -71,21 +76,25 @@ const DiscoveryGuideComponent: React.FC = () => {
           title: "Hospitals",
           description: "Providing all information about Hospitals",
           buttonText: "Join Us",
+          type: "hospitals"
         },
         {
           title: "Doctors",
           description: "Providing all information about doctors",
           buttonText: "Join Us",
+          type: "doctors"
         },
         {
           title: "Laboratory Tests",
           description: "Providing all information about laboratory tests",
           buttonText: "Join Us",
+          type: "labs"
         },
         {
           title: "Pharmacy",
           description: "Providing all information about pharmacies",
           buttonText: "Join Us",
+          type: "pharmacies"
         },
       ],
     },
@@ -101,8 +110,8 @@ const DiscoveryGuideComponent: React.FC = () => {
     "https://i.ibb.co/RTWtddxV/pharmacy.png", // Pharmacy
   ];
 
-  const handleButtonClick = () => {
-    router.push("/guide");
+  const handleButtonClick = (type: string) => {
+    router.push(`/guide/${type}`);
   };
 
   return (
@@ -187,7 +196,7 @@ const DiscoveryGuideComponent: React.FC = () => {
 
                   {/* Button */}
                   <button
-                    onClick={handleButtonClick}
+                    onClick={() => handleButtonClick(service.type)}
                     className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
                       isCenter
                         ? "bg-[#1588C8] text-white hover:bg-[#1588C8] hover:scale-105"

@@ -5,6 +5,9 @@ import PaginationDemo from "@/components/shared/PaginationDemo";
 import DoctorCard from "@/components/unique/DorctorCard";
 import HospitalCard from "@/components/unique/HospitalCard";
 import LabsCard from "@/components/unique/LabsCard";
+import { useParams } from "next/navigation";
+import LoadingDoctors from "@/components/layout/LoadingDoctors";
+
 
 type Language = "ar" | "en";
 
@@ -58,6 +61,17 @@ const translations = {
 };
 
 const Page = () => {
+  const params = useParams();
+  const type = params?.type as string;
+  
+  // Initialize activeFilter based on URL parameter immediately
+  const [activeFilter, setActiveFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs">(() => {
+    if (type === "hospitals") return "hospitalsSearch";
+    if (type === "doctors") return "doctorsSearch";
+    if (type === "labs" || type === "pharmacies") return "labs";
+    return "doctorsSearch"; // default
+  });
+
   // Pagination states
   const [doctorPage, setDoctorPage] = useState(1);
   const [hospitalPage, setHospitalPage] = useState(1);
@@ -78,7 +92,6 @@ const Page = () => {
   const [countryTerm, setCountryTerm] = useState("");
   const [specialtyTerm, setSpecialtyTerm] = useState("");
   const [cityTerm, setCityTerm] = useState("");
-  const [activeFilter, setActiveFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs">("doctorsSearch");
   
   // Count states
   const [doctorCount, setDoctorCount] = useState(0);
@@ -105,37 +118,32 @@ const Page = () => {
     };
   }, []);
 
+  // Main data fetching effect
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
-        // Fetch doctors with pagination (server-side)
-        const doctorsRes = await fetch(`/api/userDoctor/getDoctor?page=${doctorPage}`);
-        const doctorsData = await doctorsRes.json();
-        
-        if (!doctorsRes.ok) throw new Error("Failed to fetch doctors");
-        
-        setDoctors(doctorsData.data || []);
-        setDoctorCount(doctorsData.total || 0);
+        // Always fetch data needed for the current filter
+        if (activeFilter === "doctorsSearch") {
+          const doctorsRes = await fetch(`/api/userDoctor/getDoctor?page=${doctorPage}`);
+          const doctorsData = await doctorsRes.json();
+          if (!doctorsRes.ok) throw new Error("Failed to fetch doctors");
+          setDoctors(doctorsData.data || []);
+          setDoctorCount(doctorsData.total || 0);
+        }
 
-        // Fetch hospitals (client-side pagination)
-        if (hospitals.length === 0) {
+        if (activeFilter === "hospitalsSearch" || hospitals.length === 0) {
           const hospitalsRes = await fetch("/api/userHospital/getHospital");
           const hospitalsData = await hospitalsRes.json();
-          
           if (!hospitalsRes.ok) throw new Error("Failed to fetch hospitals");
-          
           setHospitals(hospitalsData.data || []);
         }
 
-        // Fetch labs (client-side pagination)
-        if (labs.length === 0) {
+        if (activeFilter === "labs" || labs.length === 0) {
           const labsRes = await fetch("/api/userLab/getLab");
           const labsData = await labsRes.json();
-          
           if (!labsRes.ok) throw new Error("Failed to fetch labs");
-          
           setLabs(labsData.data?.Laboratory || []);
         }
 
@@ -147,7 +155,18 @@ const Page = () => {
     };
 
     fetchData();
-  }, [doctorPage]); // Only refetch when doctorPage changes
+  }, [doctorPage, activeFilter]);
+
+  // Update active filter when URL changes
+  useEffect(() => {
+    if (type === "hospitals") {
+      setActiveFilter("hospitalsSearch");
+    } else if (type === "doctors") {
+      setActiveFilter("doctorsSearch");
+    } else if (type === "labs" || type === "pharmacies") {
+      setActiveFilter("labs");
+    }
+  }, [type]);
 
   const handleSearchUpdate = (term: string) => {
     if (term === "doctorsSearch" || term === "hospitalsSearch" || term === "labs") {
@@ -231,6 +250,15 @@ const Page = () => {
     return items.slice(startIndex, startIndex + itemsPerPage);
   };
 
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-lg font-semibold">
+        <LoadingDoctors />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white pb-20">
       <GuideTitleSection2
@@ -238,6 +266,7 @@ const Page = () => {
         onCountryChange={handleCountryUpdate}
         onSpecialtyChange={handleSpecialtyUpdate}
         onCityChange={handleCityUpdate}
+        initialFilter={activeFilter}
       />
       
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">

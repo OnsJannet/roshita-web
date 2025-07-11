@@ -9,6 +9,7 @@ interface GuideTitleSectionProps {
   onCountryChange: (countryTerm: string) => void;
   onSpecialtyChange: (specialtyTerm: string) => void;
   onCityChange: (cityTerm: string) => void;
+  initialFilter?: "doctorsSearch" | "hospitalsSearch" | "labs";
 }
 
 interface StatsData {
@@ -22,6 +23,7 @@ const GuideTitleSection2: React.FC<GuideTitleSectionProps> = ({
   onCountryChange,
   onSpecialtyChange,
   onCityChange,
+  initialFilter = "doctorsSearch" // Default value
 }) => {
   const [language, setLanguage] = useState<Language>("ar");
   const [stats, setStats] = useState<StatsData | null>(null);
@@ -102,6 +104,8 @@ const GuideTitleSection2: React.FC<GuideTitleSectionProps> = ({
           onCountryChange={onCountryChange}
           onSpecialtyChange={onSpecialtyChange}
           onCityChange={onCityChange}
+          //@ts-ignore
+          initialFilter={initialFilter}
         />
       </div>
     </div>
