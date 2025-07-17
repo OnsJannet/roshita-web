@@ -99,15 +99,37 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
     };
   }, []);
 
-  // Get unique prices, handling null/undefined and formatting
-  const prices = Array.from(
-    new Set(
-      doctors
-        .map((doctor) => doctor.price)
-        .filter((price) => price !== null && price !== undefined && price !== "")
-        .map(price => price.replace(/\.000$/, '')) // Remove trailing .000 for display
-    )
-  ).sort((a, b) => parseFloat(a) - parseFloat(b));
+// Get unique prices, handling all possible cases
+const prices = Array.from(
+  new Set(
+    doctors
+      .map((doctor) => doctor.price)
+      .filter((price) => {
+        // First filter out null/undefined/empty values
+        if (price === null || price === undefined || price === "") {
+          return false;
+        }
+        
+        // Convert to string if it's a number
+        //@ts-ignore
+        const priceStr = typeof price === 'number' ? price.toString() : String(price);
+        
+        // Check if it's a valid price format (optional)
+        return /^[\d,.]+$/.test(priceStr);
+      })
+      .map((price) => {
+        // Convert to string if needed
+        //@ts-ignore
+        const priceStr = typeof price === 'number' ? price.toString() : String(price);
+        
+        // Format the price string
+        return priceStr
+          .replace(/\.000$/, '')      // Remove trailing .000
+          .replace(/,/g, '')          // Remove commas if present
+          .replace(/^0+/, '');        // Remove leading zeros
+      })
+  )
+).sort((a, b) => parseFloat(a) - parseFloat(b));
 
   // Get unique countries from all medical organizations
   const countries = Array.from(

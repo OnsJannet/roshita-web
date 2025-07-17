@@ -632,7 +632,7 @@ export default function Page() {
   };
 
   // Fetch hospitals
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchHospitals = async () => {
       try {
         setIsLoading(true);
@@ -651,10 +651,10 @@ export default function Page() {
     };
 
     fetchHospitals();
-  }, []);
+  }, []);*/
 
   // Update doctors when a hospital is selected
-  useEffect(() => {
+  /*useEffect(() => {
     if (selectedHospitalId) {
       const selectedHospital = hospitals.find(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -667,28 +667,28 @@ export default function Page() {
     } else {
       setFilteredDoctors([]);
     }
-  }, [selectedHospitalId, hospitals]);
+  }, [selectedHospitalId, hospitals]);*/
 
   console.log("doctorId", id);
 
   // Handle "End Appointment" action
-  const handleEndAppointment = async () => {
+  /*const handleEndAppointment = async () => {
     if (selectedAppointmentId) {
       await handleEndSlot(selectedAppointmentId);
       setIsModalOpen(false);
     }
-  };
+  };*/
 
   // Handle "Follow-up Appointment" action
-  const handleFollowUpAppointment = () => {
+  /*const handleFollowUpAppointment = () => {
     setIsModalOpen(false);
     setIsFollowUpModalOpen(true);
-  };
+  };*/
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const handleSlotSelection = (slot: AppointmentSlot) => {
+  /*const handleSlotSelection = (slot: AppointmentSlot) => {
     setSelectedSlot(slot);
-  };
+  };*/
 
   // Breadcrumb items with Arabic text
   const items = [
