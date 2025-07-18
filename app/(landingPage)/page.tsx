@@ -44,17 +44,12 @@ const page = () => {
         <Hero1Page />
         <ServicesComponent />
         <DiscoveryGuideComponent />
-        <MedicalCarouselExample/>
-        <ExpertsConsultants/>
-                          <div className="bg-white lg:h-40 h-0">
-
-                  </div>
-                  <DownloadApp />
-                  <div className="bg-white h-40 ">
-
-                  </div>
+        <MedicalCarouselExample />
+        <ExpertsConsultants />
+        <div className="bg-white lg:h-40 h-0"></div>
+        <DownloadApp />
+        <div className="bg-white h-40 "></div>
       </div>
-      
     </div>
   );
 };
