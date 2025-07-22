@@ -371,12 +371,13 @@ const Page = () => {
             setSelectedPrices={setSelectedPrices}
             selectedCountries={selectedCountry}
             setSelectedCountries={setSelectedCountry}
-            selectedCities={selectedCity}
-            setSelectedCities={setSelectedCity}
+            //selectedCities={selectedCity}
+            //setSelectedCities={setSelectedCity}
             selectedSpecialties={selectedSpeciality}
             setSelectedSpecialties={setSelectedSpeciality}
             selectedHospitals={selectedHospital}
             setSelectedHospitals={setSelectedHospital}
+            //@ts-ignore
             selectedDoctors={selectedDoctor}
             setSelectedDoctors={setSelectedDoctor}
             disabled={filtersDisabled}

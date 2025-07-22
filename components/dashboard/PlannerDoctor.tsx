@@ -358,7 +358,7 @@ const PlannerDoctor = ({ language = "en" }: { language?: string }) => {
     } catch (error) {
       console.error("Error:", error);
       //@ts-ignore
-      setFollowUpError(error);
+      setFollowUpError(error instanceof Error ? error.message : "An unknown error occurred");
       setIsModalOpen(false);
       setIsFollowUpModalOpen(false);
       setIsSameDoctorModalOpen(false);
