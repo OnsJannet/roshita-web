@@ -60,7 +60,9 @@ const Page = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [currentPage, setCurrentPage] = useState(1);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [displayedDoctors, setDisplayedDoctors] = useState<Doctor[]>([]);
   const [language, setLanguage] = useState<Language>("ar");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +70,7 @@ const Page = () => {
   const [filtersDisabled, setFiltersDisabled] = useState(false);
   const doctorsPerPage = 5;
 
-  // Calculate total pages based on total doctors count
-  const totalPages = Math.ceil(totalDoctors / doctorsPerPage);
+  const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -129,13 +130,11 @@ const Page = () => {
   const [selectedHospital, setSelectedHospital] = useState<string[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string[]>([]);
 
-  // Check if filters came from URL params
   useEffect(() => {
     const hasParams = country || city || specialty || hospital || doctor;
     setFiltersDisabled(!!hasParams);
   }, [country, city, specialty, hospital, doctor]);
 
-  // Update URL when filters change
   const updateUrlWithFilters = () => {
     const basePath = "/doctor-appointement";
     let newPath = basePath;
@@ -165,45 +164,31 @@ const Page = () => {
     router.push(newPath);
   };
 
-  // Automatic filter reset when URL params change
   useEffect(() => {
+    console.log("URL params changed:", { country, city, specialty, hospital, doctor });
     setSelectedCountry(country && country !== "all" ? [country] : []);
     setSelectedCity(city && city !== "all" ? [city] : []);
     setSelectedSpeciality(specialty && specialty !== "all" ? [specialty] : []);
     setSelectedHospital(hospital && hospital !== "all" ? [hospital] : []);
     setSelectedDoctor(doctor && doctor !== "all" ? [doctor] : []);
     setSelectedPrices([]);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [country, city, specialty, hospital, doctor]);
 
-  // Fetch doctors with pagination
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const fetchAllDoctors = async () => {
       try {
         setIsLoading(true);
-        
-        const queryParams = new URLSearchParams();
-        queryParams.append("page", currentPage.toString());
-        queryParams.append("per_page", doctorsPerPage.toString());
-        
-        if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
-          queryParams.append("specialty", selectedSpeciality[0]);
-        }
-        if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
-          queryParams.append("country", selectedCountry[0]);
-        }
-        if (selectedCity.length > 0 && selectedCity[0] !== "all") {
-          queryParams.append("city", selectedCity[0]);
-        }
-        if (selectedHospital.length > 0 && selectedHospital[0] !== "all") {
-          queryParams.append("medical_organization", selectedHospital[0]);
-        }
-        if (selectedDoctor.length > 0 && selectedDoctor[0] !== "all") {
-          queryParams.append("doctor", selectedDoctor[0]);
-        }
-        
+        console.log("Fetching doctors with filters:", {
+          specialty: selectedSpeciality,
+          country: selectedCountry,
+          city: selectedCity,
+          hospital: selectedHospital,
+          doctor: selectedDoctor
+        });
+
         const response = await fetch(
-          `https://test-roshita.net/api/user-doctors/?${queryParams.toString()}`
+          `https://test-roshita.net/api/user-doctors/`
         );
         
         if (!response.ok) {
@@ -211,36 +196,142 @@ const Page = () => {
         }
         
         const data = await response.json();
-        
         let doctorsData = [];
-        let totalCount = 0;
         
         if (data.results?.data?.doctors) {
           doctorsData = data.results.data.doctors;
-          totalCount = data.results.total || data.total || 0;
         } else if (data.doctors) {
           doctorsData = data.doctors;
-          totalCount = data.total || 0;
         } else {
-          doctorsData = [];
-          totalCount = 0;
+          doctorsData = data;
         }
+
+        console.log("Raw API response:", data);
+        console.log("Processed doctors data:", doctorsData);
         
-        setDoctors(doctorsData);
-        setTotalDoctors(data.count);
+        setAllDoctors(doctorsData);
+        setTotalDoctors(doctorsData.length);
       } catch (err: any) {
+        console.error("Error fetching doctors:", err);
         setError(err.message);
-        setDoctors([]);
+        setAllDoctors([]);
         setTotalDoctors(0);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDoctors();
-  }, [currentPage, selectedCountry, selectedCity, selectedSpeciality, selectedHospital, selectedDoctor]);
+    fetchAllDoctors();
+  }, []);
 
-  // Update URL when filters change (except price)
+  useEffect(() => {
+    console.log("Applying filters to", allDoctors.length, "doctors");
+    console.log("Current filters:", {
+      prices: selectedPrices,
+      countries: selectedCountry,
+      cities: selectedCity,
+      specialties: selectedSpeciality,
+      hospitals: selectedHospital,
+      doctors: selectedDoctor
+    });
+
+    const filtered = allDoctors.filter(doctor => {
+      let passed = true;
+      
+      // Doctor name filter
+      if (selectedDoctor.length > 0 && selectedDoctor[0] !== "all") {
+        const nameMatch = doctor.name.toLowerCase().includes(selectedDoctor[0].toLowerCase());
+        if (!nameMatch) {
+          console.log(`Doctor ${doctor.name} filtered out - name doesn't match`);
+          passed = false;
+        }
+      }
+      
+      // Price filter
+      if (passed && selectedPrices.length > 0 && selectedPrices[0] !== "all") {
+        const priceMatch = selectedPrices.includes(doctor.price);
+        if (!priceMatch) {
+          console.log(`Doctor ${doctor.name} filtered out - price doesn't match`);
+          passed = false;
+        }
+      }
+      
+      // Specialty filter
+      if (passed && selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all") {
+        const specialtyMatch = selectedSpeciality.includes(doctor.specialization);
+        if (!specialtyMatch) {
+          console.log(`Doctor ${doctor.name} filtered out - specialty doesn't match`);
+          passed = false;
+        }
+      }
+      
+      // Hospital filter
+      if (passed && selectedHospital.length > 0 && selectedHospital[0] !== "all") {
+        const hospitalMatch = doctor.medical_organizations?.some(org => {
+          const orgName = org.name.toLowerCase();
+          const orgForeignName = org.foreign_name?.toLowerCase() || '';
+          
+          return selectedHospital.some(hospital => {
+            const selectedHospitalName = hospital.toLowerCase();
+            return orgName.includes(selectedHospitalName) || 
+                   orgForeignName.includes(selectedHospitalName) ||
+                   selectedHospitalName.includes(orgName) ||
+                   selectedHospitalName.includes(orgForeignName);
+          });
+        });
+        
+        if (!hospitalMatch) {
+          console.log(`Doctor ${doctor.name} filtered out - hospital doesn't match`);
+          passed = false;
+        }
+      }
+      
+      // Country filter
+      if (passed && selectedCountry.length > 0 && selectedCountry[0] !== "all") {
+        const countryMatch = doctor.medical_organizations?.some(org => {
+          if (!org.city || !org.city.country) return false;
+          
+          const countryName = org.city.country.name?.toLowerCase() || '';
+          const countryForeignName = org.city.country.foreign_name?.toLowerCase() || '';
+          
+          return selectedCountry.some(country => {
+            const selectedCountryName = country.toLowerCase();
+            return countryName.includes(selectedCountryName) || 
+                   countryForeignName.includes(selectedCountryName);
+          });
+        });
+        
+        if (!countryMatch) {
+          console.log(`Doctor ${doctor.name} filtered out - country doesn't match`);
+          passed = false;
+        }
+      }
+      
+      // City filter
+      if (passed && selectedCity.length > 0 && selectedCity[0] !== "all") {
+        const cityMatch = selectedCity.some(c => 
+          doctor.city?.toLowerCase().includes(c.toLowerCase())
+        );
+        if (!cityMatch) {
+          console.log(`Doctor ${doctor.name} filtered out - city doesn't match`);
+          passed = false;
+        }
+      }
+      
+      return passed;
+    });
+
+    console.log("Filtered doctors:", filtered);
+    setFilteredDoctors(filtered);
+    setCurrentPage(1);
+  }, [allDoctors, selectedPrices, selectedCountry, selectedCity, selectedSpeciality, selectedHospital, selectedDoctor]);
+
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * doctorsPerPage;
+    const endIndex = startIndex + doctorsPerPage;
+    setDisplayedDoctors(filteredDoctors.slice(startIndex, endIndex));
+  }, [currentPage, filteredDoctors]);
+
   useEffect(() => {
     if (selectedCountry.length > 0 || selectedCity.length > 0 || 
         selectedSpeciality.length > 0 || selectedHospital.length > 0 || selectedDoctor.length > 0) {
@@ -265,62 +356,6 @@ const Page = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const filteredDoctors = doctors.filter(doctor => {
-    if (selectedDoctor.length > 0 && selectedDoctor[0] !== "all" && 
-        !doctor.name.toLowerCase().includes(selectedDoctor[0].toLowerCase())) {
-      return false;
-    }
-    
-    if (selectedPrices.length > 0 && selectedPrices[0] !== "all" && !selectedPrices.includes(doctor.price)) {
-      return false;
-    }
-    
-    if (selectedSpeciality.length > 0 && selectedSpeciality[0] !== "all" && 
-        !selectedSpeciality.includes(doctor.specialization)) {
-      return false;
-    }
-    
-    if (selectedHospital.length > 0 && selectedHospital[0] !== "all") {
-      const hospitalMatch = doctor.medical_organizations.some(org => {
-        const orgName = org.name.toLowerCase();
-        const orgForeignName = org.foreign_name ? org.foreign_name.toLowerCase() : '';
-        
-        return selectedHospital.some(hospital => {
-          const selectedHospitalName = hospital.toLowerCase();
-          return orgName.includes(selectedHospitalName) || 
-                 orgForeignName.includes(selectedHospitalName) ||
-                 selectedHospitalName.includes(orgName) ||
-                 selectedHospitalName.includes(orgForeignName);
-        });
-      });
-      
-      if (!hospitalMatch) return false;
-    }
-    
-    if (selectedCountry.length > 0 && selectedCountry[0] !== "all") {
-      const countryMatch = doctor.medical_organizations.some(org => {
-        if (!org.city || !org.city.country) return false;
-        
-        const countryName = org.city.country.name ? org.city.country.name.toLowerCase() : '';
-        const countryForeignName = org.city.country.foreign_name ? org.city.country.foreign_name.toLowerCase() : '';
-        
-        return selectedCountry.some(country => {
-          const selectedCountryName = country.toLowerCase();
-          return countryName.includes(selectedCountryName) || countryForeignName.includes(selectedCountryName);
-        });
-      });
-      
-      if (!countryMatch) return false;
-    }
-    
-    if (selectedCity.length > 0 && selectedCity[0] !== "all" && 
-        !selectedCity.some(c => doctor.city && doctor.city.toLowerCase().includes(c.toLowerCase()))) {
-      return false;
-    }
-    
-    return true;
-  });
-
   return isLoading ? (
     <div className="bg-white flex items-center justify-center min-h-screen">
       <LoadingDoctors />
@@ -331,12 +366,11 @@ const Page = () => {
       <div className="flex lg:flex-row-reverse flex-col mt-20 p-4 lg:gap-10 gap-2 max-w-[1280px] mx-auto">
         <div className="lg:w-[20%]">
           <FilterDoctor
-            doctors={doctors}
+            doctors={allDoctors}
             selectedPrices={selectedPrices}
             setSelectedPrices={setSelectedPrices}
             selectedCountries={selectedCountry}
             setSelectedCountries={setSelectedCountry}
-            //@ts-ignore
             selectedCities={selectedCity}
             setSelectedCities={setSelectedCity}
             selectedSpecialties={selectedSpeciality}
@@ -357,13 +391,13 @@ const Page = () => {
         </div>
 
         <div className="space-y-4 lg:w-[80%]">
-          {filteredDoctors.length === 0 ? (
+          {displayedDoctors.length === 0 ? (
             <div className="text-center text-xl font-semibold mx-auto mt-10">
               {translations[language].noDoctors}
             </div>
           ) : (
             <>
-              {filteredDoctors.map((doctor) => (
+              {displayedDoctors.map((doctor) => (
                 <DoctorCard
                   key={doctor.doctor_id}
                   id={doctor.doctor_id}
