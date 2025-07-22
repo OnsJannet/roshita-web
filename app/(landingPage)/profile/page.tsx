@@ -16,6 +16,7 @@ import {
   Settings,
   UserRound,
   Wallet,
+  AlertCircle,
 } from "lucide-react";
 import { fetchProfileDetails } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,8 @@ import {
 import { paiement } from "@/constant";
 import { Separator } from "@/components/ui/separator";
 import { MessageAlert } from "@/components/shared/MessageAlert";
+import { AlertDialog, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
 
 type Language = "ar" | "en";
 
@@ -44,6 +47,12 @@ const translations = {
     next: "Next",
     previous: "Previous",
     noAppointments: "No appointments to display",
+    accountDeactivation: "Account Deactivation",
+    deactivateAccount: "Deactivate Account",
+    deactivateWarning: "Warning: This action is permanent and cannot be undone.",
+    deactivateConfirm: "Are you sure you want to deactivate your account?",
+    deactivateButton: "Deactivate My Account",
+    cancelButton: "Cancel",
   },
   ar: {
     settings: "الإعدادات",
@@ -55,6 +64,12 @@ const translations = {
     next: "التالي",
     previous: "السابق",
     noAppointments: "لا توجد مواعيد لعرضها",
+    accountDeactivation: "تعطيل الحساب",
+    deactivateAccount: "تعطيل الحساب",
+    deactivateWarning: "تحذير: هذا الإجراء دائم ولا يمكن التراجع عنه.",
+    deactivateConfirm: "هل أنت متأكد أنك تريد تعطيل حسابك؟",
+    deactivateButton: "تعطيل حسابي",
+    cancelButton: "إلغاء",
   },
 };
 
@@ -114,6 +129,8 @@ const Profile = () => {
   const [birthYear, setBirthYear] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [isCharging, setIsCharging] = useState(false);
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
 
   const cities = [
     { id: 1, country: 2, name: "تونس العاصمة", foreign_name: "Tunis" },
@@ -226,6 +243,51 @@ const Profile = () => {
       setErrorMessage(language === "ar" ? "حدث خطأ أثناء شحن المحفظة" : "Error charging wallet");
     } finally {
       setIsCharging(false);
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    setIsDeactivating(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    
+    try {
+      const token = localStorage.getItem("access");
+      const userId = localStorage.getItem("userId");
+      
+      if (!token || !userId) {
+        throw new Error("Authentication data not found");
+      }
+
+      const response = await fetch(
+        `http://test-roshita.net/api/account/delete/users/${userId}/`, 
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to deactivate account");
+      }
+      
+      // Clear user data and redirect to home page
+      localStorage.clear();
+      window.location.href = "/";
+    } catch (error: any) {
+      console.error("Deactivation error:", error);
+      setErrorMessage(
+        language === "ar" 
+          ? `حدث خطأ أثناء محاولة تعطيل الحساب: ${error.message}` 
+          : `Error deactivating account: ${error.message}`
+      );
+    } finally {
+      setIsDeactivating(false);
+      setShowDeactivateDialog(false);
     }
   };
 
@@ -539,6 +601,60 @@ const Profile = () => {
                 {language === "ar" ? "حفظ" : "Save"}
               </Button>
             </div>
+
+            <Separator className="my-4 w-[90%] mx-auto" />
+
+            {/* Account Deactivation Section */}
+            <div className="mt-8">
+              <h2 className={`${language === "ar" ? "text-end" : "text-start"} text-[16px] font-bold mb-6 text-red-600`}>
+                {translations[language].accountDeactivation}
+              </h2>
+              
+              <AlertDialog >
+                <AlertCircle className="h-4 w-4" />
+                <AlertDialogTitle>{translations[language].deactivateAccount}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {translations[language].deactivateWarning}
+                </AlertDialogDescription>
+              </AlertDialog>
+              
+              <Dialog open={showDeactivateDialog} onOpenChange={setShowDeactivateDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" className="w-auto mt-6">
+                    {translations[language].deactivateButton}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="text-destructive text-center">
+                      {translations[language].deactivateAccount}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4 text-center">
+                    <p>{translations[language].deactivateConfirm}</p>
+                  </div>
+                  <div className={`flex ${language === "ar" ? "flex-row-reverse" : "flex-row"} justify-center gap-4`}>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowDeactivateDialog(false)}
+                    >
+                      {translations[language].cancelButton}
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleDeactivateAccount}
+                      disabled={isDeactivating}
+                    >
+                      {isDeactivating ? (
+                        language === "ar" ? "جاري التعطيل..." : "Deactivating..."
+                      ) : (
+                        translations[language].deactivateButton
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
       </div>
@@ -566,6 +682,7 @@ const Profile = () => {
                   className="mt-2"
                   dir={language === "ar" ? "rtl" : "ltr"}
                   value={chargeAmount}
+                  //@ts-ignore
                   onChange={(e) => setChargeAmount(e.target.value)}
                 />
               </div>
@@ -639,7 +756,7 @@ const Profile = () => {
               ) : (
                 language === "ar" ? "شحن" : "Charge"
               )}
-            </Button>
+            </Button>s
           </div>
         </DialogContent>
       </Dialog>
