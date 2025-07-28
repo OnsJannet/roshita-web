@@ -317,7 +317,7 @@ const DoctorSearchForm = () => {
 
       {/* Search Form */}
       <div
-        className="flex items-center justify-center min-h-[201.95px] rounded-2xl p-6 max-w-[1280px] mx-auto bg-white relative"
+        className="flex items-center justify-center min-h-full rounded-2xl p-4 max-w-[1280px] mx-auto bg-white relative"
         style={{ boxShadow: "0 8px 26.6px rgba(0, 0, 0, 0.09)", zIndex: 9999 }}
       >
         {error && (
@@ -329,13 +329,13 @@ const DoctorSearchForm = () => {
         <div className="flex flex-wrap flex-row-reverse justify-between gap-4 w-full">
           {/* Specialty */}
           <div className={fieldStyle}>
-            <h1
+            {/*<h1
               className={`text-xl font-bold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
             >
               {t.specialty}
-            </h1>
+            </h1>*/}
             <div className="relative">
               <select
                 className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
@@ -360,13 +360,13 @@ const DoctorSearchForm = () => {
 
           {/* Country */}
           <div className={fieldStyle}>
-            <h2
+            {/**h2
               className={`text-lg font-semibold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
             >
               {t.country}
-            </h2>
+            </h2>*/}
             <div className="relative">
               <select
                 className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
@@ -391,13 +391,13 @@ const DoctorSearchForm = () => {
 
           {/* City */}
           <div className={fieldStyle}>
-            <h3
+            {/*<h3
               className={`text-lg font-semibold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
             >
               {t.city}
-            </h3>
+            </h3>*/}
             <div className="relative">
               <select
                 className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
@@ -422,13 +422,13 @@ const DoctorSearchForm = () => {
 
           {/* Doctor */}
           <div className={fieldStyle}>
-            <h3
+            {/*<h3
               className={`text-lg font-semibold ${
                 language === "ar" ? "text-right" : "text-left"
               }`}
             >
               {t.doctor}
-            </h3>
+            </h3>*/}
             <div className="relative">
               <select
                 className={`border rounded-lg p-3 pl-10 pr-8 w-full appearance-none ${
@@ -454,7 +454,7 @@ const DoctorSearchForm = () => {
           {/* Search Button */}
           <div className="flex items-end w-[200px]">
             <button
-              className="bg-blue-600 text-white py-3 w-full rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              className="bg-[#1C75BC] text-white py-3 w-full rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               onClick={handleSearch}
               disabled={isLoading}
             >

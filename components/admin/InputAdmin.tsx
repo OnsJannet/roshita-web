@@ -42,8 +42,9 @@ const InputAdmin: React.FC<InputProps> = ({
 
   return (
     <div
+    dir={ language === "ar" ? "rtl" : "ltr"}
       className={`flex ${
-        language === "ar" ? "flex-row-reverse" : "flex-row"
+        language === "ar" ? "flex-row" : "flex-row"
       } items-center w-full p-4 border border-gray-200 rounded-lg  gap-1`}
     >
       <div className="text-blue-500 mr-2">{icon}</div>
@@ -52,7 +53,7 @@ const InputAdmin: React.FC<InputProps> = ({
         value={value} // Pass the value prop
         onChange={onChange} // Pass the onChange handler
         dir={language === "ar" ? "rtl" : "ltr"} // Change direction based on language
-        className={`outline-none bg-transparent w-full ${language === "ar" ? "text-end placeholder:text-right" : "text-left placeholder:text-left"}`}
+        className={`outline-none bg-transparent w-full ${language === "ar" ? "text-start placeholder:text-start" : "text-start placeholder:text-start"}`}
         placeholder={placeholder}
       />
     </div>

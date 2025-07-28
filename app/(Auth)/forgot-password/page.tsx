@@ -288,11 +288,12 @@ const Page = () => {
               <h1 className="text-3xl font-bold">
                 {language === "en" ? "Verify OTP" : "التحقق من الرمز"}
               </h1>
-              <p className="text-muted-foreground">
-                {language === "en" 
-                  ? "Enter the verification code sent to your phone" 
-                  : "أدخل رمز التحقق المرسل إلى هاتفك"}
-              </p>
+<p className="text-muted-foreground">
+  {language === "en"
+    ? "Enter the verification code sent to your phone or email"
+    : "أدخل رمز التحقق المرسل إلى هاتفك أو بريدك الإلكتروني"}
+</p>
+
             </div>
 
             <div className="grid gap-4">

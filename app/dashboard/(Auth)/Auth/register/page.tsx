@@ -39,21 +39,22 @@ const translations = {
     doctorPhone: "رقم هاتف الطبيب",
     specialty: "التخصص",
     city: "المدينة",
-    staffAvatar: "صورة الموظف",
-    fixedPrice: "السعر الثابت",
+    staffAvatar: "صورة الطبيب", // Changed from "صورة الموظف" to match image
+    fixedPrice: "سعر الكشف", // Changed from "السعر الثابت" to match image
     isConsultant: "هل هو استشاري",
-    medicalOrgName: "اسم المنظمة الطبية",
-    medicalOrgPhone: "رقم هاتف المنظمة الطبية",
-    medicalOrgEmail: "البريد الإلكتروني للمنظمة الطبية",
-    medicalOrgCity: "مدينة المنظمة الطبية",
-    medicalOrgAddress: "عنوان المنظمة الطبية",
+    medicalOrgName: "اسم عيادة الطبيب", // Changed from "اسم المنظمة الطبية" to match image
+    medicalOrgPhone: "رقم هاتف السكرتيرة او المساعد", // Changed to match image
+    medicalOrgEmail: "أيميل العيادة او السكرتيرة", // Changed to match image
+    medicalOrgCity: "المدينة (مكان العيادة)", // Changed to match image
+    medicalOrgAddress: "عنوان عيادة الطبيب", // Changed to match image
     medicalOrgLatitude: "خط العرض للمنظمة الطبية",
     medicalOrgLongitude: "خط الطول للمنظمة الطبية",
-    firstName: "الاسم",
-    lastName: "اللقب",
-    paymentMethod: "طريقة الدفع",
-    cash: "نقدي",
+    firstName: "الاسم", // Changed from "الاسم" to match image
+    lastName: "اللقب", // Matches image
+    paymentMethod: "طريقة الدفع", // Matches image
+    cash: "نقدي", // Matches image
     online: "عبر الإنترنت",
+    secretaryName: "اسم السكرتيرة او المساعد", // Added to match image
   },
   en: {
     selectType: "Choose the type of institution",
@@ -77,14 +78,14 @@ const translations = {
     doctorPhone: "Doctor Phone",
     specialty: "Specialty",
     city: "City",
-    staffAvatar: "Staff Avatar",
-    fixedPrice: "Fixed Price",
+    staffAvatar: "Doctor Photo", // Changed from "Staff Avatar"
+    fixedPrice: "Examination Price", // Changed from "Fixed Price"
     isConsultant: "Is Consultant",
-    medicalOrgName: "Medical Organization Name",
-    medicalOrgPhone: "Medical Organization Phone",
-    medicalOrgEmail: "Medical Organization Email",
-    medicalOrgCity: "Medical Organization City",
-    medicalOrgAddress: "Medical Organization Address",
+    medicalOrgName: "Doctor Clinic Name", // Changed from "Medical Organization Name"
+    medicalOrgPhone: "Secretary/Assistant Phone", // Changed
+    medicalOrgEmail: "Clinic/Secretary Email", // Changed
+    medicalOrgCity: "Profession Select City", // Changed
+    medicalOrgAddress: "Doctor Clinic Address", // Changed
     medicalOrgLatitude: "Medical Organization Latitude",
     medicalOrgLongitude: "Medical Organization Longitude",
     firstName: "First Name",
@@ -92,6 +93,7 @@ const translations = {
     paymentMethod: "Payment Method",
     cash: "Cash",
     online: "Online",
+    secretaryName: "Secretary/Assistant Name", // Added
   },
 };
 

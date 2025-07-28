@@ -43,7 +43,9 @@ export const OTPModal: React.FC<OTPModalProps> = ({
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="otp" className={language === "ar" ? "text-end" : "text-start"}>
-              {language === "ar" ? "رمز التحقق" : "OTP"}
+  {language === "en"
+    ? "Enter the verification code sent to your phone or email"
+    : "أدخل رمز التحقق المرسل إلى هاتفك أو بريدك الإلكتروني"}
             </Label>
             <Input
               id="otp"
