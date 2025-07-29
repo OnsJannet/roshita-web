@@ -84,19 +84,19 @@ const Hero1Page: React.FC = () => {
               className="w-full h-full object-cover object-center"
             />
 
-            {/* Slide Content */}
-            <div className="absolute inset-0 flex items-center justify-center text-white p-8 w-1/2 z-30">
-              <div className="text-center max-w-2xl w-[80%] pr-20">
-                <h1 className="text-[48px] font-bold mb-4 text-black text-right">
+            {/* Slide Content - Made responsive */}
+            <div className="lg:mt-0 mt-[-150px] absolute inset-0 flex items-center justify-center text-white p-4 lg:p-8 lg:w-1/2 w-full z-30">
+              <div className="text-center w-full lg:w-[80%] lg:pr-20">
+                <h1 className="text-4xl sm:text-[4xl] md:text-4xl lg:text-[48px] font-bold mb-2 lg:mb-4 lg:text-black lg:text-right text-center">
                   {currentSlideContent.title}
                 </h1>
-                <p className="text-[24px] mb-6 text-black text-right">
+                <p className="text-2xl sm:text-base md:text-lg lg:text-[24px] mb-4 lg:mb-6 lg:text-black lg:text-right text-center">
                   {currentSlideContent.subtitle}
                 </p>
-                <div className="flex justify-end">
+                <div className="flex lg:justify-end justify-center">
                   <button
                     onClick={handleConsultationClick}
-                    className="bg-[#1C75BC] p-4 w-[220px] rounded-md flex items-center justify-between cursor-pointer text-white"
+                    className="bg-[#1C75BC] p-2 lg:p-4 w-[160px] lg:w-[220px] rounded-md flex items-center justify-between cursor-pointer text-white text-sm lg:text-base"
                   >
                     <span className="mr-2">←</span>
                     <span>
@@ -119,16 +119,16 @@ const Hero1Page: React.FC = () => {
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`w-3 h-3 rounded-full ${index === currentSlide ? 'bg-white' : 'bg-white/50'}`}
+            className={`w-2 h-2 lg:w-3 lg:h-3 rounded-full ${index === currentSlide ? 'bg-white' : 'bg-white/50'}`}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
 
-      {/* Bottom Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        <main className="flex-1 flex items-center justify-center px-6">
-          <div className="mx-auto w-full mt-[500px]">
+      {/* Bottom Content - Made responsive */}
+      <div className="relative z-10 lg:min-h-screen flex flex-col">
+        <main className="flex-1 flex items-center justify-center px-4 sm:px-6">
+          <div className="mx-auto w-full lg:mt-[500px] mt-[450px] sm:mt-[200px]">
             <DoctorSearchFilters />
           </div>
         </main>

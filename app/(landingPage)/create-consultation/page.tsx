@@ -423,68 +423,77 @@ const Page = () => {
               style={{ direction: language === "ar" ? "rtl" : "ltr" }}
               className="pt-10"
             >
-              <div
-                className={`flex ${
-                  language === "ar" ? "flex-row" : "flex-row"
-                } justify-center gap-16 mb-8`}
-              >
-                {[0, 1, 2, 3].map((stepNumber) => {
-                  const isCurrent = step === stepNumber;
-                  const isCompleted = step > stepNumber;
+<div
+  className={`flex ${
+    language === "ar" ? "flex-row" : "flex-row"
+  } justify-center gap-4 sm:gap-8 md:gap-12 lg:gap-16 mb-8 overflow-x-auto px-4 py-2`}
+>
+  {[0, 1, 2, 3].map((stepNumber) => {
+    const isCurrent = step === stepNumber;
+    const isCompleted = step > stepNumber;
 
-                  return (
-                    <div
-                      key={stepNumber}
-                      className="flex flex-col items-center"
-                    >
-                      {/* Step Number Box */}
-                      <div
-                        className={`w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold ${
-                          isCurrent
-                            ? "bg-[#1588C8] text-white"
-                            : "bg-gray-200 text-gray-600"
-                        }`}
-                      >
-                        {stepNumber + 1}
-                      </div>
+    return (
+      <div
+        key={stepNumber}
+        className="flex flex-col items-center min-w-[60px]"
+      >
+        {/* Step Number Box */}
+        <div
+          className={`w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold ${
+            isCurrent
+              ? "bg-[#1588C8] text-white"
+              : isCompleted
+              ? "bg-green-500 text-white"
+              : "bg-gray-200 text-gray-600"
+          }`}
+        >
+          {isCompleted ? (
+            <Check className="w-3 h-3" />
+          ) : (
+            stepNumber + 1
+          )}
+        </div>
 
-                      {/* Step Label */}
-                      <div className="mt-2 text-sm text-center whitespace-nowrap">
-                        <span
-                          className={
-                            isCurrent ? "font-bold text-black" : "text-gray-500"
-                          }
-                        >
-                          {stepNumber === 0 &&
-                            (language === "ar"
-                              ? "اختر نوع الاستشارة"
-                              : "Select Consultation Type")}
-                          {stepNumber === 1 &&
-                            (language === "ar"
-                              ? "أكتب استشارة الخاص بك"
-                              : "Write your consultation")}
-                          {stepNumber === 2 &&
-                            (language === "ar"
-                              ? "تنزيل الملفات"
-                              : "Upload files")}
-                          {stepNumber === 3 &&
-                            (language === "ar"
-                              ? "تم إرسال"
-                              : "Successfully sent")}
-                        </span>
-                      </div>
+        {/* Step Label */}
+        <div className="mt-2 text-xs sm:text-sm text-center whitespace-nowrap">
+          <span
+            className={
+              isCurrent || isCompleted 
+                ? "font-bold text-black" 
+                : "text-gray-500"
+            }
+          >
+            {stepNumber === 0 &&
+              (language === "ar"
+                ? "اختر نوع الاستشارة"
+                : "Select Type")}
+            {stepNumber === 1 &&
+              (language === "ar"
+                ? "أكتب استشارة"
+                : "Write")}
+            {stepNumber === 2 &&
+              (language === "ar"
+                ? "تنزيل الملفات"
+                : "Upload")}
+            {stepNumber === 3 &&
+              (language === "ar"
+                ? "تم إرسال"
+                : "Success")}
+          </span>
+        </div>
 
-                      {/* Progress Bar */}
-                      <div
-                        className={`w-full h-2 mt-2 rounded-full ${
-                          isCurrent ? "bg-[#1588C8]" : "bg-gray-200"
-                        }`}
-                        style={{ width: "100px" }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+        {/* Progress Bar - Only show between steps */}
+        {stepNumber < 3 && (
+          <div
+            className={`hidden sm:block w-16 h-1 mt-2 rounded-full ${
+              step > stepNumber ? "bg-green-500" : "bg-gray-200"
+            }`}
+          />
+        )}
+      </div>
+    );
+  })}
+</div>
 
               {errorMessage && (
                 <div

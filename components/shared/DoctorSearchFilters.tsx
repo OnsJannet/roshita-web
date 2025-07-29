@@ -270,7 +270,7 @@ const DoctorSearchForm = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-4 w-full z-99999">
       {/* Countdown Timer - Only show if countdown hasn't ended */}
       {/*{!countdownEnded && (
   <div
