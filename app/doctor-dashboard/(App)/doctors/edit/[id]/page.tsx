@@ -210,97 +210,97 @@ export default function Page() {
     }
   };*/
 
-    const handleRemoveSlot = async ( index: number, id:number) => {
-      console.log("index: ", index);
-      if (doctor && doctor.appointments) {
-        if (!index) {
-          console.error("Appointment ID not found");
+  const handleRemoveSlot = async (index: number, id: number) => {
+    console.log("index: ", index);
+    if (doctor && doctor.appointments) {
+      if (!index) {
+        console.error("Appointment ID not found");
+        return;
+      }
+
+      try {
+        // Get the Bearer token from localStorage
+        const token = localStorage.getItem("access");
+        if (!token) {
+          console.error("Access token not found in localStorage");
           return;
         }
-    
-        try {
-          // Get the Bearer token from localStorage
-          const token = localStorage.getItem("access");
-          if (!token) {
-            console.error("Access token not found in localStorage");
-            return;
+
+        // Send the DELETE request
+        const response = await fetch(
+          `https://test-roshita.net/api/appointment-reservations/${id}/`,
+          {
+            method: "DELETE",
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${token}`,
+              "X-CSRFToken":
+                "9htdjDGAaHSm5TKSyU7DoBSxj4PlVCSYt2yA1iOmGLIu2JXABwbrTe3rgvbCnG2U",
+            },
           }
-    
-          // Send the DELETE request
-          const response = await fetch(
-            `https://test-roshita.net/api/appointment-reservations/${id}/`,
-            {
-              method: "DELETE",
-              headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${token}`,
-                "X-CSRFToken":
-                  "9htdjDGAaHSm5TKSyU7DoBSxj4PlVCSYt2yA1iOmGLIu2JXABwbrTe3rgvbCnG2U",
-              },
-            }
+        );
+
+        if (response.ok) {
+          console.log("Appointment deleted successfully");
+
+          // Log the action as a success
+          await logAction(
+            token,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            { appointmentId: index },
+            "success",
+            response.status // HTTP status code (e.g., 200)
           );
-    
-          if (response.ok) {
-            console.log("Appointment deleted successfully");
-    
-            // Log the action as a success
-            await logAction(
-              token,
-              `https://test-roshita.net/api/appointment-reservations/${index}/`,
-              { appointmentId: index },
-              "success",
-              response.status // HTTP status code (e.g., 200)
+
+          // Update the appointments locally
+          if (doctor && doctor.appointments) {
+            const updatedAppointments = doctor.appointments.filter(
+              (_, idx) => idx !== index
             );
-    
-            // Update the appointments locally
-            if (doctor && doctor.appointments) {
-              const updatedAppointments = doctor.appointments.filter(
-                (_, idx) => idx !== index
-              );
-              setDoctor((prevDoctor) => {
-                return prevDoctor
-                  ? {
-                      ...prevDoctor,
-                      appointments: updatedAppointments,
-                    }
-                  : null;
-              });
-            }
-            //window.location.reload();
-          } else {
-            console.error("Failed to delete appointment", response.statusText);
-    
-            // Log the action as an error
-            const errorData = await response.json(); // Parse the error response
-            await logAction(
-              token,
-              `https://test-roshita.net/api/appointment-reservations/${index}/`,
-              { appointmentId: index },
-              "error",
-              response.status, // HTTP status code (e.g., 400, 500)
-              errorData.message || "Failed to delete appointment" // Error message
-            );
+            setDoctor((prevDoctor) => {
+              return prevDoctor
+                ? {
+                    ...prevDoctor,
+                    appointments: updatedAppointments,
+                  }
+                : null;
+            });
           }
-        } catch (error) {
-          console.error("Error deleting appointment:", error);
-    
+          //window.location.reload();
+        } else {
+          console.error("Failed to delete appointment", response.statusText);
+
           // Log the action as an error
-          const token = localStorage.getItem("access");
-          if (token) {
-            await logAction(
-              token,
-              `https://test-roshita.net/api/appointment-reservations/${index}/`,
-              { appointmentId: index },
-              "error",
-              /* @ts-ignore */
-              error.response?.status || 500, // Use the error status code or default to 500
-              /* @ts-ignore */
-              error.message || "An unknown error occurred" // Error message
-            );
-          }
+          const errorData = await response.json(); // Parse the error response
+          await logAction(
+            token,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            { appointmentId: index },
+            "error",
+            response.status, // HTTP status code (e.g., 400, 500)
+            errorData.message || "Failed to delete appointment" // Error message
+          );
+        }
+      } catch (error) {
+        console.error("Error deleting appointment:", error);
+
+        // Log the action as an error
+        const token = localStorage.getItem("access");
+        if (token) {
+          await logAction(
+            token,
+            `https://test-roshita.net/api/appointment-reservations/${index}/`,
+            { appointmentId: index },
+            "error",
+            /* @ts-ignore */
+            error.response?.status || 500, // Use the error status code or default to 500
+            /* @ts-ignore */
+            error.message || "An unknown error occurred" // Error message
+          );
         }
       }
-    };
+    }
+  };
 
   console.log("specialities", specialities);
   const handleBooked = (index: number) => {
@@ -320,14 +320,13 @@ export default function Page() {
         //reservation_status: "pending payment",
         reservation_date: bookingDetails?.scheduled_date,
         start_time: bookingDetails?.start_time,
-        end_time: bookingDetails?.end_time
-
+        end_time: bookingDetails?.end_time,
       },
       confirmation_code: "12345", // Replace or generate dynamically
       doctor_id: id,
       doctor: {
         id: id,
-        name: doctor?.staff.first_name + " " + doctor?.staff.last_name
+        name: doctor?.staff.first_name + " " + doctor?.staff.last_name,
       },
       // @ts-ignore
       price: bookingDetails?.price, // Adjust as needed
@@ -352,7 +351,6 @@ export default function Page() {
       );
 
       if (response.ok) {
-
         setPopupVisible(false);
       } else {
         const error = await response.json();
@@ -551,10 +549,9 @@ export default function Page() {
   };
 
   const handleSpecialityChange = (specialityNameOrForeignName: string) => {
-    // Find the matching specialty in the specialties list based on name or foreign_name
-    // @ts-ignore
+    //@ts-ignore
     const matchingSpeciality = specialities?.find(
-      // @ts-ignore
+      //@ts-ignore
       (speciality) =>
         speciality.name === specialityNameOrForeignName ||
         speciality.foreign_name === specialityNameOrForeignName
@@ -569,151 +566,181 @@ export default function Page() {
     }
 
     const specialityId = matchingSpeciality.id;
-
-    // Set the selected specialty ID in state
     setSelectedSpecialityId(specialityId);
 
-    // Update the doctor state
-    // @ts-ignore
     setDoctor((prev) => {
       if (!prev) return prev;
 
-      const updatedDoctor = {
+      return {
         ...prev,
-        specialty: prev.specialty
-          ? {
-              ...prev.specialty,
-              id: specialityId, // Update specialty ID
-            }
-          : null, // Handle the case where specialty is not defined
+        specialty: {
+          ...prev.specialty,
+          id: specialityId,
+        },
       };
-
-      return updatedDoctor;
     });
-
   };
 
-  const handleUpdateDoctor = async () => {
-    if (!doctor) return;
+const handleUpdateDoctor = async () => {
+  if (!doctor) return;
 
-    // Filter out old and new appointments
-    const updatedAppointments =
-      doctor.appointments?.filter((existingAppointment) => {
-        return !appointmentDates.some(
-          (newAppointment) =>
-            newAppointment.scheduled_date ===
-              existingAppointment.scheduled_date &&
-            newAppointment.start_time === existingAppointment.start_time &&
-            newAppointment.appointment_status ===
-              existingAppointment.appointment_status
-        );
-      }) || [];
-
-    const newAppointments = appointmentDates.filter((newAppointment) => {
-      return !doctor.appointments?.some(
-        (existingAppointment) =>
-          existingAppointment.scheduled_date ===
-            newAppointment.scheduled_date &&
-          existingAppointment.start_time === newAppointment.start_time &&
-          existingAppointment.appointment_status ===
-            newAppointment.appointment_status
+  // Filter out old and new appointments
+  const updatedAppointments =
+    doctor.appointments?.filter((existingAppointment) => {
+      return !appointmentDates.some(
+        (newAppointment) =>
+          newAppointment.scheduled_date ===
+            existingAppointment.scheduled_date &&
+          newAppointment.start_time === existingAppointment.start_time &&
+          newAppointment.appointment_status ===
+            existingAppointment.appointment_status
       );
-    });
+    }) || [];
 
-    // Create the `data` object for appointment dates
-    const data = {
-      appointment_dates: [
-        ...updatedAppointments.map((appointment) => ({
-          scheduled_date: appointment.scheduled_date,
-          start_time: appointment.start_time,
-          end_time: appointment.end_time,
-          appointment_status: appointment.appointment_status,
-          //@ts-ignore
-          price: appointment.price,
-        })),
-        ...newAppointments.map((appointment) => ({
-          scheduled_date: appointment.scheduled_date,
-          start_time: appointment.start_time,
-          end_time: appointment.end_time,
-          appointment_status: appointment.appointment_status,
-          price: appointment.price,
-        })),
-      ],
-    };
+  const newAppointments = appointmentDates.filter((newAppointment) => {
+    return !doctor.appointments?.some(
+      (existingAppointment) =>
+        existingAppointment.scheduled_date ===
+          newAppointment.scheduled_date &&
+        existingAppointment.start_time === newAppointment.start_time &&
+        existingAppointment.appointment_status ===
+          newAppointment.appointment_status
+    );
+  });
 
-    // Create the `staff` object for staff information
-    const staff = {
-      first_name: doctor.staff.first_name,
-      last_name: doctor.staff.last_name,
-      //@ts-ignore
-      email: doctor.staff.email,
-      city: doctor.staff.city.id, // Include city ID
-    };
-
-    // Log the data and staff objects
-    console.log("Data:", JSON.stringify(data));
-    console.log("Staff:", JSON.stringify(staff));
-
-    // Create FormData object
-    const formData = new FormData();
-
-    // Append the `data` object as a JSON string
-    formData.append("data", JSON.stringify(data));
-
-    // Append the `staff` object as a JSON string
-    formData.append("staff", JSON.stringify(staff));
-
-    // Add the image file to FormData if it exists
+  // Create the complete data object with all fields
+  const data = {
+    appointment_dates: [
+      ...updatedAppointments.map((appointment) => ({
+        scheduled_date: appointment.scheduled_date,
+        start_time: appointment.start_time,
+        end_time: appointment.end_time,
+        appointment_status: appointment.appointment_status,
+        //@ts-ignore
+        price: appointment.price,
+      })),
+      ...newAppointments.map((appointment) => ({
+        scheduled_date: appointment.scheduled_date,
+        start_time: appointment.start_time,
+        end_time: appointment.end_time,
+        appointment_status: appointment.appointment_status,
+        price: appointment.price,
+      })),
+    ],
+    // Include all additional fields
     //@ts-ignore
-    if (imageFile) {
-      //@ts-ignore
-      formData.append("staff_avatar", imageFile); // Append the file directly if it exists
-      //@ts-ignore
-      console.log("Image file being sent:", imageFile);
-    }
-
-    // Log the FormData content
-    formData.forEach((value, key) => {
-      console.log("FormData -", key, value);
-    });
-
-    try {
-      const accessToken = localStorage.getItem("access");
-
-      // Send the request to the backend
-      const response = await fetch(
-        `https://test-roshita.net/api/doctors/${doctor.id}/`,
-        {
-          method: "PUT", // Use PUT for updating
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: formData, // Send FormData
-        }
-      );
-
-      const result = await response.json();
-
-      if (response.ok) {
-        // Handle success
-        console.log("Doctor updated successfully:", result);
-       //window.location.reload() Reload the page or update the state as needed
-      } else {
-        // Handle error
-        console.error("Error updating doctor:", result);
-        setError(result.message || "Error updating doctor information");
-      }
-    } catch (error) {
-      console.error("Error updating doctor:", error);
-      setError("An error occurred while updating doctor information");
-    }
+    whatsapp_number: doctor.whatsapp_number,
+     //@ts-ignore
+    license_expiry_date: doctor.license_expiry_date,
+     //@ts-ignore
+    medical_license_number: doctor.medical_license_number,
+     //@ts-ignore
+    years_of_experience: doctor.years_of_experience,
+     //@ts-ignore
+    pay_method: doctor.pay_method,
+     //@ts-ignore
+    coordination_contact_name: doctor.coordination_contact_name,
+     //@ts-ignore
+    is_consultant: doctor.is_consultant,
+     //@ts-ignore
+    price_return_percentage: doctor.price_return_percentage,
+    //@ts-ignore
+    specialty: doctor.specialty.id, // Include specialty ID
+    fixed_price: doctor.fixed_price,
   };
+
+  // Create the staff object with all fields
+  const staff = {
+    first_name: doctor.staff.first_name,
+    last_name: doctor.staff.last_name,
+     //@ts-ignore
+    email: doctor.staff.email,
+     //@ts-ignore
+    address: doctor.staff.address,
+    phone: doctor.user.phone,
+    city: doctor.staff.city.id, // Include city ID
+    medical_organization: doctor.staff.medical_organization.map(org => ({
+      name: org.name,
+      phone: org.phone,
+       //@ts-ignore
+      email: org.email,
+       //@ts-ignore
+      address: org.address,
+      city: org.city.id,
+       //@ts-ignore
+      type: org.type,
+       //@ts-ignore
+      Latitude: org.Latitude,
+       //@ts-ignore
+      Longitude: org.Longitude
+    }))
+  };
+
+  // Create FormData object
+  const formData = new FormData();
+
+  // Append the data object as a JSON string
+  formData.append("data", JSON.stringify(data));
+
+  // Append the staff object as a JSON string
+  formData.append("staff", JSON.stringify(staff));
+
+  // Add the image file to FormData if it exists
+  if (imageFile) {
+    formData.append("staff_avatar", imageFile);
+  }
+
+  // Append documents if they exist
+   //@ts-ignore
+  if (doctor.doctor_documents && doctor.doctor_documents.length > 0) {
+     //@ts-ignore
+    doctor.doctor_documents.forEach((doc, index) => {
+      formData.append(`documents[${index}][id]`, doc.id.toString());
+      formData.append(`documents[${index}][document_type]`, doc.document_type.id.toString());
+      formData.append(`documents[${index}][title]`, doc.title);
+      formData.append(`documents[${index}][issue_date]`, doc.issue_date);
+      formData.append(`documents[${index}][expiry_date]`, doc.expiry_date);
+      formData.append(`documents[${index}][is_verified]`, doc.is_verified.toString());
+      formData.append(`documents[${index}][notes]`, doc.notes || '');
+    });
+  }
+
+  try {
+    const accessToken = localStorage.getItem("access");
+
+    // Send the request to the backend
+    const response = await fetch(
+      `https://test-roshita.net/api/doctors/${doctor.id}/`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log("Doctor updated successfully:", result);
+      window.location.reload()
+      // Optionally show success message or redirect
+    } else {
+      console.error("Error updating doctor:", result);
+      setError(result.message || "Error updating doctor information");
+    }
+  } catch (error) {
+    console.error("Error updating doctor:", error);
+    setError("An error occurred while updating doctor information");
+  }
+};
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen mx-auto">
       <LoadingDoctors />
     </div>
-  ) :(
+  ) : (
     <SidebarProvider>
       <SidebarInset>
         <header
@@ -874,265 +901,414 @@ export default function Page() {
                 </div>
               </div>
             )}
-            <InformationCard
-              title={
-                language === "ar" ? "بيانات الشخصية" : "Personal Information"
-              }
-              name={
-                doctor?.staff.first_name +
-                  " " +
-                  (doctor?.staff.last_name ?? "") ||
-                (language === "ar" ? "غير محدد" : "Not specified")
-              }
-              fields={[
-                {
-                  label: language === "ar" ? "رقم الهاتف" : "Phone Number",
-                  value: `${
-                    (doctor?.user.phone ?? "") ||
-                    (language === "ar" ? "غير محدد" : "Not specified")
-                  }`,
-                },
-                {
-                  label: language === "ar" ? "مكان" : "Location",
-                  value: `${
-                    // @ts-ignore
-                    (language === "ar"
-                      ? // @ts-ignore
-                      doctor?.staff?.city.name
-                      : // @ts-ignore
-                      doctor?.staff?.city.foreign_name) ??
-                    (language === "ar" ? "غير محدد" : "Not specified")
-                  }`,
-                  isDropdown: true,
-                },
-                {
-                  label: language === "ar" ? "التخصص" : "specialty",
-                  value: `${
-                    // @ts-ignore
-                    (language === "ar"
-                      ? // @ts-ignore
-                        doctor?.specialty?.name
-                      : // @ts-ignore
-                        doctor?.specialty?.foreign_name) ??
-                    (language === "ar" ? "غير محدد" : "Not specified")
-                  }`,
-                  isDropdown: true,
-                },
-                {
-                  label: language === "ar" ? "سعر الحجز" : "Booking Price",
-                  value: `${doctor?.fixed_price ? `${doctor.fixed_price} ${language === "ar" ? "د.ل" : "DL"}` : (language === "ar" ? "غير محدد" : "Not specified")}`,
-                },
-              ]}
-              picture={
-                doctor?.staff.staff_avatar
-                  ? doctor.staff.staff_avatar.replace("https://", "http://")
-                  : "/Images/default-doctor.jpg"
-              }
-              //@ts-ignore
-              photoUploadHandler={handleFileUpload}
-              onNameChange={(name) =>
-                setDoctor(
-                  (prev) =>
-                    prev && {
-                      ...prev,
-                      staff: { ...prev.staff, first_name: name },
-                    }
-                )
-              }
-              onFieldChange={(index, value) => {
-                if (index === 0) { // Phone number field
-                  setDoctor(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        user: { ...prev.user, phone: value }, // Update `doctor.user.phone`
-                      }
-                  );
-                }
-                if (index === 1) {
-                  setDoctor((prev) => {
-                    if (!prev) return prev; // Ensure prev exists
-                
-                    return {
-                      ...prev,
-                      staff: {
-                        ...prev.staff,
-                        city:
-                          typeof prev.staff.city === "object" // Ensure city is an object
-                            ? {
-                                id: prev.staff.city.id, // Keep the existing ID (should be a number)
-                                name: value, // Update city name
-                                foreign_name: prev.staff.city.foreign_name,
-                              }
-                            : prev.staff.city, // If city is not an object, keep it as is
-                      },
-                    };
-                  });
-                }
-                if (index === 2) {
-                  setDoctor((prev) => {
-                    if (!prev) return prev; // Ensure prev exists
-                    return {
-                      ...prev,
-                      specialty:
-                        prev.specialty && typeof prev.specialty === "object"
-                          ? {
-                              ...prev.specialty,
-                              name: value, // Update the name with the desired value
-                            }
-                          : prev.specialty, // If specialty is not an object, keep it as is
-                    };
-                  });
-                }
-
-                if (index === 3) {
-                  setDoctor((prev) => prev && { ...prev, fixed_price: value });
-                }
-              }}
-              cities={cities}
-              onCityChange={handleCityChange} // Pass the city change handler
-              // @ts-ignore
-              specialities={specialities}
-              onSpecialityChange={handleSpecialityChange} // Pass the city change handler
-            />
-
-            <Table className="w-full border border-gray-300  shadow-sm  rounded-xl">
-              <thead>
-                <TableRow>
-                  {language === "ar" ? (
-                    <>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.action}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.status}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.endTime}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.startTime}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.date}
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.date}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.startTime}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.endTime}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.status}
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-700 text-center">
-                        {t.action}
-                      </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              </thead>
-              <tbody>
-  {doctor?.appointments && doctor.appointments.length > 0 ? (
-    doctor.appointments.map((slot, index) => {
-      console.log("Appointment:", slot); // Log the appointment
-
-      return (
-        <TableRow key={index}>
-          {language === "ar" ? (
-            <>
-              <TableCell className="text-center">
-                <Button
-                  variant="destructive"
-                  /* @ts-ignore */
-                  onClick={() => handleRemoveSlot(index, slot.id)}
-                  className="text-white hover:text-red-800"
-                >
-                  {t.remove}
-                </Button>
-                <Button
-                  onClick={() => handleBooked(index)}
-                  className="text-white bg-[#1685c7] ml-2"
-                >
-                  {t.roshitaBook}
-                </Button>
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.appointment_status}
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.end_time}
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.start_time}
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.scheduled_date}
-              </TableCell>
-            </>
-          ) : (
-            <>
-              <TableCell className="text-center">
-                {slot.scheduled_date}
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.start_time}
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.end_time}
-              </TableCell>
-              <TableCell className="text-center">
-                {slot.appointment_status}
-              </TableCell>
-              <TableCell className="text-center gap-2">
-                <Button
-                  variant="destructive"
-                  /* @ts-ignore */
-                  onClick={() => handleRemoveSlot(index, slot.id)}
-                  className="text-white hover:text-red-800"
-                >
-                  {t.remove}
-                </Button>
-                <Button
-                  onClick={() => handleBooked(index)}
-                  className="text-white bg-[#1685c7] ml-2"
-                >
-                  {t.roshitaBook}
-                </Button>
-              </TableCell>
-            </>
-          )}
-        </TableRow>
+<InformationCard
+  title={
+    language === "ar" ? "بيانات الشخصية" : "Personal Information"
+  }
+  name={
+    doctor?.staff.first_name +
+      " " +
+      (doctor?.staff.last_name ?? "") ||
+    (language === "ar" ? "غير محدد" : "Not specified")
+  }
+  lastName={doctor?.staff.last_name || ""}
+  fields={[
+    {
+      label: language === "ar" ? "رقم الهاتف" : "Phone Number",
+      value: `${
+        (doctor?.user.phone ?? "") ||
+        (language === "ar" ? "غير محدد" : "Not specified")
+      }`,
+    },
+    {
+      label: language === "ar" ? "مكان" : "Location",
+      value: `${
+        (language === "ar"
+          ? doctor?.staff?.city.name
+          : doctor?.staff?.city.foreign_name) ??
+        (language === "ar" ? "غير محدد" : "Not specified")
+      }`,
+      isDropdown: true,
+    },
+    {
+      label: language === "ar" ? "التخصص" : "specialty",
+      value: `${
+        (language === "ar"
+          //@ts-ignore
+          ? doctor?.specialty?.name
+          //@ts-ignore
+          : doctor?.specialty?.foreign_name) ??
+        (language === "ar" ? "غير محدد" : "Not specified")
+      }`,
+      isDropdown: true,
+    },
+    {
+      label: language === "ar" ? "سعر الحجز" : "Booking Price",
+      value: `${
+        doctor?.fixed_price
+          ? `${doctor.fixed_price} ${
+              language === "ar" ? "د.ل" : "DL"
+            }`
+          : language === "ar"
+          ? "غير محدد"
+          : "Not specified"
+      }`,
+    },
+  ]}
+  picture={
+    doctor?.staff.staff_avatar
+      ? doctor.staff.staff_avatar.replace("https://", "http://")
+      : "/Images/default-doctor.jpg"
+  }
+  //@ts-ignore
+  photoUploadHandler={handleFileUpload}
+  onNameChange={(name) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          staff: { ...prev.staff, first_name: name },
+        }
+    )
+  }
+  onLastNameChange={(lastName) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          staff: { ...prev.staff, last_name: lastName },
+        }
+    )
+  }
+  onFieldChange={(index, value) => {
+    if (index === 0) {
+      setDoctor(
+        (prev) =>
+          prev && {
+            ...prev,
+            user: { ...prev.user, phone: value },
+          }
       );
-    })
-  ) : (
-    <TableRow>
-      <TableCell colSpan={4} className="text-center text-gray-500">
-        {language === "ar"
-          ? "لا توجد مواعيد متاحة"
-          : "No appointments available."}
-      </TableCell>
-    </TableRow>
-  )}
-</tbody>
+    }
+    if (index === 1) {
+      setDoctor((prev) => {
+        if (!prev) return prev;
 
-            </Table>
+        return {
+          ...prev,
+          staff: {
+            ...prev.staff,
+            city: {
+              ...prev.staff.city,
+              name: value,
+            },
+          },
+        };
+      });
+    }
+    if (index === 2) {
+      setDoctor((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          specialty: {
+            ...prev.specialty,
+            name: value,
+          },
+        };
+      });
+    }
+    if (index === 3) {
+      setDoctor(
+        //@ts-ignore
+        (prev) => prev && { ...prev, fixed_price: Number(value) }
+      );
+    }
+  }}
+  cities={cities}
+  onCityChange={handleCityChange}
+  //@ts-ignore
+  specialities={specialities || []} // Pass the array directly
+  onSpecialityChange={handleSpecialityChange}
+  //@ts-ignore
+  email={doctor?.staff.email || ""}
+  onEmailChange={(email) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          staff: { ...prev.staff, email },
+        }
+    )
+  }
+  //@ts-ignore
+  address={doctor?.staff.address || ""}
+  onAddressChange={(address) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          staff: { ...prev.staff, address },
+        }
+    )
+  }
+  phone={doctor?.user.phone || ""}
+  onPhoneChange={(phone) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          user: { ...prev.user, phone },
+        }
+    )
+  }
+  //@ts-ignore
+  whatsappNumber={doctor?.whatsapp_number || ""}
+  onWhatsappNumberChange={(whatsappNumber) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          whatsapp_number: whatsappNumber,
+        }
+    )
+  }
+  //@ts-ignore
+  licenseExpiryDate={doctor?.license_expiry_date || ""}
+  onLicenseExpiryDateChange={(licenseExpiryDate) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          license_expiry_date: licenseExpiryDate,
+        }
+    )
+  }
+  //@ts-ignore
+  medicalLicenseNumber={doctor?.medical_license_number || ""}
+  onMedicalLicenseNumberChange={(medicalLicenseNumber) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          medical_license_number: medicalLicenseNumber,
+        }
+    )
+  }
+  //@ts-ignore
+  yearsOfExperience={doctor?.years_of_experience || 0}
+  onYearsOfExperienceChange={(yearsOfExperience) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          years_of_experience: Number(yearsOfExperience),
+        }
+    )
+  }
+  //@ts-ignore
+  payMethod={doctor?.pay_method || ""}
+  onPayMethodChange={(payMethod) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          pay_method: payMethod,
+        }
+    )
+  }
+  //@ts-ignore
+  coordinationContactName={doctor?.coordination_contact_name || ""}
+  onCoordinationContactNameChange={(coordinationContactName) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          coordination_contact_name: coordinationContactName,
+        }
+    )
+  }
+  //@ts-ignore
+  isConsultant={doctor?.is_consultant || false}
+  onIsConsultantChange={(isConsultant) =>
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          is_consultant: isConsultant,
+        }
+    )
+  }
+  //@ts-ignore
+  documents={doctor?.doctor_documents || []}
+  onDocumentUpload={(file, type) => {
+    // Handle document upload here
+    console.log("Uploading document:", file, type);
+  }}
+  onDocumentDelete={(id) => {
+    // Handle document deletion here
+    console.log("Deleting document with ID:", id);
+  }}
+  //@ts-ignore
+  priceReturnPercentage={doctor?.price_return_percentage || 0}
+  onPriceReturnPercentageChange={(percentage) => {
+    setDoctor(
+      (prev) =>
+        prev && {
+          ...prev,
+          price_return_percentage: Number(percentage),
+        }
+    );
+  }}
+/>
 
-            <DoctorSlots onSlotsChange={handleSlotsChange} />
+            <div>
+              <Table className="w-full border border-gray-300  shadow-sm  rounded-xl mb-10">
+                <thead>
+                  <TableRow>
+                    {language === "ar" ? (
+                      <>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.action}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.status}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.endTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.startTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.date}
+                        </TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.date}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.startTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.endTime}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.status}
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-700 text-center">
+                          {t.action}
+                        </TableCell>
+                      </>
+                    )}
+                  </TableRow>
+                </thead>
+                <tbody>
+                  {doctor?.appointments && doctor.appointments.length > 0 ? (
+                    doctor.appointments.map((slot, index) => {
+                      console.log("Appointment:", slot); // Log the appointment
 
-            <Button
-              variant="register"
-              className="rounded-2xl h-[52px] w-[140px]"
-              onClick={handleUpdateDoctor}
-            >
-              {language === "ar" ? "حفظ" : "Save"}
-            </Button>
+                      return (
+                        <TableRow key={index}>
+                          {language === "ar" ? (
+                            <>
+                              <TableCell className="text-center">
+                                <Button
+                                  variant="destructive"
+                                  /* @ts-ignore */
+                                  onClick={() =>
+                                    //@ts-ignore
+                                    handleRemoveSlot(index, slot.id)
+                                  }
+                                  className="text-white hover:text-red-800"
+                                >
+                                  {t.remove}
+                                </Button>
+                                <Button
+                                  onClick={() => handleBooked(index)}
+                                  className="text-white bg-[#1685c7] ml-2"
+                                >
+                                  {t.roshitaBook}
+                                </Button>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.appointment_status}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.end_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.start_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.scheduled_date}
+                              </TableCell>
+                            </>
+                          ) : (
+                            <>
+                              <TableCell className="text-center">
+                                {slot.scheduled_date}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.start_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.end_time}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {slot.appointment_status}
+                              </TableCell>
+                              <TableCell className="text-center gap-2">
+                                <Button
+                                  variant="destructive"
+                                  /* @ts-ignore */
+                                  onClick={() =>
+                                    //@ts-ignore
+                                    handleRemoveSlot(index, slot.id)
+                                  }
+                                  className="text-white hover:text-red-800"
+                                >
+                                  {t.remove}
+                                </Button>
+                                <Button
+                                  onClick={() => handleBooked(index)}
+                                  className="text-white bg-[#1685c7] ml-2"
+                                >
+                                  {t.roshitaBook}
+                                </Button>
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-gray-500"
+                      >
+                        {language === "ar"
+                          ? "لا توجد مواعيد متاحة"
+                          : "No appointments available."}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </tbody>
+              </Table>
+
+              <DoctorSlots onSlotsChange={handleSlotsChange} />
+
+              <Button
+                variant="register"
+                className="rounded-2xl h-[52px] w-[140px]"
+                onClick={handleUpdateDoctor}
+              >
+                {language === "ar" ? "حفظ" : "Save"}
+              </Button>
+            </div>
           </div>
         </div>
       </SidebarInset>

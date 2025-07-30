@@ -68,7 +68,7 @@ const CountdownTimer = ({ language }: { language: Language }) => {
     const now = new Date();
     // Libya is UTC+2, but we need to account for the current timezone offset
     const libyaOffset = 2 * 60 * 60 * 1000; // Libya is UTC+2
-    const targetDate = new Date('2025-07-31T00:00:00+02:00'); // July 31, 2025, 00:00 Libya time
+    const targetDate = new Date('2025-08-01T00:00:00+02:00'); // July 31, 2025, 00:00 Libya time
 
     const difference = targetDate.getTime() - now.getTime();
     

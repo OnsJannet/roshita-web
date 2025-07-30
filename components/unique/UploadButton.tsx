@@ -34,19 +34,19 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUpload, picture }) => {
   };
 
   return (
-    <div className="relative w-24 h-24">
-      <label className="group relative w-full h-full flex items-center justify-center rounded-full border border-gray-300 bg-gray-100 cursor-pointer transition duration-150 overflow-hidden">
+    <div className="relative w-[150px] h-[150px]">
+      <label className="group relative w-full h-full flex items-center justify-center rounded-lg border border-gray-300 bg-gray-100 cursor-pointer transition duration-150 overflow-hidden">
         {preview ? (
           <img
             src={preview}
             alt="preview"
-            className="w-full h-full object-cover rounded-full"
+            className="w-full h-full object-contain "
           />
         ) : picture ? (
           <img
             src={picture}
             alt="default picture"
-            className="w-full h-full object-cover rounded-full"
+            className="w-full h-full object-cover "
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
