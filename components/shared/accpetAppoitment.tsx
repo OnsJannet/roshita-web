@@ -58,6 +58,9 @@ const translations = {
     paymentSuccess: "تم الدفع بنجاح",
     reservationCreated: "تم إنشاء الحجز بنجاح",
     ok: "حسنا",
+    birthYear: "سنة الميلاد",
+    enterBirthYear: "الرجاء إدخال سنة الميلاد للمتابعة",
+    invalidYear: "سنة الميلاد غير صالحة",
   },
   en: {
     confirmBooking: "Confirm Booking",
@@ -72,6 +75,9 @@ const translations = {
     paymentSuccess: "Payment Successful",
     reservationCreated: "Reservation created successfully",
     ok: "OK",
+    birthYear: "Birth Year",
+    enterBirthYear: "Please enter your birth year to proceed",
+    invalidYear: "Invalid birth year",
   },
 };
 
@@ -109,12 +115,9 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     address: "",
   });
   
-  console.log("formData", formData)
-  console.log("medical_organizations", medical_organizations);
-  console.log("paymentMethod", paymentMethod);
-  console.log("endTime", endTime);
-  console.log("profileData", profileData)
-  console.log("paymentMethod?.word ", paymentMethod?.word)
+  const [birthYear, setBirthYear] = useState("");
+  const [showBirthYearInput, setShowBirthYearInput] = useState(false);
+  const [birthYearError, setBirthYearError] = useState("");
 
   const [language, setLanguage] = useState<Language>("ar");
   const [confirmModal, setConfirmModal] = useState(false);
@@ -125,8 +128,6 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   const [url, setUrl] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [reservationId, setReservationId] = useState("");
-
-  console.log("this is the payment method", payement);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -153,7 +154,6 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     const loadProfileData = async () => {
       try {
         const data = await fetchProfileDetails();
-        console.log("datadata", data);
         setProfileData({
           user: {
             first_name: data.user?.first_name || "",
@@ -176,112 +176,123 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
     loadProfileData();
   }, []);
 
-  console.log("formDataAcceptAppointement", formData);
-  console.log("familymember", familymember);
-
-
-  const t = translations[language]; // Choose translation based on selected language
+  const t = translations[language];
 
   const organizationId =
     Array.isArray(medical_organizations) && medical_organizations.length > 0
       ? medical_organizations[0].id
       : 0;
 
-const handleCreateAppointment = async () => {
-  const token = localStorage.getItem("access");
-
-  if (!token) {
-    console.error("No access token found");
-    return;
-  }
-
-  try {
-    // First fetch the profile details to get the birthday
-    const profileDetails = await fetchProfileDetails();
-    const birthday = profileDetails.birthday; // "2025-07-14" from your example
-    const birthYear = new Date(birthday).getFullYear(); // Extract year from date string
-
-    const [dayPart, monthPart, yearPart] = day.split("/");
-    const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
-    const formattedStartTime = `${time}:00`;
-    const formattedEndTime = `${endTime}:00`;
-    const phone = localStorage.getItem("phone"); // Fixed typo: getITem -> getItem
-    
-    const newAppointment = {
-      reservation: {
-        patient: familymember
-          ? familymemberType === "newFamilyMember"
-            ? {
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                relative: formData.relative,
-                phone: formData.phone,
-                email: formData.email,
-                city: formData.city,
-                address: formData.address,
-              }
-              //@ts-ignore
-            : { id: formData.id || profileData.user.id}
-            //@ts-ignore
-          : { id: formData.id },
-        reservation_date: formattedDate,
-        start_time: formattedStartTime,
-        end_time: formattedEndTime,
-      },
-      medical_organizations: organizationId || 0,
-      doctor: id,
-      price: price,
-      pay_full_amount: payement === "full" ? true : false,
-      payment: {
-        payment_method: paymentMethod?.word,
-        mobile_number: phone,
-        birth_year: birthYear,
-      },
-    };
-
-    const response = await fetch("https://test-roshita.net/api/user-appointment-reservations/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(newAppointment),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Error reserving appointment:", errorData);
-      alert("Failed to book the appointment.");
+  const handleCreateAppointment = async () => {
+    if (!birthYear) {
+      setShowBirthYearInput(true);
+      setBirthYearError(t.enterBirthYear);
       return;
     }
 
-    const responseData = await response.json();
-    console.log("Reservation successful:", responseData);
-    setReservationId(responseData.id || "N/A");
-
-    if (
-      paymentMethod?.word?.toLowerCase() === "sadad" ||
-      paymentMethod?.word?.toLowerCase() === "adfali"
-    ) {
-      if (responseData.payment_confirmation) {
-        setProcessID(responseData.payment_confirmation.result.process_id);
-        setAmount(responseData.payment_confirmation.result.amount);
-        setPayementId(responseData.reservation_invoice_detail_id);
-        setConfirmModal(true);
-        setUrl(responseData.payment_confirmation.result.redirect_url);
-      }
-    } else if (paymentMethod?.word?.toLowerCase() === "local bank card" || paymentMethod?.word === "MPGS"|| paymentMethod?.word === "t-lync") {
-      window.location.href =
-        responseData.payment_confirmation.result.redirect_url;
-    } 
-    else {
-      setShowSuccessModal(true);
+    const yearNum = parseInt(birthYear);
+    if (isNaN(yearNum)) {
+      setBirthYearError(t.invalidYear);
+      return;
     }
-  } catch (error) {
-    console.error("Error booking the appointment:", error);
-    alert("An error occurred while booking the appointment.");
-  }
-};
+
+    const currentYear = new Date().getFullYear();
+    if (yearNum < 1900 || yearNum > currentYear) {
+      setBirthYearError(t.invalidYear);
+      return;
+    }
+
+    setBirthYearError("");
+
+    const token = localStorage.getItem("access");
+
+    if (!token) {
+      console.error("No access token found");
+      return;
+    }
+
+    try {
+      const [dayPart, monthPart, yearPart] = day.split("/");
+      const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
+      const formattedStartTime = `${time}:00`;
+      const formattedEndTime = `${endTime}:00`;
+      const phone = localStorage.getItem("phone");
+      
+      const newAppointment = {
+        reservation: {
+          patient: familymember
+            ? familymemberType === "newFamilyMember"
+              ? {
+                  first_name: formData.first_name,
+                  last_name: formData.last_name,
+                  relative: formData.relative,
+                  phone: formData.phone,
+                  email: formData.email,
+                  city: formData.city,
+                  address: formData.address,
+                }
+                //@ts-ignore
+              : { id: formData.id || profileData.user.id}
+              //@ts-ignore
+            : { id: formData.id },
+          reservation_date: formattedDate,
+          start_time: formattedStartTime,
+          end_time: formattedEndTime,
+        },
+        medical_organizations: organizationId || 0,
+        doctor: id,
+        price: price,
+        pay_full_amount: payement === "full" ? true : false,
+        payment: {
+          payment_method: paymentMethod?.word,
+          mobile_number: phone,
+          birth_year: yearNum,
+        },
+      };
+
+      const response = await fetch("https://test-roshita.net/api/user-appointment-reservations/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newAppointment),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error reserving appointment:", errorData);
+        alert("Failed to book the appointment.");
+        return;
+      }
+
+      const responseData = await response.json();
+      console.log("Reservation successful:", responseData);
+      setReservationId(responseData.id || "N/A");
+
+      if (
+        paymentMethod?.word?.toLowerCase() === "sadad" ||
+        paymentMethod?.word?.toLowerCase() === "adfali"
+      ) {
+        if (responseData.payment_confirmation) {
+          setProcessID(responseData.payment_confirmation.result.process_id);
+          setAmount(responseData.payment_confirmation.result.amount);
+          setPayementId(responseData.reservation_invoice_detail_id);
+          setConfirmModal(true);
+          setUrl(responseData.payment_confirmation.result.redirect_url);
+        }
+      } else if (paymentMethod?.word?.toLowerCase() === "local bank card" || paymentMethod?.word === "MPGS"|| paymentMethod?.word === "t-lync") {
+        window.location.href =
+          responseData.payment_confirmation.result.redirect_url;
+      } 
+      else {
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error("Error booking the appointment:", error);
+      alert("An error occurred while booking the appointment.");
+    }
+  };
 
   const handleOtpSubmit = async () => {
     const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`;
@@ -289,10 +300,7 @@ const handleCreateAppointment = async () => {
     const requestBody = {
       process_id: `${processID}`,
       code: `${otpCode}`,
-      //amount: `${amount}`,
     };
-
-    console.log("resquestBody", requestBody);
 
     try {
       const response = await fetch(confirmUrl, {
@@ -462,6 +470,44 @@ const handleCreateAppointment = async () => {
                   </Label>
                 </div>
               </div>
+              {showBirthYearInput && (
+                <>
+                  <div
+                    className={`flex items-center gap-4 ${
+                      language === "en" ? "flex-row-reverse" : ""
+                    }`}
+                  >
+                    <Input
+                      id="birthYear"
+                      value={birthYear}
+                      onChange={(e) => {
+                        setBirthYear(e.target.value);
+                        setBirthYearError("");
+                      }}
+                      className="flex-1"
+                      placeholder={t.birthYear}
+                      type="number"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                    />
+                    <Label
+                      htmlFor="birthYear"
+                      className={`text-${
+                        language === "en" ? "left" : "right"
+                      } w-40`}
+                    >
+                      {t.birthYear}
+                    </Label>
+                  </div>
+                  {birthYearError && (
+                    <p className={`text-red-500 text-sm ${
+                      language === "ar" ? "text-right" : "text-left"
+                    }`}>
+                      {birthYearError}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
@@ -471,8 +517,9 @@ const handleCreateAppointment = async () => {
                 type="button"
                 className="bg-roshitaBlue"
                 onClick={handleCreateAppointment}
+                disabled={showBirthYearInput && (!birthYear || !!birthYearError)}
               >
-                {t.myAppointments}
+                {showBirthYearInput ? t.confirmBooking : t.myAppointments}
               </Button>
             </div>
           </DialogFooter>

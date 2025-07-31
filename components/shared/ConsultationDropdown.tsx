@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -6,9 +7,9 @@ import { paiement } from "@/constant";
 import { MessageAlert } from "./MessageAlert";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { fetchProfileDetails } from "@/lib/api";
+import { Label } from "../ui/label";
 
 interface File {
   description: string;
@@ -54,99 +55,113 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [currentStep, setCurrentStep] = useState(1); // 1 for calendar, 2 for payment
+  const [currentStep, setCurrentStep] = useState(1);
+  const [birthYear, setBirthYear] = useState("");
+  const [showBirthYearInput, setShowBirthYearInput] = useState(false);
+  const [birthYearError, setBirthYearError] = useState("");
 
   const handlePaymentMethodClick = (id: number) => {
     const selectedMethod = paiement.find((option) => option.id === id);
     if (selectedMethod) {
       setSelectedPaymentMethod(selectedMethod.name_en.toLowerCase());
-      setError(""); // Clear error when selecting a method
+      setError("");
     }
   };
 
-const acceptRequest = async () => {
-  if (!selectedPaymentMethod) {
-    setError(
-      language === "ar"
-        ? "الرجاء اختيار طريقة الدفع"
-        : "Please select a payment method"
-    );
-    return;
-  }
-
-  if (!selectedDate) {
-    setError(
-      language === "ar"
-        ? "الرجاء اختيار تاريخ الموعد"
-        : "Please select an appointment date"
-    );
-    return;
-  }
-
-  const formattedDateTime = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss");
-
-  const token = localStorage.getItem("access");
-  const phone = localStorage.getItem("phone"); // Fixed typo: getITem -> getItem
-  
-  try {
-    // First fetch the profile details to get the birthday
-    const profileDetails = await fetchProfileDetails();
-    const birthday = profileDetails.birthday; // "2025-07-14" from your example
-    const birthYear = new Date(birthday).getFullYear(); // Extract year from date string
-
-    const response = await fetch(
-      `https://test-roshita.net/api/accept-hospital-second-opinion-offer/${consultationId}/`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "X-CSRFToken":
-            "j0SeEpLccXPhKy1Se6Qw8mC1azuRHSXpQeJ1LMAC56KpeM0WC7wzo18bRNcMflLt",
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          mobile_number: phone,
-          birth_year: birthYear,
-          payment_method: selectedPaymentMethod,
-          pay_full_amount: true,
-          reservation_date_time: formattedDateTime
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
+  const acceptRequest = async () => {
+    if (!selectedPaymentMethod) {
+      setError(
+        language === "ar"
+          ? "الرجاء اختيار طريقة الدفع"
+          : "Please select a payment method"
+      );
+      return;
     }
 
-    const result = await response.json();
-    console.log("Request accepted:", result);
-    setSuccessMessage(
-      language === "ar"
-        ? "تم قبول الطلب بنجاح"
-        : "Request accepted successfully"
-    );
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
-    setIsModalOpen(false);
-  } catch (error) {
-    console.error("Failed to accept request:", error);
-    setError(
-      language === "ar"
-        ? "فشل قبول الطلب. الرجاء المحاولة مرة أخرى"
-        : "Failed to accept the request. Please try again."
-    );
-  }
-};
+    if (!selectedDate) {
+      setError(
+        language === "ar"
+          ? "الرجاء اختيار تاريخ الموعد"
+          : "Please select an appointment date"
+      );
+      return;
+    }
 
+    if (!birthYear) {
+      setBirthYearError(
+        language === "ar"
+          ? "الرجاء إدخال سنة الميلاد للمتابعة"
+          : "Please enter your birth year to proceed"
+      );
+      return;
+    }
+
+    const yearNum = parseInt(birthYear);
+    if (isNaN(yearNum) || yearNum < 1900 || yearNum > new Date().getFullYear()) {
+      setBirthYearError(
+        language === "ar"
+          ? "سنة الميلاد غير صالحة"
+          : "Invalid birth year"
+      );
+      return;
+    }
+
+    const formattedDateTime = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss");
+
+    const token = localStorage.getItem("access");
+    const phone = localStorage.getItem("phone");
+    
+    try {
+      const response = await fetch(
+        `https://test-roshita.net/api/accept-hospital-second-opinion-offer/${consultationId}/`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "X-CSRFToken":
+              "j0SeEpLccXPhKy1Se6Qw8mC1azuRHSXpQeJ1LMAC56KpeM0WC7wzo18bRNcMflLt",
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mobile_number: phone,
+            birth_year: yearNum,
+            payment_method: selectedPaymentMethod,
+            pay_full_amount: true,
+            reservation_date_time: formattedDateTime
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Request accepted:", result);
+      setSuccessMessage(
+        language === "ar"
+          ? "تم قبول الطلب بنجاح"
+          : "Request accepted successfully"
+      );
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to accept request:", error);
+      setError(
+        language === "ar"
+          ? "فشل قبول الطلب. الرجاء المحاولة مرة أخرى"
+          : "Failed to accept the request. Please try again."
+      );
+    }
+  };
 
   const handlePreviousStep = () => {
-    setError(""); // Clear previous errors
+    setError("");
     setCurrentStep(1);
   };
-
-
 
   const denyRequest = async () => {
     const token = localStorage.getItem("access");
@@ -192,13 +207,13 @@ const acceptRequest = async () => {
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
-    setError(""); // Clear errors when toggling
-    setSuccessMessage(""); // Clear success messages when toggling
-    setCurrentStep(1); // Reset to step 1 when dropdown is toggled or modal is re-opened
+    setError("");
+    setSuccessMessage("");
+    setCurrentStep(1);
   };
 
   const openModal = () => {
-    setCurrentStep(1); // Reset to step 1 every time modal is opened
+    setCurrentStep(1);
     setError("");
     setSuccessMessage("");
     setIsModalOpen(true);
@@ -206,14 +221,12 @@ const acceptRequest = async () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setCurrentStep(1); // Reset step when closing modal
+    setCurrentStep(1);
     setError("");
     setSuccessMessage("");
   }
 
   const isArabic = language === "ar";
-
-  console.log("consultationStatus:", consultationStatus);
 
   const handleNextStep = () => {
     if (!selectedDate) {
@@ -225,10 +238,8 @@ const acceptRequest = async () => {
       return;
     }
   
-
-  
-    setError(""); // Clear any previous errors
-    setCurrentStep(2); // Move to payment step
+    setError("");
+    setCurrentStep(2);
   };
 
   return (
@@ -237,11 +248,9 @@ const acceptRequest = async () => {
         isOpen ? "" : "h-[200px] overflow-hidden"
       }`}
     >
-      {/* Success and Error Messages at the top */}
       {successMessage && (
         <MessageAlert
           type="success"
-          //@ts-ignore
           language={language}
           className="rounded-t-lg rounded-b-none"
         >
@@ -250,10 +259,8 @@ const acceptRequest = async () => {
       )}
 
       {error && (
-        //@ts-ignore
         <MessageAlert
           type="error"
-          //@ts-ignore
           language={language}
           className="rounded-t-lg rounded-b-none"
         >
@@ -389,7 +396,7 @@ const acceptRequest = async () => {
             {isArabic ? "رفض الطلب" : "Deny request"}
           </button>
           <button
-            onClick={openModal} // Changed to openModal
+            onClick={openModal}
             className="border bg-[#d2e288] border-[#d2e288] hover:border-transparent hover:bg-gray-700 hover:text-white text-white font-bold py-2 px-4 rounded mr-2"
           >
             {isArabic ? "قبول الطلب" : "Accept request"}
@@ -400,10 +407,7 @@ const acceptRequest = async () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-[80%] max-w-2xl h-auto max-h-[90vh] flex flex-col">
-            <div
-              className="overflow-y-auto flex-1 px-2 sm:px-4"
-            >
-              {/* Step 1: Calendar and Time Selection */}
+            <div className="overflow-y-auto flex-1 px-2 sm:px-4">
               {currentStep === 1 && (
                 <div className="mb-6">
                   <p className="text-gray-700 mb-4 pb-2 text-center font-semibold text-lg">
@@ -419,12 +423,11 @@ const acceptRequest = async () => {
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         className="rounded-md border"
-                        disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))} // Allow today
+                        disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))}
                       />
                     </div>
                     
                     <div className="flex flex-col gap-4 w-full md:w-auto md:min-w-[200px]">
-
                       {selectedDate && (
                         <div className="mt-2 p-2 bg-gray-50 rounded-md text-sm">
                           <p className={language === "ar" ? "text-right" : "text-left"}>
@@ -438,7 +441,6 @@ const acceptRequest = async () => {
                 </div>
               )}
               
-              {/* Step 2: Payment Method Selection */}
               {currentStep === 2 && (
                 <div>
                   <p className="text-gray-700 mb-4 pb-2 text-center font-semibold text-lg">
@@ -491,24 +493,61 @@ const acceptRequest = async () => {
                       </div>
                     ))}
                   </div>
+
+                  {/* Birth Year Input Field */}
+                  <div className="mt-6">
+                    <div
+                      className={`flex items-center gap-4 ${
+                        language === "en" ? "flex-row" : "flex-row-reverse"
+                      }`}
+                    >
+                      <Input
+                        id="birthYear"
+                        value={birthYear}
+                        onChange={(e) => {
+                          setBirthYear(e.target.value);
+                          setBirthYearError("");
+                        }}
+                        className="flex-1"
+                        placeholder={
+                          language === "en" ? "Enter your birth year" : "أدخل سنة الميلاد"
+                        }
+                        type="number"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                      <Label
+                        htmlFor="birthYear"
+                        className={`text-${
+                          language === "en" ? "left" : "right"
+                        } w-40`}
+                      >
+                        {language === "en" ? "Birth Year" : "سنة الميلاد"}
+                      </Label>
+                    </div>
+                    {birthYearError && (
+                      <p className={`text-red-500 text-sm mt-2 ${
+                        language === "ar" ? "text-right" : "text-left"
+                      }`}>
+                        {birthYearError}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
-              {/* Error display within modal content area */}
+
               {error && currentStep === 1 && (
-                //@ts-ignore
                 <MessageAlert type="error" language={language} className="mt-4">
                   {error}
                 </MessageAlert>
               )}
-               {error && currentStep === 2 && (
-                //@ts-ignore
+              {error && currentStep === 2 && (
                 <MessageAlert type="error" language={language} className="mt-4">
                   {error}
                 </MessageAlert>
               )}
             </div>
 
-            {/* Modal Footer with Navigation Buttons */}
             <div className="flex justify-between items-center gap-4 mt-6 pt-4 border-t">
               {currentStep === 1 && (
                 <>
@@ -536,7 +575,12 @@ const acceptRequest = async () => {
                   </button>
                   <button
                     onClick={acceptRequest}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm sm:text-base"
+                    disabled={!birthYear || !!birthYearError}
+                    className={`px-4 py-2 rounded text-sm sm:text-base ${
+                      !birthYear || birthYearError
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-500 hover:bg-green-600 text-white"
+                    }`}
                   >
                     {language === "en" ? "Confirm Payment" : "تأكيد الدفع"}
                   </button>
