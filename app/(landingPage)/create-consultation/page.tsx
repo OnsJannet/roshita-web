@@ -20,7 +20,7 @@ const FileUploader = ({
   onFilesChange,
   language,
   title,
-  hasError = false
+  hasError = false,
 }: {
   idPrefix: string;
   onFilesChange: (files: File[]) => void;
@@ -68,7 +68,11 @@ const FileUploader = ({
   }, [previews]);
 
   return (
-    <div className={`border-2 rounded-lg p-4 ${hasError ? "border-red-500 bg-red-50" : "border-gray-300"}`}>
+    <div
+      className={`border-2 rounded-lg p-4 ${
+        hasError ? "border-red-500 bg-red-50" : "border-gray-300"
+      }`}
+    >
       <Label className="mb-2 block">{title}</Label>
       <input
         id={`${idPrefix}-file-upload`}
@@ -135,13 +139,14 @@ const translations = {
     previous: "Previous",
     noAppointments: "No appointments to display",
     secondOpinion: "Second Opinion Consultation",
-    secondOpinionDesc: "A consultation tailored for individuals with prior diagnoses",
+    secondOpinionDesc:
+      "A consultation tailored for individuals with prior diagnoses",
     generalConsultation: "General Consultation (Soon)",
     generalConsultationDesc: "A consultation for general medical questions",
     selectConsultationType: "Select Consultation Type",
     fillRequiredFields: "Please fill all required fields",
     xrayRequired: "X-ray images are required",
-    reportRequired: "Medical report is required"
+    reportRequired: "Medical report is required",
   },
   ar: {
     settings: "الإعدادات",
@@ -160,7 +165,7 @@ const translations = {
     selectConsultationType: "اختر نوع الاستشارة",
     fillRequiredFields: "يرجى ملء جميع الحقول المطلوبة",
     xrayRequired: "صور الأشعة مطلوبة",
-    reportRequired: "التقرير الطبي مطلوب"
+    reportRequired: "التقرير الطبي مطلوب",
   },
 };
 
@@ -175,26 +180,30 @@ const Page = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState(0);
-  const [consultationType, setConsultationType] = useState<"secondOpinion" | "general">();
+  const [consultationType, setConsultationType] = useState<
+    "secondOpinion" | "general"
+  >();
   const [type, setType] = useState<string>("");
   const [responseMessage, setResponseMessage] = useState<string>("");
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [uploadedXRaysFiles, setUploadedXRaysFiles] = useState<File[]>([]);
-  const [uploadedMedicalReportFiles, setUploadedMedicalReportFiles] = useState<File[]>([]);
+  const [uploadedMedicalReportFiles, setUploadedMedicalReportFiles] = useState<
+    File[]
+  >([]);
   const [fieldErrors, setFieldErrors] = useState({
     xray: false,
-    report: false
+    report: false,
   });
 
   const handleFilesChangeXRays = (files: File[]) => {
     setUploadedXRaysFiles(files);
-    setFieldErrors(prev => ({...prev, xray: false}));
+    setFieldErrors((prev) => ({ ...prev, xray: false }));
   };
 
   const handleFilesChangeMedicalReport = (files: File[]) => {
     setUploadedMedicalReportFiles(files);
-    setFieldErrors(prev => ({...prev, report: false}));
+    setFieldErrors((prev) => ({ ...prev, report: false }));
   };
 
   const handleSendResponse = async () => {
@@ -213,27 +222,49 @@ const Page = () => {
       const token = localStorage.getItem("access");
       const patient_id = localStorage.getItem("patientId") || "";
 
+      // Reset all errors first
+      setFieldErrors({
+        xray: false,
+        report: false,
+      });
+
+      // Check for required fields
+const newErrors = {
+  xray: false, 
+  report: uploadedMedicalReportFiles.length === 0,
+};
+
+
+      // If there are any errors, set them and return
+      if (newErrors.xray || newErrors.report) {
+        setFieldErrors(newErrors);
+        setErrorMessage(translations[language].fillRequiredFields);
+        return;
+      }
+
+      // Additional validation for other fields
       const missingFields = [];
       if (!selectedSpecialty) {
         missingFields.push(language === "ar" ? "التخصص" : "specialty");
       }
       if (responseMessage.trim() === "") {
-        missingFields.push(language === "ar" ? "رسالة الاستشارة" : "response message");
-      }
-      if (uploadedMedicalReportFiles.length === 0) {
-        missingFields.push(language === "ar" ? "التقارير الطبية" : "medical reports");
+        missingFields.push(
+          language === "ar" ? "رسالة الاستشارة" : "response message"
+        );
       }
 
       if (missingFields.length > 0) {
         let errorMsg = "";
         if (language === "ar") {
-          errorMsg = missingFields.length === 1 
-            ? `يرجى إدخال ${missingFields[0]}.`
-            : `يرجى إدخال ${missingFields.join(" و ")}.`;
+          errorMsg =
+            missingFields.length === 1
+              ? `يرجى إدخال ${missingFields[0]}.`
+              : `يرجى إدخال ${missingFields.join(" و ")}.`;
         } else {
-          errorMsg = missingFields.length === 1
-            ? `Please enter ${missingFields[0]}.`
-            : `Please enter ${missingFields.join(" and ")}.`;
+          errorMsg =
+            missingFields.length === 1
+              ? `Please enter ${missingFields[0]}.`
+              : `Please enter ${missingFields.join(" and ")}.`;
         }
         setErrorMessage(errorMsg);
         return;
@@ -251,15 +282,27 @@ const Page = () => {
 
         uploadedXRaysFiles.forEach((file, index) => {
           formData.append(`uploaded_files`, file);
-          formData.append(`uploaded_files[${index}][content_file_type]`, "X-Ray");
-          formData.append(`uploaded_files[${index}][description]`, "Lung X-ray Report");
+          formData.append(
+            `uploaded_files[${index}][content_file_type]`,
+            "X-Ray"
+          );
+          formData.append(
+            `uploaded_files[${index}][description]`,
+            "Lung X-ray Report"
+          );
         });
 
         uploadedMedicalReportFiles.forEach((file, index) => {
           const offsetIndex = uploadedXRaysFiles.length + index;
           formData.append(`uploaded_files`, file);
-          formData.append(`uploaded_files[${offsetIndex}][content_file_type]`, "Medical Report");
-          formData.append(`uploaded_files[${offsetIndex}][description]`, "Blood test results");
+          formData.append(
+            `uploaded_files[${offsetIndex}][content_file_type]`,
+            "Medical Report"
+          );
+          formData.append(
+            `uploaded_files[${offsetIndex}][description]`,
+            "Blood test results"
+          );
         });
 
         const response = await fetch(
@@ -277,28 +320,29 @@ const Page = () => {
         const responseData = await response.json();
 
         if (!response.ok) {
-          const backendError = responseData.detail || 
-                              responseData.message || 
-                              (language === "ar" 
-                                ? "حدث خطأ أثناء معالجة طلبك" 
-                                : "Something went wrong while processing your request");
-          
+          const backendError =
+            responseData.detail ||
+            responseData.message ||
+            (language === "ar"
+              ? "حدث خطأ أثناء معالجة طلبك"
+              : "Something went wrong while processing your request");
+
           throw new Error(backendError);
         }
 
         setStep(3);
-        
       } catch (error) {
         console.error("Error creating consultation request:", error);
-        
-        let errorMessage = language === "ar" 
-          ? "فشل في إنشاء طلب الاستشارة. حاول مرة أخرى." 
-          : "Failed to create consultation request. Please try again.";
-        
+
+        let errorMessage =
+          language === "ar"
+            ? "فشل في إنشاء طلب الاستشارة. حاول مرة أخرى."
+            : "Failed to create consultation request. Please try again.";
+
         if (error instanceof Error) {
           errorMessage = error.message;
         }
-        
+
         setErrorMessage(errorMessage);
       } finally {
         setLoading(false);
@@ -385,7 +429,7 @@ const Page = () => {
     setErrorMessage("");
     setFieldErrors({
       xray: false,
-      report: false
+      report: false,
     });
   };
 
@@ -463,7 +507,7 @@ const Page = () => {
             </div>
           </div>
           <div className="lg:w-[80%] bg-white p-4 rounded-md h-full">
-            <BackButton lang={language}/>
+            <BackButton lang={language} />
             <div
               className="w-full h-40 sm:h-80 md:h-20 lg:h-[80px] xl:h-[280px] bg-cover bg-center bg-no-repeat rounded-lg"
               style={{
@@ -486,77 +530,71 @@ const Page = () => {
               style={{ direction: language === "ar" ? "rtl" : "ltr" }}
               className="pt-10"
             >
-<div
-  className={`flex ${
-    language === "ar" ? "flex-row" : "flex-row"
-  } justify-center gap-4 sm:gap-8 md:gap-12 lg:gap-16 mb-8 overflow-x-auto px-4 py-2`}
->
-  {[0, 1, 2, 3].map((stepNumber) => {
-    const isCurrent = step === stepNumber;
-    const isCompleted = step > stepNumber;
+              <div
+                className={`flex ${
+                  language === "ar" ? "flex-row" : "flex-row"
+                } justify-center gap-4 sm:gap-8 md:gap-12 lg:gap-16 mb-8 overflow-x-auto px-4 py-2`}
+              >
+                {[0, 1, 2, 3].map((stepNumber) => {
+                  const isCurrent = step === stepNumber;
+                  const isCompleted = step > stepNumber;
 
-    return (
-      <div
-        key={stepNumber}
-        className="flex flex-col items-center min-w-[60px]"
-      >
-        {/* Step Number Box */}
-        <div
-          className={`w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold ${
-            isCurrent
-              ? "bg-[#1588C8] text-white"
-              : isCompleted
-              ? "bg-green-500 text-white"
-              : "bg-gray-200 text-gray-600"
-          }`}
-        >
-          {isCompleted ? (
-            <Check className="w-3 h-3" />
-          ) : (
-            stepNumber + 1
-          )}
-        </div>
+                  return (
+                    <div
+                      key={stepNumber}
+                      className="flex flex-col items-center min-w-[60px]"
+                    >
+                      {/* Step Number Box */}
+                      <div
+                        className={`w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold ${
+                          isCurrent
+                            ? "bg-[#1588C8] text-white"
+                            : isCompleted
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          stepNumber + 1
+                        )}
+                      </div>
 
-        {/* Step Label */}
-        <div className="mt-2 text-xs sm:text-sm text-center whitespace-nowrap">
-          <span
-            className={
-              isCurrent || isCompleted 
-                ? "font-bold text-black" 
-                : "text-gray-500"
-            }
-          >
-            {stepNumber === 0 &&
-              (language === "ar"
-                ? "اختر نوع الاستشارة"
-                : "Select Type")}
-            {stepNumber === 1 &&
-              (language === "ar"
-                ? "أكتب استشارة"
-                : "Write")}
-            {stepNumber === 2 &&
-              (language === "ar"
-                ? "تنزيل الملفات"
-                : "Upload")}
-            {stepNumber === 3 &&
-              (language === "ar"
-                ? "تم إرسال"
-                : "Success")}
-          </span>
-        </div>
+                      {/* Step Label */}
+                      <div className="mt-2 text-xs sm:text-sm text-center whitespace-nowrap">
+                        <span
+                          className={
+                            isCurrent || isCompleted
+                              ? "font-bold text-black"
+                              : "text-gray-500"
+                          }
+                        >
+                          {stepNumber === 0 &&
+                            (language === "ar"
+                              ? "اختر نوع الاستشارة"
+                              : "Select Type")}
+                          {stepNumber === 1 &&
+                            (language === "ar" ? "أكتب استشارة" : "Write")}
+                          {stepNumber === 2 &&
+                            (language === "ar" ? "تنزيل الملفات" : "Upload")}
+                          {stepNumber === 3 &&
+                            (language === "ar" ? "تم إرسال" : "Success")}
+                        </span>
+                      </div>
 
-        {/* Progress Bar - Only show between steps */}
-        {stepNumber < 3 && (
-          <div
-            className={`hidden sm:block w-16 h-1 mt-2 rounded-full ${
-              step > stepNumber ? "bg-green-500" : "bg-gray-200"
-            }`}
-          />
-        )}
-      </div>
-    );
-  })}
-</div>
+                      {/* Progress Bar - Only show between steps */}
+                      {stepNumber < 3 && (
+                        <div
+                          className={`hidden sm:block w-16 h-1 mt-2 rounded-full ${
+                            step > stepNumber ? "bg-green-500" : "bg-gray-200"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
               {errorMessage && (
                 <div
@@ -574,7 +612,7 @@ const Page = () => {
                   <h2 className="text-xl font-bold mb-6 text-center">
                     {translations[language].selectConsultationType}
                   </h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Second Opinion Consultation */}
                     <div
@@ -619,9 +657,7 @@ const Page = () => {
                     </div>
 
                     {/* General Consultation - Disabled */}
-                    <div
-                      className="border-2 rounded-lg p-6 transition-all border-gray-200 bg-gray-50 opacity-75"
-                    >
+                    <div className="border-2 rounded-lg p-6 transition-all border-gray-200 bg-gray-50 opacity-75">
                       <div className="flex items-center gap-4">
                         <img
                           src="/Images/consultation-2.png"
@@ -639,8 +675,18 @@ const Page = () => {
                       </div>
                       <div className="flex justify-end mt-4">
                         <div className="rounded-full h-5 w-5 border-2 flex items-center justify-center bg-gray-200 border-gray-300">
-                          <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="h-3 w-3 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -692,7 +738,13 @@ const Page = () => {
                         {specialties.map((specialty) => (
                           <option key={specialty.id} value={specialty.id}>
                             {/*@ts-ignore*/}
-{specialty ? (language === "en" ? specialty.foreign_name : specialty.name) : (language === "ar" ? "غير محدد" : "Not specified")}
+                            {specialty
+                              ? language === "en"
+                                ? specialty.foreign_name
+                                : specialty.name
+                              : language === "ar"
+                              ? "غير محدد"
+                              : "Not specified"}
                           </option>
                         ))}
                       </select>
@@ -822,7 +874,10 @@ const Page = () => {
 
               {/* Step 3: Success Message */}
               {step === 3 && (
-                <div className="p-4" style={{ direction: language === "ar" ? "rtl" : "ltr" }}>
+                <div
+                  className="p-4"
+                  style={{ direction: language === "ar" ? "rtl" : "ltr" }}
+                >
                   <div className="bg-white rounded-lg p-6 mb-6">
                     <div className="flex justify-center">
                       <div className="w-[180px] h-[180px] bg-[#d0e7f4] rounded-full flex items-center justify-center">
@@ -833,12 +888,14 @@ const Page = () => {
                     </div>
                     <div className="flex items-center justify-center mb-4 mt-4">
                       <h3 className="text-xl font-bold text-[#1588C8] text-center">
-                        {language === "ar" ? "تم إرسال الرسالة بنجاح" : "Message sent successfully"}
+                        {language === "ar"
+                          ? "تم إرسال الرسالة بنجاح"
+                          : "Message sent successfully"}
                       </h3>
                     </div>
 
                     <p className="text-gray-600 mb-6 text-center">
-                      {language === "ar" 
+                      {language === "ar"
                         ? "تم الإرسال طلبات سيتم الرد على طلبات خلال 72 ساعة"
                         : "Requests have been sent and will be responded to within 72 hours"}
                     </p>
@@ -846,7 +903,10 @@ const Page = () => {
                     {/* Display Selected Consultation Type */}
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-700 mb-2">
-                        {language === "ar" ? "نوع الاستشارة" : "Consultation Type"}:
+                        {language === "ar"
+                          ? "نوع الاستشارة"
+                          : "Consultation Type"}
+                        :
                       </h4>
                       <p className="bg-[#F1FCFF] rounded-lg p-3">
                         {consultationType === "secondOpinion"
@@ -858,13 +918,20 @@ const Page = () => {
                     {/* Display Selected Specialty */}
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-700 mb-2">
-                        {language === "ar" ? "التخصص المختار" : "Selected Specialty"}:
+                        {language === "ar"
+                          ? "التخصص المختار"
+                          : "Selected Specialty"}
+                        :
                       </h4>
                       <p className="bg-[#F1FCFF] rounded-lg p-3">
                         {(() => {
-                          const foundSpecialty = specialties.find(s => String(s.id) === String(selectedSpecialty));
-                          return foundSpecialty?.name || 
-                                (language === "ar" ? "غير محدد" : "Not specified");
+                          const foundSpecialty = specialties.find(
+                            (s) => String(s.id) === String(selectedSpecialty)
+                          );
+                          return (
+                            foundSpecialty?.name ||
+                            (language === "ar" ? "غير محدد" : "Not specified")
+                          );
                         })()}
                       </p>
                     </div>
@@ -872,29 +939,43 @@ const Page = () => {
                     {/* Display Submitted Message */}
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-700 mb-2">
-                        {language === "ar" ? "نص الاستشارة" : "Consultation Message"}:
+                        {language === "ar"
+                          ? "نص الاستشارة"
+                          : "Consultation Message"}
+                        :
                       </h4>
                       <div className="bg-[#F1FCFF] rounded-lg p-3 whitespace-pre-line h-[200px]">
-                        {responseMessage || 
-                        (language === "ar" ? "لا يوجد نص" : "No message provided")}
+                        {responseMessage ||
+                          (language === "ar"
+                            ? "لا يوجد نص"
+                            : "No message provided")}
                       </div>
                     </div>
 
                     {/* Display Uploaded Files */}
                     <div className="mb-6">
                       <h4 className="font-medium text-gray-700 mb-2">
-                        {language === "ar" ? "الملفات المرفوعة" : "Uploaded Files"}:
+                        {language === "ar"
+                          ? "الملفات المرفوعة"
+                          : "Uploaded Files"}
+                        :
                       </h4>
                       <div className="space-y-3">
                         {/* X-Ray Files */}
                         {uploadedXRaysFiles.length > 0 && (
                           <div>
                             <h5 className="text-sm font-medium mb-1">
-                              {language === "ar" ? "صور الأشعة" : "X-Ray Images"}:
+                              {language === "ar"
+                                ? "صور الأشعة"
+                                : "X-Ray Images"}
+                              :
                             </h5>
                             <div className="bg-[#F1FCFF] rounded-lg p-3">
                               {uploadedXRaysFiles.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between py-1">
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between py-1"
+                                >
                                   <span>{file.name}</span>
                                   <span className="text-xs text-gray-500">
                                     {(file.size / 1024).toFixed(1)} KB
@@ -909,11 +990,17 @@ const Page = () => {
                         {uploadedMedicalReportFiles.length > 0 && (
                           <div>
                             <h5 className="text-sm font-medium mb-1">
-                              {language === "ar" ? "التقارير الطبية" : "Medical Reports"}:
+                              {language === "ar"
+                                ? "التقارير الطبية"
+                                : "Medical Reports"}
+                              :
                             </h5>
                             <div className="bg-[#F1FCFF] rounded-lg p-3">
                               {uploadedMedicalReportFiles.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between py-1">
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between py-1"
+                                >
                                   <span>{file.name}</span>
                                   <span className="text-xs text-gray-500">
                                     {(file.size / 1024).toFixed(1)} KB
@@ -924,11 +1011,14 @@ const Page = () => {
                           </div>
                         )}
 
-                        {uploadedXRaysFiles.length === 0 && uploadedMedicalReportFiles.length === 0 && (
-                          <div className="bg-white rounded-lg p-3 text-gray-500">
-                            {language === "ar" ? "لا توجد ملفات مرفوعة" : "No files uploaded"}
-                          </div>
-                        )}
+                        {uploadedXRaysFiles.length === 0 &&
+                          uploadedMedicalReportFiles.length === 0 && (
+                            <div className="bg-white rounded-lg p-3 text-gray-500">
+                              {language === "ar"
+                                ? "لا توجد ملفات مرفوعة"
+                                : "No files uploaded"}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -937,7 +1027,9 @@ const Page = () => {
                         onClick={resetForm}
                         className="bg-[#1588C8] text-white py-2 px-8 rounded-md"
                       >
-                        {language === "ar" ? "إرسال طلب جديد" : "Submit New Request"}
+                        {language === "ar"
+                          ? "إرسال طلب جديد"
+                          : "Submit New Request"}
                       </Button>
                     </div>
                   </div>

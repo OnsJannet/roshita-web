@@ -141,7 +141,7 @@ socket.onmessage = (event) => {
       translation.consultation_request_id || data.data?.consultation_request_id || 'unknown';
     const messageContent =
       translation.message || data.message || 'New notification';
-    const uniqueKey = `${consultationId}_${messageContent}`;
+    //const uniqueKey = `${consultationId}_${messageContent}`;
     const { date, time, day } = formatNotificationDateTime();
 
     const notification: Notification = {
@@ -154,7 +154,7 @@ socket.onmessage = (event) => {
         en: { message: 'New notification' },
         ar: { message: 'إشعار جديد' },
       },
-      uniqueKey,
+      //uniqueKey,
       notification_date: date,
       notification_time: time,
       notification_day: day,
@@ -171,7 +171,7 @@ socket.onmessage = (event) => {
     console.log('Constructed notification:', notification);
 
     setNotifications((prev) => {
-      const isDuplicate = prev.some((n) => {
+      /*const isDuplicate = prev.some((n) => {
         const isSameKey = n.uniqueKey === uniqueKey;
         const isRecentDuplicate =
           isSameKey && Date.now() - new Date(n.timestamp || 0).getTime() < 5000;
@@ -186,7 +186,10 @@ socket.onmessage = (event) => {
         console.log('Duplicate notification detected, skipping:', notification);
         return prev;
       }
-    });
+    });*/
+            console.log('Adding new notification:', notification);
+        setNewNotificationCount((count) => count + 1);
+        return [notification, ...prev]});
   } catch (parseError) {
     console.error('Error parsing WebSocket message:', parseError, event.data);
   }
