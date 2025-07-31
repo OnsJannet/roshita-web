@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loginUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
+
 import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import InputAdmin from "@/components/admin/InputAdmin";
 import { logAction } from "@/lib/logger";
@@ -15,7 +17,7 @@ type Language = "ar" | "en";
 const Page = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👁️ password visibility
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
@@ -82,28 +84,21 @@ const Page = () => {
       const contentType = response.headers.get("Content-Type");
       if (contentType?.includes("application/json")) {
         const data = await response.json();
-
-        if (!data.success) {
-          throw new Error(data.message || "Login failed.");
-        }
-
         const userId = data.user.doctor_id || data.user.user_id;
 
         localStorage.setItem("refresh", data.refreshToken);
         localStorage.setItem("userId", userId.toString());
         localStorage.setItem("access", data.token);
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userRole", data.user.user_type || "");
+        localStorage.setItem("userRole", data.user.user_type);
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem(
           "type",
-          JSON.stringify(data.user.medical_organization_type || "")
+          JSON.stringify(data.user.medical_organization_type)
         );
-
-        // ✅ Safe check for null
         localStorage.setItem(
           "medicalOrganizationId",
-          data.user.medical_organization?.id?.toString() || ""
+          data.user.medical_organization.id.toString()
         );
 
         await logAction(
@@ -132,7 +127,6 @@ const Page = () => {
         throw new Error(`Unexpected response format: ${errorText}`);
       }
     } catch (error: any) {
-      console.error("Login error:", error);
       setError(error.message || "حدث خطأ أثناء تسجيل الدخول.");
       await logAction(
         token || undefined,
@@ -217,15 +211,20 @@ const Page = () => {
             </div>
 
             <div className="grid gap-2" dir={language === "ar" ? "rtl" : "ltr"}>
-              <div className="grid gap-2">
-                <div className="flex justify-between items-center">
+              <div
+                className="grid gap-2"
+                dir={language === "ar" ? "rtl" : "ltr"}
+              >
+                <div
+                  className={`flex justify-between items-center ${
+                    language === "ar" ? "flex-row" : "flex-row"
+                  }`}
+                >
                   <Label htmlFor="password">
                     {language === "ar" ? "كلمة المرور" : "Password"}
                   </Label>
                   <Link href="/forgot-password" className="text-sm underline">
-                    {language === "ar"
-                      ? "نسيت كلمة المرور"
-                      : "Forgot Password"}
+                    {language === "ar" ? "نسيت كلمة المرور" : "Forgot Password"}
                   </Link>
                 </div>
               </div>
@@ -236,7 +235,7 @@ const Page = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                // @ts-ignore
+                //@ts-ignore
                 rightIcon={
                   <button
                     type="button"
@@ -263,9 +262,7 @@ const Page = () => {
                   </span>
                 </>
               ) : (
-                <span>
-                  {language === "ar" ? "تسجيل الدخول" : "Sign In"}
-                </span>
+                <span>{language === "ar" ? "تسجيل الدخول" : "Sign In"}</span>
               )}
             </Button>
           </form>

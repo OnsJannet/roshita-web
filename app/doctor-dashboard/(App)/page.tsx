@@ -71,30 +71,31 @@ export default function Page() {
 
         {/* Main Content Section */}
         <div className=" p-4 flex  flex-col justify-center">
-<div className="w-full" dir={language === "ar" ? "ltr" : "rtl"}>
-  <button
-    onClick={() => {
-      const orgId = localStorage.getItem("medicalOrganizationId");
-      if (orgId) {
-        window.location.href = `/doctor-dashboard/doctors/edit/${orgId}`;
-      } else {
-        alert(
-          language === "ar"
-            ? "لا يوجد معرف للمنظمة الطبية"
-            : "Medical organization ID not found"
-        );
-      }
-    }}
-    className="bg-[#1783c6] px-4 py-2 text-white rounded-md mb-2"
-  >
-    {language === "ar" ? "أضف مواعيد جديدة" : "Add new appointment slots"}
-  </button>
-</div>
+          <div className="w-full" dir={language === "ar" ? "ltr" : "rtl"}>
+            <button
+              onClick={() => {
+                const orgId = localStorage.getItem("medicalOrganizationId");
+                if (orgId) {
+                  window.location.href = `/doctor-dashboard/doctors/edit/${orgId}`;
+                } else {
+                  alert(
+                    language === "ar"
+                      ? "لا يوجد معرف للمنظمة الطبية"
+                      : "Medical organization ID not found"
+                  );
+                }
+              }}
+              className="bg-[#1783c6] px-4 py-2 text-white rounded-md mb-2"
+            >
+              {language === "ar"
+                ? "أضف مواعيد جديدة"
+                : "Add new appointment slots"}
+            </button>
+          </div>
 
-
-            <div className="mb-4 w-full">
-              <PlannerDoctor language={language} />
-            </div>
+          <div className="mb-4 w-full">
+            <PlannerDoctor language={language} />
+          </div>
 
           <div className="grid lg:grid-cols-3 gap-4 w-full mb-2">
             <div className="h-[400px]">
@@ -107,7 +108,6 @@ export default function Page() {
               <DoctorAreaChart />
             </div>
           </div>
-
         </div>
       </SidebarInset>
 

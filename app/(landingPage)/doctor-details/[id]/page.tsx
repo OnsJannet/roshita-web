@@ -225,6 +225,8 @@ const DoctorDetailsPage = () => {
     );
   }
 
+  console.log("doctor", doctor)
+
   if (!doctor) {
     return (
       <div

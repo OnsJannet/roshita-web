@@ -176,6 +176,7 @@ const Page = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState(0);
   const [consultationType, setConsultationType] = useState<"secondOpinion" | "general">();
+  const [type, setType] = useState<string>("");
   const [responseMessage, setResponseMessage] = useState<string>("");
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
@@ -196,21 +197,6 @@ const Page = () => {
     setFieldErrors(prev => ({...prev, report: false}));
   };
 
-  const validateStep2 = () => {
-    const errors = {
-      xray: consultationType === "secondOpinion" && uploadedXRaysFiles.length === 0,
-      report: uploadedMedicalReportFiles.length === 0
-    };
-
-    setFieldErrors(errors);
-
-    if (errors.xray || errors.report) {
-      setErrorMessage(translations[language].fillRequiredFields);
-      return false;
-    }
-    return true;
-  };
-
   const handleSendResponse = async () => {
     if (step === 1) {
       if (!selectedSpecialty || responseMessage.trim() === "") {
@@ -224,19 +210,96 @@ const Page = () => {
       setStep(2);
       setErrorMessage("");
     } else if (step === 2) {
-      if (!validateStep2()) return;
+      const token = localStorage.getItem("access");
+      const patient_id = localStorage.getItem("patientId") || "";
 
-      // Simulate API call
+      const missingFields = [];
+      if (!selectedSpecialty) {
+        missingFields.push(language === "ar" ? "التخصص" : "specialty");
+      }
+      if (responseMessage.trim() === "") {
+        missingFields.push(language === "ar" ? "رسالة الاستشارة" : "response message");
+      }
+      if (uploadedMedicalReportFiles.length === 0) {
+        missingFields.push(language === "ar" ? "التقارير الطبية" : "medical reports");
+      }
+
+      if (missingFields.length > 0) {
+        let errorMsg = "";
+        if (language === "ar") {
+          errorMsg = missingFields.length === 1 
+            ? `يرجى إدخال ${missingFields[0]}.`
+            : `يرجى إدخال ${missingFields.join(" و ")}.`;
+        } else {
+          errorMsg = missingFields.length === 1
+            ? `Please enter ${missingFields[0]}.`
+            : `Please enter ${missingFields.join(" and ")}.`;
+        }
+        setErrorMessage(errorMsg);
+        return;
+      }
+
       setLoading(true);
+      setErrorMessage("");
+
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setStep(3);
-      } catch (error) {
-        setErrorMessage(
-          language === "ar"
-            ? "حدث خطأ أثناء الإرسال"
-            : "An error occurred while sending"
+        const formData = new FormData();
+        formData.append("patient_id", patient_id);
+        formData.append("diagnosis_description_request", responseMessage);
+        formData.append("specialty_id", selectedSpecialty);
+        formData.append("type", type);
+
+        uploadedXRaysFiles.forEach((file, index) => {
+          formData.append(`uploaded_files`, file);
+          formData.append(`uploaded_files[${index}][content_file_type]`, "X-Ray");
+          formData.append(`uploaded_files[${index}][description]`, "Lung X-ray Report");
+        });
+
+        uploadedMedicalReportFiles.forEach((file, index) => {
+          const offsetIndex = uploadedXRaysFiles.length + index;
+          formData.append(`uploaded_files`, file);
+          formData.append(`uploaded_files[${offsetIndex}][content_file_type]`, "Medical Report");
+          formData.append(`uploaded_files[${offsetIndex}][description]`, "Blood test results");
+        });
+
+        const response = await fetch(
+          "https://www.test-roshita.net/api/user-second-opinion-requests/",
+          {
+            method: "POST",
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          }
         );
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          const backendError = responseData.detail || 
+                              responseData.message || 
+                              (language === "ar" 
+                                ? "حدث خطأ أثناء معالجة طلبك" 
+                                : "Something went wrong while processing your request");
+          
+          throw new Error(backendError);
+        }
+
+        setStep(3);
+        
+      } catch (error) {
+        console.error("Error creating consultation request:", error);
+        
+        let errorMessage = language === "ar" 
+          ? "فشل في إنشاء طلب الاستشارة. حاول مرة أخرى." 
+          : "Failed to create consultation request. Please try again.";
+        
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        
+        setErrorMessage(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -520,7 +583,10 @@ const Page = () => {
                           ? "border-[#1588C8] bg-blue-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
-                      onClick={() => setConsultationType("secondOpinion")}
+                      onClick={() => {
+                        setConsultationType("secondOpinion");
+                        setType("second_opinion");
+                      }}
                     >
                       <div className="flex items-center gap-4">
                         <img

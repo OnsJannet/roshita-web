@@ -71,6 +71,18 @@ const Page = () => {
   const doctorsPerPage = 5;
 
   const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
+  /*const totalPages = selectedCountry.length === 0 && 
+                  selectedCity.length === 0 && 
+                  selectedSpeciality.length === 0 && 
+                  selectedHospital.length === 0 && 
+                  selectedPrices.length === 0 && 
+                  selectedDoctor.length === 0
+    ? Math.ceil(count / doctorsPerPage)
+    : Math.ceil(filteredDoctors.length / doctorsPerPage);*/
+  console.log("filteredDoctors.length", filteredDoctors.length)
+  console.log("thetotalPage", totalPages)
+  console.log("filteredDoctors.length", filteredDoctors.length)
+  console.log("thetotalPage", totalPages)
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -129,6 +141,7 @@ const Page = () => {
   const [selectedSpeciality, setSelectedSpeciality] = useState<string[]>([]);
   const [selectedHospital, setSelectedHospital] = useState<string[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string[]>([]);
+  const [count, setCount] = useState(0)
 
   useEffect(() => {
     const hasParams = country || city || specialty || hospital || doctor;
@@ -163,6 +176,8 @@ const Page = () => {
     
     router.push(newPath);
   };
+
+  console.log("totalPages", totalPages)
 
   useEffect(() => {
     console.log("URL params changed:", { country, city, specialty, hospital, doctor });
@@ -208,7 +223,7 @@ const Page = () => {
 
         console.log("Raw API response:", data);
         console.log("Processed doctors data:", doctorsData);
-        
+        setCount(data.count)
         setAllDoctors(doctorsData);
         setTotalDoctors(doctorsData.length);
       } catch (err: any) {
@@ -417,7 +432,7 @@ const Page = () => {
                 />
               ))}
 
-              {totalPages > 1 && (
+              {totalPages >= 1 && (
                 <div className="mt-8 flex justify-center">
                   <PaginationDemo
                     currentPage={currentPage}
