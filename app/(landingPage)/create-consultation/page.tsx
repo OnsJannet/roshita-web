@@ -740,6 +740,7 @@ const newErrors = {
                             {/*@ts-ignore*/}
                             {specialty
                               ? language === "en"
+                              /*@ts-ignore*/
                                 ? specialty.foreign_name
                                 : specialty.name
                               : language === "ar"
