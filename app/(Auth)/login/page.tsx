@@ -60,7 +60,7 @@ const Page = () => {
       localStorage.setItem("access", data.access);
       localStorage.setItem("userId", data.user.id);
       localStorage.setItem("patientId", data.user.patient_id);
-
+      localStorage.setItem("phone", data.user.phone);
       localStorage.setItem("isLoggedIn", "true");
 
       if (redirectUrl) {

@@ -187,95 +187,101 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
       ? medical_organizations[0].id
       : 0;
 
-      const handleCreateAppointment = async () => {
-        const token = localStorage.getItem("access");
-    
-        if (!token) {
-          console.error("No access token found");
-          return;
-        }
+const handleCreateAppointment = async () => {
+  const token = localStorage.getItem("access");
 
-        const [dayPart, monthPart, yearPart] = day.split("/");
-        const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
-        const formattedStartTime = `${time}:00`;
-        const formattedEndTime = `${endTime}:00`;
+  if (!token) {
+    console.error("No access token found");
+    return;
+  }
+
+  try {
+    // First fetch the profile details to get the birthday
+    const profileDetails = await fetchProfileDetails();
+    const birthday = profileDetails.birthday; // "2025-07-14" from your example
+    const birthYear = new Date(birthday).getFullYear(); // Extract year from date string
+
+    const [dayPart, monthPart, yearPart] = day.split("/");
+    const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
+    const formattedStartTime = `${time}:00`;
+    const formattedEndTime = `${endTime}:00`;
+    const phone = localStorage.getItem("phone"); // Fixed typo: getITem -> getItem
     
-        const newAppointment = {
-          reservation: {
-            patient: familymember
-              ? familymemberType === "newFamilyMember"
-                ? {
-                    first_name: formData.first_name,
-                    last_name: formData.last_name,
-                    relative: formData.relative,
-                    phone: formData.phone,
-                    email: formData.email,
-                    city: formData.city,
-                    address: formData.address,
-                  }
-                  //@ts-ignore
-                : { id: formData.id || profileData.user.id}
-                //@ts-ignore
-              : { id: formData.id },
-            reservation_date: formattedDate,
-            start_time: formattedStartTime,
-            end_time: formattedEndTime,
-          },
-          medical_organizations: organizationId || 0,
-          doctor: id,
-          price: price,
-          pay_full_amount: payement === "full" ? true : false,
-          payment: {
-            payment_method: paymentMethod?.word,
-            mobile_number: "0913632323",
-            birth_year: 1990,
-          },
-        };
-    
-        try {
-          const response = await fetch("https://test-roshita.net/api/user-appointment-reservations/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(newAppointment),
-          });
-    
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error reserving appointment:", errorData);
-            alert("Failed to book the appointment.");
-            return;
-          }
-    
-          const responseData = await response.json();
-          console.log("Reservation successful:", responseData);
-          setReservationId(responseData.id || "N/A");
-    
-          if (
-            paymentMethod?.word?.toLowerCase() === "sadad" ||
-            paymentMethod?.word?.toLowerCase() === "adfali"
-          ) {
-            if (responseData.payment_confirmation) {
-              setProcessID(responseData.payment_confirmation.result.process_id);
-              setAmount(responseData.payment_confirmation.result.amount);
-              setPayementId(responseData.reservation_invoice_detail_id);
-              setConfirmModal(true);
-              setUrl(responseData.payment_confirmation.result.redirect_url);
-            }
-          } else if (paymentMethod?.word?.toLowerCase() === "local bank card" || paymentMethod?.word === "MPGS"|| paymentMethod?.word === "t-lync") {
-            window.location.href =
-              responseData.payment_confirmation.result.redirect_url;
-          } 
-          else {
-            setShowSuccessModal(true);
-          }
-        } catch (error) {
-          console.error("Error booking the appointment:", error);
-          alert("An error occurred while booking the appointment.");
-        }
-      };
+    const newAppointment = {
+      reservation: {
+        patient: familymember
+          ? familymemberType === "newFamilyMember"
+            ? {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                relative: formData.relative,
+                phone: formData.phone,
+                email: formData.email,
+                city: formData.city,
+                address: formData.address,
+              }
+              //@ts-ignore
+            : { id: formData.id || profileData.user.id}
+            //@ts-ignore
+          : { id: formData.id },
+        reservation_date: formattedDate,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
+      },
+      medical_organizations: organizationId || 0,
+      doctor: id,
+      price: price,
+      pay_full_amount: payement === "full" ? true : false,
+      payment: {
+        payment_method: paymentMethod?.word,
+        mobile_number: phone,
+        birth_year: birthYear,
+      },
+    };
+
+    const response = await fetch("https://test-roshita.net/api/user-appointment-reservations/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newAppointment),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error reserving appointment:", errorData);
+      alert("Failed to book the appointment.");
+      return;
+    }
+
+    const responseData = await response.json();
+    console.log("Reservation successful:", responseData);
+    setReservationId(responseData.id || "N/A");
+
+    if (
+      paymentMethod?.word?.toLowerCase() === "sadad" ||
+      paymentMethod?.word?.toLowerCase() === "adfali"
+    ) {
+      if (responseData.payment_confirmation) {
+        setProcessID(responseData.payment_confirmation.result.process_id);
+        setAmount(responseData.payment_confirmation.result.amount);
+        setPayementId(responseData.reservation_invoice_detail_id);
+        setConfirmModal(true);
+        setUrl(responseData.payment_confirmation.result.redirect_url);
+      }
+    } else if (paymentMethod?.word?.toLowerCase() === "local bank card" || paymentMethod?.word === "MPGS"|| paymentMethod?.word === "t-lync") {
+      window.location.href =
+        responseData.payment_confirmation.result.redirect_url;
+    } 
+    else {
+      setShowSuccessModal(true);
+    }
+  } catch (error) {
+    console.error("Error booking the appointment:", error);
+    alert("An error occurred while booking the appointment.");
+  }
+};
 
   const handleOtpSubmit = async () => {
     const confirmUrl = `https://test-roshita.net/api/user-appointment-reservations/confirm-payment/${payementID}/`;

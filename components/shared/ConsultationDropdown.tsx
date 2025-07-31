@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { fetchProfileDetails } from "@/lib/api";
 
 interface File {
   description: string;
@@ -63,74 +64,81 @@ const DropdownDetails: React.FC<DropdownDetailsProps> = ({
     }
   };
 
-  const acceptRequest = async () => {
-    if (!selectedPaymentMethod) {
-      setError(
-        language === "ar"
-          ? "الرجاء اختيار طريقة الدفع"
-          : "Please select a payment method"
-      );
-      return;
-    }
+const acceptRequest = async () => {
+  if (!selectedPaymentMethod) {
+    setError(
+      language === "ar"
+        ? "الرجاء اختيار طريقة الدفع"
+        : "Please select a payment method"
+    );
+    return;
+  }
 
-    if (!selectedDate) {
-      setError(
-        language === "ar"
-          ? "الرجاء اختيار تاريخ الموعد"
-          : "Please select an appointment date"
-      );
-      return;
-    }
+  if (!selectedDate) {
+    setError(
+      language === "ar"
+        ? "الرجاء اختيار تاريخ الموعد"
+        : "Please select an appointment date"
+    );
+    return;
+  }
 
-    const formattedDateTime = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss");
+  const formattedDateTime = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss");
 
-    const token = localStorage.getItem("access");
-    try {
-      const response = await fetch(
-        `https://test-roshita.net/api/accept-hospital-second-opinion-offer/${consultationId}/`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "X-CSRFToken":
-              "j0SeEpLccXPhKy1Se6Qw8mC1azuRHSXpQeJ1LMAC56KpeM0WC7wzo18bRNcMflLt",
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            mobile_number: "0913632323",
-            birth_year: 1990,
-            payment_method: selectedPaymentMethod,
-            pay_full_amount: true,
-            reservation_date_time: formattedDateTime
-          }),
-        }
-      );
+  const token = localStorage.getItem("access");
+  const phone = localStorage.getItem("phone"); // Fixed typo: getITem -> getItem
+  
+  try {
+    // First fetch the profile details to get the birthday
+    const profileDetails = await fetchProfileDetails();
+    const birthday = profileDetails.birthday; // "2025-07-14" from your example
+    const birthYear = new Date(birthday).getFullYear(); // Extract year from date string
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+    const response = await fetch(
+      `https://test-roshita.net/api/accept-hospital-second-opinion-offer/${consultationId}/`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "X-CSRFToken":
+            "j0SeEpLccXPhKy1Se6Qw8mC1azuRHSXpQeJ1LMAC56KpeM0WC7wzo18bRNcMflLt",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mobile_number: phone,
+          birth_year: birthYear,
+          payment_method: selectedPaymentMethod,
+          pay_full_amount: true,
+          reservation_date_time: formattedDateTime
+        }),
       }
+    );
 
-      const result = await response.json();
-      console.log("Request accepted:", result);
-      setSuccessMessage(
-        language === "ar"
-          ? "تم قبول الطلب بنجاح"
-          : "Request accepted successfully"
-      );
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to accept request:", error);
-      setError(
-        language === "ar"
-          ? "فشل قبول الطلب. الرجاء المحاولة مرة أخرى"
-          : "Failed to accept the request. Please try again."
-      );
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
     }
-  };
+
+    const result = await response.json();
+    console.log("Request accepted:", result);
+    setSuccessMessage(
+      language === "ar"
+        ? "تم قبول الطلب بنجاح"
+        : "Request accepted successfully"
+    );
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+    setIsModalOpen(false);
+  } catch (error) {
+    console.error("Failed to accept request:", error);
+    setError(
+      language === "ar"
+        ? "فشل قبول الطلب. الرجاء المحاولة مرة أخرى"
+        : "Failed to accept the request. Please try again."
+    );
+  }
+};
 
 
   const handlePreviousStep = () => {
