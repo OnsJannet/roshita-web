@@ -79,6 +79,8 @@ const FilterDoctor: React.FC<FilterDoctorProps> = ({
   const [isHospitalOpen, setIsHospitalOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("ar");
 
+  console.log("doctors", doctors)
+
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
     if (storedLanguage) {

@@ -8,7 +8,6 @@ import LabsCard from "@/components/unique/LabsCard";
 import { useParams } from "next/navigation";
 import LoadingDoctors from "@/components/layout/LoadingDoctors";
 
-
 type Language = "ar" | "en";
 
 interface MedicalServicesCategory {
@@ -35,6 +34,16 @@ interface Doctor {
   price: string;
   city: string;
   image: string;
+  medical_organizations?: {
+    city: {
+      country: {
+        name: string;
+        foreign_name: string;
+      };
+      name: string;
+      foreign_name: string;
+    };
+  }[];
 }
 
 interface Hospital {
@@ -64,37 +73,27 @@ const Page = () => {
   const params = useParams();
   const type = params?.type as string;
   
-  // Initialize activeFilter based on URL parameter immediately
-  const [activeFilter, setActiveFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs">(() => {
-    if (type === "hospitals") return "hospitalsSearch";
-    if (type === "doctors") return "doctorsSearch";
-    if (type === "labs" || type === "pharmacies") return "labs";
-    return "doctorsSearch"; // default
-  });
+  const [activeFilter, setActiveFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs">(
+    type === "hospitals" ? "hospitalsSearch" :
+    type === "doctors" ? "doctorsSearch" :
+    type === "labs" || type === "pharmacies" ? "labs" : "doctorsSearch"
+  );
 
-  // Pagination states
-  const [doctorPage, setDoctorPage] = useState(1);
-  const [hospitalPage, setHospitalPage] = useState(1);
-  const [labPage, setLabPage] = useState(1);
-  
-  // Data states
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [displayedDoctors, setDisplayedDoctors] = useState<Doctor[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [labs, setLabs] = useState<Lab[]>([]);
-  
-  // UI states
+  const [language, setLanguage] = useState<Language>("ar");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [language, setLanguage] = useState<Language>("ar");
-  
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [countryTerm, setCountryTerm] = useState("");
   const [specialtyTerm, setSpecialtyTerm] = useState("");
   const [cityTerm, setCityTerm] = useState("");
-  
-  // Count states
-  const [doctorCount, setDoctorCount] = useState(0);
 
   // Constants
   const itemsPerPage = 5;
@@ -118,21 +117,21 @@ const Page = () => {
     };
   }, []);
 
-  // Main data fetching effect
+  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
-        // Always fetch data needed for the current filter
+        // Fetch all doctors at once
         if (activeFilter === "doctorsSearch") {
-          const doctorsRes = await fetch(`/api/userDoctor/getDoctor?page=${doctorPage}`);
+          const doctorsRes = await fetch(`https://test-roshita.net/api/user-doctors/`);
           const doctorsData = await doctorsRes.json();
           if (!doctorsRes.ok) throw new Error("Failed to fetch doctors");
-          setDoctors(doctorsData.data || []);
-          setDoctorCount(doctorsData.total || 0);
+          setAllDoctors(doctorsData.data.doctors || []);
         }
 
+        // Fetch hospitals if needed
         if (activeFilter === "hospitalsSearch" || hospitals.length === 0) {
           const hospitalsRes = await fetch("/api/userHospital/getHospital");
           const hospitalsData = await hospitalsRes.json();
@@ -140,6 +139,7 @@ const Page = () => {
           setHospitals(hospitalsData.data || []);
         }
 
+        // Fetch labs if needed
         if (activeFilter === "labs" || labs.length === 0) {
           const labsRes = await fetch("/api/userLab/getLab");
           const labsData = await labsRes.json();
@@ -155,7 +155,7 @@ const Page = () => {
     };
 
     fetchData();
-  }, [doctorPage, activeFilter]);
+  }, [activeFilter]);
 
   // Update active filter when URL changes
   useEffect(() => {
@@ -168,52 +168,56 @@ const Page = () => {
     }
   }, [type]);
 
-  const handleSearchUpdate = (term: string) => {
-    if (term === "doctorsSearch" || term === "hospitalsSearch" || term === "labs") {
-      setActiveFilter(term);
-      // Reset to first page when changing filter
-      if (term === "doctorsSearch") setDoctorPage(1);
-      if (term === "hospitalsSearch") setHospitalPage(1);
-      if (term === "labs") setLabPage(1);
-    } else {
-      setSearchTerm(term);
-    }
-  };
+  // Filter doctors based on search and filter terms
+  useEffect(() => {
+    if (activeFilter !== "doctorsSearch") return;
 
-  const handleCountryUpdate = (term: string) => {
-    setCountryTerm(term);
-  };
-
-  const handleSpecialtyUpdate = (term: string) => {
-    setSpecialtyTerm(term);
-  };
-
-  const handleCityUpdate = (term: string) => {
-    setCityTerm(term);
-  };
-
-  // Filter functions
-  const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSearch = searchTerm 
-      ? doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase())
-      : true;
+    const filtered = allDoctors.filter((doctor) => {
+      // Search term matching
+      const matchesSearch = searchTerm 
+        ? doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+        : true;
       
-    const matchesCountry = countryTerm 
-      ? doctor.city?.toLowerCase().includes(countryTerm.toLowerCase())
-      : true;
+      // Country matching
+      const matchesCountry = countryTerm 
+        ? (doctor.medical_organizations?.some(org => 
+            org.city.country.name.toLowerCase().includes(countryTerm.toLowerCase()) ||
+            org.city.country.foreign_name?.toLowerCase().includes(countryTerm.toLowerCase())
+          ) || 
+          doctor.city?.toLowerCase().includes(countryTerm.toLowerCase()))
+        : true;
       
-    const matchesSpecialty = specialtyTerm 
-      ? doctor.specialization.toLowerCase().includes(specialtyTerm.toLowerCase())
-      : true;
+      // Specialty matching
+      const matchesSpecialty = specialtyTerm 
+        ? doctor.specialization.toLowerCase().includes(specialtyTerm.toLowerCase())
+        : true;
       
-    const matchesCity = cityTerm 
-      ? doctor.city?.toLowerCase().includes(cityTerm.toLowerCase())
-      : true;
+      // City matching
+      const matchesCity = cityTerm 
+        ? (doctor.medical_organizations?.some(org => 
+            org.city.name.toLowerCase().includes(cityTerm.toLowerCase()) ||
+            org.city.foreign_name?.toLowerCase().includes(cityTerm.toLowerCase())
+          ) || 
+          doctor.city?.toLowerCase().includes(cityTerm.toLowerCase()))
+        : true;
       
-    return matchesSearch && matchesCountry && matchesSpecialty && matchesCity;
-  });
+      return matchesSearch && matchesCountry && matchesSpecialty && matchesCity;
+    });
 
+    setFilteredDoctors(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [allDoctors, searchTerm, countryTerm, specialtyTerm, cityTerm, activeFilter]);
+
+  // Paginate doctors
+  useEffect(() => {
+    if (activeFilter !== "doctorsSearch") return;
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    setDisplayedDoctors(filteredDoctors.slice(startIndex, startIndex + itemsPerPage));
+  }, [currentPage, filteredDoctors, activeFilter]);
+
+  // Filter hospitals
   const filteredHospitals = hospitals.filter((hospital) => {
     const matchesSearch = searchTerm 
       ? hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -231,6 +235,7 @@ const Page = () => {
     return matchesSearch && matchesCountry && matchesCity;
   });
 
+  // Filter labs
   const filteredLabs = labs.filter((lab) => {
     const matchesSearch = searchTerm 
       ? lab.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -240,17 +245,43 @@ const Page = () => {
   });
 
   // Pagination calculations
-  const totalDoctorPages = Math.ceil(doctorCount / itemsPerPage);
+  const totalDoctorPages = Math.ceil(filteredDoctors.length / itemsPerPage);
   const totalHospitalPages = Math.ceil(filteredHospitals.length / itemsPerPage);
   const totalLabPages = Math.ceil(filteredLabs.length / itemsPerPage);
 
-  // Get current items for client-side pagination
+  // Get current items for client-side pagination (hospitals and labs)
   const getPaginatedItems = (items: any[], page: number) => {
     const startIndex = (page - 1) * itemsPerPage;
     return items.slice(startIndex, startIndex + itemsPerPage);
   };
 
-  // Show loading state while data is being fetched
+  // Handler functions
+  const handleSearchUpdate = (term: string) => {
+    if (term === "doctorsSearch" || term === "hospitalsSearch" || term === "labs") {
+      setActiveFilter(term);
+      setCurrentPage(1);
+    } else {
+      setSearchTerm(term);
+    }
+  };
+
+  const handleCountryUpdate = (term: string) => {
+    setCountryTerm(term);
+  };
+
+  const handleSpecialtyUpdate = (term: string) => {
+    setSpecialtyTerm(term);
+  };
+
+  const handleCityUpdate = (term: string) => {
+    setCityTerm(term);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen text-lg font-semibold">
@@ -273,13 +304,13 @@ const Page = () => {
         {/* Doctors Section */}
         {activeFilter === "doctorsSearch" && (
           <div className="space-y-4 lg:w-full">
-            {filteredDoctors.length === 0 ? (
+            {displayedDoctors.length === 0 ? (
               <p className="text-center text-xl font-semibold mx-auto">
                 {translations[language].noDoctors}
               </p>
             ) : (
               <>
-                {filteredDoctors.map((doctor) => (
+                {displayedDoctors.map((doctor) => (
                   <DoctorCard
                     key={doctor.doctor_id}
                     id={doctor.doctor_id}
@@ -289,15 +320,17 @@ const Page = () => {
                     reviewsCount={doctor.reviewsCount}
                     price={`${doctor.price} ${language === 'ar' ? 'د.ل' : 'DL'}`}
                     location={doctor.city}
-                    hospital=""
+                    hospital={doctor.medical_organizations?.[0]?.city?.name || ""}
                     imageUrl={doctor.image}
                   />
                 ))}
-                <PaginationDemo
-                  currentPage={doctorPage}
-                  totalPages={totalDoctorPages}
-                  onPageChange={setDoctorPage}
-                />
+                {totalDoctorPages > 1 && (
+                  <PaginationDemo
+                    currentPage={currentPage}
+                    totalPages={totalDoctorPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
               </>
             )}
           </div>
@@ -312,7 +345,7 @@ const Page = () => {
               </p>
             ) : (
               <>
-                {getPaginatedItems(filteredHospitals, hospitalPage).map((hospital) => (
+                {getPaginatedItems(filteredHospitals, currentPage).map((hospital) => (
                   <HospitalCard
                     key={hospital.id}
                     name={hospital.name}
@@ -322,11 +355,13 @@ const Page = () => {
                     href=""
                   />
                 ))}
-                <PaginationDemo
-                  currentPage={hospitalPage}
-                  totalPages={totalHospitalPages}
-                  onPageChange={setHospitalPage}
-                />
+                {totalHospitalPages > 1 && (
+                  <PaginationDemo
+                    currentPage={currentPage}
+                    totalPages={totalHospitalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
               </>
             )}
           </div>
@@ -341,7 +376,7 @@ const Page = () => {
               </p>
             ) : (
               <>
-                {getPaginatedItems(filteredLabs, labPage).map((lab, index) => (
+                {getPaginatedItems(filteredLabs, currentPage).map((lab, index) => (
                   <LabsCard
                     key={index}
                     name={lab.name}
@@ -349,11 +384,13 @@ const Page = () => {
                     tests={lab.services.length}
                   />
                 ))}
-                <PaginationDemo
-                  currentPage={labPage}
-                  totalPages={totalLabPages}
-                  onPageChange={setLabPage}
-                />
+                {totalLabPages > 1 && (
+                  <PaginationDemo
+                    currentPage={currentPage}
+                    totalPages={totalLabPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
               </>
             )}
           </div>

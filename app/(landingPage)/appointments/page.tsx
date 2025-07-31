@@ -328,6 +328,7 @@ const Page = () => {
                       doctorID={appointment.doctor.id}
                       name={`${appointment.doctor.name} ${appointment.doctor.last_name}`}
                       specialty={appointment.doctor.specialty}
+                      confirmationCode={appointment.confirmation_code}
                       price={appointment.price}
                       location=""
                       imageUrl={appointment.doctor.doctor_image}

@@ -11,31 +11,51 @@ interface GuideFiltrationProps {
   initialFilter?: "doctorsSearch" | "hospitalsSearch" | "labs" | "pharmaciesSearch";
 }
 
+interface DropdownItem {
+  id: number;
+  name: string;
+  foreign_name: string;
+}
+
 const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
   onSearchChange,
   onCountryChange,
   onSpecialtyChange,
   onCityChange,
-  initialFilter = "doctorsSearch" // Default value
+  initialFilter = "doctorsSearch"
 }) => {
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<"doctorsSearch" | "hospitalsSearch" | "labs" | "pharmaciesSearch">(initialFilter);
   const [language, setLanguage] = useState<Language>("ar");
   const [dropdownOpen, setDropdownOpen] = useState<"country" | "specialty" | "city" | null>(null);
 
-  const [countries, setCountries] = useState<any[]>([]);
-  const [specialities, setSpecialities] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
+  const [countries, setCountries] = useState<DropdownItem[]>([]);
+  const [specialities, setSpecialities] = useState<DropdownItem[]>([]);
+  const [cities, setCities] = useState<DropdownItem[]>([]);
   
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Separate refs for each dropdown
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const specialtyDropdownRef = useRef<HTMLDivElement>(null);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Update selectedFilter when initialFilter changes
     setSelectedFilter(initialFilter);
   }, [initialFilter]);
+
+  // Reset all selections when filter changes
+  useEffect(() => {
+    setSelectedCountry("");
+    setSelectedSpecialty("");
+    setSelectedCity("");
+    setSearch("");
+    onCountryChange("");
+    onSpecialtyChange("");
+    onCityChange("");
+    onSearchChange("");
+  }, [selectedFilter]);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem("language");
@@ -67,9 +87,9 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
           citiesRes.json()
         ]);
 
-        setCountries(countriesData);
-        setSpecialities(specialtiesData);
-        setCities(citiesData);
+        setCountries(countriesData || []);
+        setSpecialities(specialtiesData || []);
+        setCities(citiesData || []);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -78,7 +98,16 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
     fetchData();
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      
+      // Check each dropdown ref separately
+      if (dropdownOpen === "country" && countryDropdownRef.current && !countryDropdownRef.current.contains(target)) {
+        setDropdownOpen(null);
+      }
+      if (dropdownOpen === "specialty" && specialtyDropdownRef.current && !specialtyDropdownRef.current.contains(target)) {
+        setDropdownOpen(null);
+      }
+      if (dropdownOpen === "city" && cityDropdownRef.current && !cityDropdownRef.current.contains(target)) {
         setDropdownOpen(null);
       }
     };
@@ -89,7 +118,7 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
       window.removeEventListener("storage", handleStorageChange);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [dropdownOpen]);
 
   const handleCountryChange = (value: string) => {
     setSelectedCountry(value);
@@ -116,35 +145,28 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
   };
 
   const handleClick = (term: "doctorsSearch" | "hospitalsSearch" | "labs" | "pharmaciesSearch") => {
-    if (term === "pharmaciesSearch") return; // Disable pharmacies search
-    
+    if (term === "pharmaciesSearch") return;
     setSelectedFilter(term);
-    setSearch("");
-    setSelectedCountry(null);
-    setSelectedSpecialty(null);
-    setSelectedCity(null);
-    onSearchChange(term);
-    onCountryChange("");
-    onSpecialtyChange("");
-    onCityChange("");
   };
 
   const toggleDropdown = (type: "country" | "specialty" | "city") => {
     setDropdownOpen(dropdownOpen === type ? null : type);
   };
 
-  const CustomDropdown = ({
+  const CustomDropdown = React.memo(({
     type,
     items,
     selectedValue,
     placeholder,
     onChange,
+    dropdownRef
   }: {
     type: "country" | "specialty" | "city";
-    items: any[];
-    selectedValue: string | null;
+    items: DropdownItem[];
+    selectedValue: string;
     placeholder: string;
     onChange: (value: string) => void;
+    dropdownRef: React.RefObject<HTMLDivElement>;
   }) => {
     return (
       <div className="relative w-full" ref={dropdownRef}>
@@ -179,20 +201,23 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
             {items.map((item) => (
               <div
                 key={item.id}
-                onClick={() => onChange(item.name)}
+                onClick={() => {
+                  onChange(item.name);
+                  setDropdownOpen(null);
+                }}
                 className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-right ${
                   selectedValue === item.name ? "bg-roshitaBlue text-white" : ""
                 }`}
                 dir="rtl"
               >
-                {language === "ar" ? item.name : item.foreign_name || item.name}
+                {language === "ar" ? item.name : item.foreign_name}
               </div>
             ))}
           </div>
         )}
       </div>
     );
-  };
+  });
 
   const filterTabs = [
     { id: "hospitalsSearch", labelAr: "مستشفيات", labelEn: "Hospitals", icon: "Hos", disabled: false },
@@ -224,7 +249,6 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
         ))}
       </div>
 
-      {/* Filters Inputs */}
       <div className="bg-roshitaBlue justify-between flex flex-row-reverse rounded-lg p-4 gap-4 w-[95%] mx-auto">
         {selectedFilter === "doctorsSearch" ? (
           <>
@@ -235,6 +259,7 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
                 selectedValue={selectedSpecialty}
                 placeholder={language === "ar" ? "التخصص" : "Specialty"}
                 onChange={handleSpecialtyChange}
+                dropdownRef={specialtyDropdownRef}
               />
             </div>
             <div className="w-1/3">
@@ -244,6 +269,7 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
                 selectedValue={selectedCity}
                 placeholder={language === "ar" ? "المدينة" : "City"}
                 onChange={handleCityChange}
+                dropdownRef={cityDropdownRef}
               />
             </div>
           </>
@@ -256,6 +282,7 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
                 selectedValue={selectedCountry}
                 placeholder={language === "ar" ? "البلد" : "Country"}
                 onChange={handleCountryChange}
+                dropdownRef={countryDropdownRef}
               />
             </div>
             <div className="w-1/3">
@@ -265,6 +292,7 @@ const GuideFiltration2: React.FC<GuideFiltrationProps> = ({
                 selectedValue={selectedCity}
                 placeholder={language === "ar" ? "المدينة" : "City"}
                 onChange={handleCityChange}
+                dropdownRef={cityDropdownRef}
               />
             </div>
           </>

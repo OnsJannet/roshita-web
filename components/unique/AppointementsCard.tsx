@@ -14,6 +14,7 @@ type DoctorCardProps = {
   doctorID: string;
   appointementId: string;
   appointementStatus: string;
+  confirmationCode: string;
   onError?: (errorMessage: string) => void;
 };
 
@@ -30,6 +31,7 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
   doctorID,
   appointementId,
   appointementStatus,
+  confirmationCode,
   status: initialStatus,
   onError,
 }) => {
@@ -385,6 +387,19 @@ const AppointementsCard: React.FC<DoctorCardProps> = ({
               </span>
               <Banknote className="text-roshitaDarkBlue" />
             </div>
+                        <div
+              className={`flex items-center text-sm text-gray-600 mb-1 mt-2 ${
+                language === "ar" ? "flex-row" : "flex-row-reverse"
+              } gap-2 flex-1`}
+            >
+              <span>
+                {language === "ar"
+                  ? ` رقم التأكيد ${(confirmationCode === undefined || confirmationCode === null) ? "-" : confirmationCode}`
+                  : `Confirmation N° #{${confirmationCode}`}
+              </span>
+              <Banknote className="text-roshitaDarkBlue" />
+            </div>
+            
           </div>
 
           <div className="flex justify-between items-center w-full">

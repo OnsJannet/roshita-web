@@ -215,11 +215,6 @@ const DoctorDetailsPage = () => {
           language === "ar" ? "text-right" : "text-left"
         }`}
       >
-        {/*<p className="text-lg font-semibold">
-          {language === "ar"
-            ? "جاري تحميل تفاصيل الطبيب"
-            : "Loading doctor details..."}
-        </p>*/}
         <LoadingDoctors />
       </div>
     );
@@ -368,14 +363,20 @@ const DoctorDetailsPage = () => {
             {translations[language].availableTimes}
           </h2>
           {doctor.appointment_dates.length !== 0 ? (
-            <Carousel>
+            <Carousel
+              opts={{
+                align: "start",
+                slidesToScroll: "auto",
+              }}
+              className="w-full"
+            >
               <CarouselPrevious className="bg-gray-300" />
               <CarouselNext className="bg-gray-300" />
-              <CarouselContent className="flex justify-center">
+              <CarouselContent className="-ml-1">
                 {filterFutureDates(doctor.appointment_dates).map((appointment, index) => (
                   <CarouselItem
                     key={index}
-                    className="p-4 rounded-md md:basis-1/2 lg:basis-1/6"
+                    className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
                   >
                     <div className="p-1">
                       <Card className="rounded">
@@ -425,36 +426,6 @@ const DoctorDetailsPage = () => {
             </div>
           )}
         </div>
-
-        {/* Working Hours */}
-        {/*<div className="bg-white border-2 border-gray-200 rounded-lg lg:w-1/2 w-[90%] mx-auto mt-10 mb-10 text-end p-8">
-          <h2
-            className={`text-xl font-semibold mb-4 text-roshitaBlue ${
-              language === "en" ? "text-start" : ""
-            }`}
-          >
-            {translations[language].availableTimes}
-          </h2>
-
-          <div className="space-y-2">
-            {weekdays.map((day, index) => (
-              <div
-                key={index}
-                className={`flex justify-between lg:${
-                  language === "en" ? "flex-row" : "flex-row-reverse"
-                } border-b border-dotted border-gray-300 pb-2`}
-              >
-                <div className="text-gray-700 font-semibold text-2xl">
-                  {translations[language][day]}
-                </div>
-                <div className="text-gray-700 flex gap-2 flex-row-reverse items-center">
-                  <Clock className="h-4 w-4 text-roshitaBlue" />
-                  {translations[language].timeFormat}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>*/}
       </div>
     </div>
   );

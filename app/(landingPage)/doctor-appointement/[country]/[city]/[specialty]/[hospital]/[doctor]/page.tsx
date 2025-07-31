@@ -224,7 +224,7 @@ const Page = () => {
         console.log("Raw API response:", data);
         console.log("Processed doctors data:", doctorsData);
         setCount(data.count)
-        setAllDoctors(doctorsData);
+        setAllDoctors(doctorsData.data.doctors);
         setTotalDoctors(doctorsData.length);
       } catch (err: any) {
         console.error("Error fetching doctors:", err);

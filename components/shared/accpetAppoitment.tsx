@@ -114,6 +114,7 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
   console.log("paymentMethod", paymentMethod);
   console.log("endTime", endTime);
   console.log("profileData", profileData)
+  console.log("paymentMethod?.word ", paymentMethod?.word)
 
   const [language, setLanguage] = useState<Language>("ar");
   const [confirmModal, setConfirmModal] = useState(false);
@@ -263,10 +264,11 @@ export const AcceptAppointment: React.FC<DoctorCardAppointmentProps> = ({
               setConfirmModal(true);
               setUrl(responseData.payment_confirmation.result.redirect_url);
             }
-          } else if (paymentMethod?.word?.toLowerCase() === "local bank card") {
+          } else if (paymentMethod?.word?.toLowerCase() === "local bank card" || paymentMethod?.word === "MPGS"|| paymentMethod?.word === "t-lync") {
             window.location.href =
               responseData.payment_confirmation.result.redirect_url;
-          } else {
+          } 
+          else {
             setShowSuccessModal(true);
           }
         } catch (error) {
