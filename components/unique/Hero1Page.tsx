@@ -22,7 +22,8 @@ const Hero1Page: React.FC = () => {
       image: "/Images/carouse-hero-1.png",
       ar: {
         title: "خـــــود رأي طـــــــــبي تاني  مـــــجاني ",
-        subtitle: "تحصل على استشارة طبية ثانية من أحياء في تونس وليبيا",
+subtitle: "تحصل على استشارة طبية ثانية من أطباء في تونس وليبيا",
+
       },
       en: {
         title: "Second Medical Opinion",
@@ -34,7 +35,8 @@ const Hero1Page: React.FC = () => {
       image: "/Images/carouse-hero-2.png",
       ar: {
         title: "خـــــود رأي طـــــــــبي تاني  مـــــجاني ",
-        subtitle: "تحصل على استشارة طبية ثانية من أجلت في تونس وليبيا",
+subtitle: "تحصل على استشارة طبية ثانية من أطباء في تونس وليبيا",
+
       },
       en: {
         title: "Free Second Medical Opinion",
@@ -46,7 +48,8 @@ const Hero1Page: React.FC = () => {
       image: "/Images/carouse-hero-3.png",
       ar: {
         title: "خـــــود رأي طـــــــــبي تاني  مـــــجاني ",
-        subtitle: "تحصل على استشارة طبية ثانية من أطباء في تونس وليبيا",
+subtitle: "تحصل على استشارة طبية ثانية من أطباء في تونس وليبيا",
+
       },
       en: {
         title: "Second Medical Opinion",
