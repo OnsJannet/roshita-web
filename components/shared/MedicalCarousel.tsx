@@ -302,7 +302,7 @@ const MedicalCarouselExample: React.FC = () => {
         title={language === "ar" ? "عروض" : "Offers"}
         subtitle={
           language === "ar"
-            ? "أكثر عروض وخدمات رخيصة الخدمات الطبية المتميزة باستعمال منتجات عالية الجودة كل هذا يمكنكم من تحرير وقتكم"
+            ? "أختر عروض روشيتا لكافة الخدمـــات الطبية المتنوعة  بأسعار ممتازة  من افضل دكاترة من تونس وليبيا"
             : "More affordable offers and services for distinguished medical services using high-quality products, all of this allows you to free up your time"
         }
         data={offersData}

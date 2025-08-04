@@ -129,7 +129,7 @@ subtitle: "تحصل على استشارة طبية ثانية من أطباء ف
       </div>
 
       {/* Bottom Content - Made responsive */}
-      <div className="relative z-10 lg:min-h-screen flex flex-col">
+      <div className="relative z-9999 lg:min-h-screen flex flex-col">
         <main className="flex-1 flex items-center justify-center px-4 sm:px-6">
           <div className="mx-auto w-full lg:mt-[500px] mt-[450px] sm:mt-[200px]">
             <DoctorSearchFilters />
