@@ -47,6 +47,17 @@ const Page = () => {
     setIsSubmitting(true);
     setError("");
 
+    // Validate phone number doesn't start with country code
+    if (phone.startsWith("218") || phone.startsWith("216")) {
+      setError(
+        language === "ar"
+          ? "يرجى إدخال رقم الهاتف بدون رمز الدولة"
+          : "Please enter phone number without country code"
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     // Prepare the data for the API request
     const data = {
       phone,
@@ -184,12 +195,12 @@ const Page = () => {
   const getPhoneHint = () => {
     if (language === "ar") {
       return selectedCountry === "LBY"
-        ? "يرجى إدخال رقم الهاتف بدون رمز الدولة، مثال: 09xxxxxxxx"
-        : "يرجى إدخال رقم الهاتف بدون رمز الدولة، مثال: 20xxxxxx";
+        ? "يرجى إدخال رقم الهاتف بدون رمز الدولة (بدون 218)، مثال: 09xxxxxxxx"
+        : "يرجى إدخال رقم الهاتف بدون رمز الدولة (بدون 216)، مثال: 20xxxxxx";
     } else {
       return selectedCountry === "LBY"
-        ? "Please enter the phone number without the country code, e.g., 09xxxxxxxx"
-        : "Please enter the phone number without the country code, e.g., 20xxxxxx";
+        ? "Please enter the phone number without country code (no 218), e.g., 09xxxxxxxx"
+        : "Please enter the phone number without country code (no 216), e.g., 20xxxxxx";
     }
   };
 
@@ -307,7 +318,6 @@ const Page = () => {
                 id="email"
                 type="email"
                 placeholder="example@email.com"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={language === "ar" ? "text-right" : "text-left"}

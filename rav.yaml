@@ -1,0 +1,26 @@
+description: Rav is a shortcut to run commands on your local machine.
+
+
+scripts:
+  # Docker
+  docker_deploy:
+    - docker-compose down && docker-compose build --no-cache && docker-compose up
+  docker_web_deploy:
+    - docker-compose  build web
+    - docker-compose  up -d web
+  docker_down:
+    - docker-compose  down
+    - docker volume prune
+  docker_logs:
+    - docker-compose logs -f
+  docker_delete_logs:
+    - sudo find /var/lib/docker/containers/ -type f -name "*.log" -exec truncate -s 0 {} \;
+  docker_web_shell:
+    - docker-compose exec web sh
+  docker_rm:
+    - docker stop $(docker ps -q)
+    - docker rm $(docker ps -a -q)
+    - docker rmi $(docker images -q)
+    - docker volume rm $(docker volume ls -q)
+    - docker network rm $(docker network ls -q)
+    - docker system prune -a --volumes -f
